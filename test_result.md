@@ -144,7 +144,7 @@ backend:
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
         - agent: "main"
@@ -155,6 +155,9 @@ backend:
         - working: true
         - agent: "main"
         - comment: "✅ UPDATED: calculate_expiry_date function now defaults to 30 days if expiry_value not specified. Removed 'permanent' option. All profiles now have expiry dates. Multi-language support added."
+        - working: true
+        - agent: "testing"
+        - comment: "✅ CRITICAL FIXES TESTED: All CRUD operations with new format working perfectly. Default expiry logic (30 days) working correctly. Multi-language support (language as array) fully functional. All expiry options (1 day, 7 days, 30 days, custom hours) working. Profile creation, update, and retrieval with language arrays successful. Slug generation still working correctly."
 
   - task: "Media Management APIs"
     implemented: true
