@@ -6,10 +6,17 @@ export const InvitationContent = ({ design, deity }) => {
   const sectionsRef = useRef([]);
 
   useEffect(() => {
+    // Immediately show first section
+    if (sectionsRef.current[0]) {
+      sectionsRef.current[0].style.opacity = '1';
+      sectionsRef.current[0].classList.add('animate-fade-in-up');
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
             entry.target.classList.add('animate-fade-in-up');
           }
         });
