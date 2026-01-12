@@ -1190,13 +1190,16 @@ class WeddingAPITester:
 def main():
     """Main test execution"""
     tester = WeddingAPITester()
-    success = tester.run_critical_fix_tests()
     
-    if success:
-        print("\n✅ CRITICAL FIXES testing completed successfully!")
+    # Run design system tests as requested in review
+    print("🎨 RUNNING DESIGN SYSTEM TESTS AS REQUESTED")
+    design_success = tester.run_design_system_tests()
+    
+    if design_success:
+        print("\n✅ DESIGN SYSTEM testing completed successfully!")
         exit(0)
     else:
-        print("\n❌ CRITICAL FIXES testing completed with failures!")
+        print("\n❌ DESIGN SYSTEM testing completed with failures!")
         exit(1)
 
 if __name__ == "__main__":
