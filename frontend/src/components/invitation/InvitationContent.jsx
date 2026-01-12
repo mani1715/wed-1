@@ -130,32 +130,32 @@ export const InvitationContent = ({ design, deity }) => {
           className="transition-all duration-700"
         >
           <Card className={`${config.cardBg} backdrop-blur-sm border-none shadow-xl p-8 md:p-12`}>
-            <h2 className={`${config.font} text-3xl md:text-4xl font-semibold ${config.accent} text-center mb-8`}>
+            <h2 className={`${config.font} text-3xl md:text-4xl font-semibold ${cardAccentColor} text-center mb-8`}>
               Wedding Ceremony
             </h2>
 
             <div className="space-y-6">
               <div className="flex items-start gap-4">
-                <Calendar className={`w-6 h-6 ${config.accent} mt-1 flex-shrink-0`} />
+                <Calendar className={`w-6 h-6 ${cardAccentColor} mt-1 flex-shrink-0`} />
                 <div>
-                  <div className={`font-semibold ${config.text} text-lg`}>Date</div>
-                  <div className={`${config.text} opacity-80`}>Saturday, December 21, 2024</div>
+                  <div className={`font-semibold ${cardTextColor} text-lg`}>Date</div>
+                  <div className={`${cardTextColor} opacity-80`}>Saturday, December 21, 2024</div>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
-                <Clock className={`w-6 h-6 ${config.accent} mt-1 flex-shrink-0`} />
+                <Clock className={`w-6 h-6 ${cardAccentColor} mt-1 flex-shrink-0`} />
                 <div>
-                  <div className={`font-semibold ${config.text} text-lg`}>Time</div>
-                  <div className={`${config.text} opacity-80`}>10:00 AM - Muhurat</div>
+                  <div className={`font-semibold ${cardTextColor} text-lg`}>Time</div>
+                  <div className={`${cardTextColor} opacity-80`}>10:00 AM - Muhurat</div>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
-                <MapPin className={`w-6 h-6 ${config.accent} mt-1 flex-shrink-0`} />
+                <MapPin className={`w-6 h-6 ${cardAccentColor} mt-1 flex-shrink-0`} />
                 <div>
-                  <div className={`font-semibold ${config.text} text-lg`}>Venue</div>
-                  <div className={`${config.text} opacity-80`}>
+                  <div className={`font-semibold ${cardTextColor} text-lg`}>Venue</div>
+                  <div className={`${cardTextColor} opacity-80`}>
                     Grand Heritage Hall<br />
                     123 Main Street, Bangalore<br />
                     Karnataka 560001
