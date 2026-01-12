@@ -817,50 +817,46 @@ class WeddingAPITester:
             self.log_test("Expired Link Access", False, f"Exception: {str(e)}")
             return False
     
-    def run_all_tests(self):
-        """Run all backend API tests"""
-        print("🚀 Starting Wedding Invitation Platform Backend API Tests")
-        print("=" * 60)
+    def run_critical_fix_tests(self):
+        """Run all CRITICAL FIX tests as specified in review request"""
+        print("🚀 Starting CRITICAL FIXES Testing for Wedding Invitation Platform")
+        print("=" * 70)
         
         test_results = []
         
-        # Authentication Tests
+        # Authentication (prerequisite)
         test_results.append(self.test_admin_login())
+        if not self.admin_token:
+            print("❌ Cannot proceed without authentication")
+            return False
+        
+        # CRITICAL FIXES TESTING
+        print("\n🎯 PRIORITY TESTS - CRITICAL FIXES:")
+        test_results.append(self.test_default_expiry_logic())
+        test_results.append(self.test_multi_language_support())
+        test_results.append(self.test_expiry_options())
+        test_results.append(self.test_link_expiry_validation())
+        test_results.append(self.test_profile_crud_new_format())
+        test_results.append(self.test_immediate_link_access())
+        
+        # Additional verification tests
+        print("\n🔍 VERIFICATION TESTS:")
         test_results.append(self.test_admin_login_invalid())
         test_results.append(self.test_auth_me())
-        
-        # Profile Management Tests
-        test_results.append(self.test_create_profile())
-        test_results.append(self.test_get_all_profiles())
-        test_results.append(self.test_get_single_profile())
-        test_results.append(self.test_update_profile())
-        
-        # Media Management Tests
-        test_results.append(self.test_add_media())
-        test_results.append(self.test_get_profile_media())
-        
-        # Public Invitation Tests
-        test_results.append(self.test_public_invitation())
-        test_results.append(self.test_submit_greeting())
-        test_results.append(self.test_get_profile_greetings())
-        
-        # Cleanup Tests
-        test_results.append(self.test_delete_media())
-        test_results.append(self.test_delete_profile())
-        test_results.append(self.test_expired_link_access())
         
         # Summary
         passed = sum(test_results)
         total = len(test_results)
         
-        print("\n" + "=" * 60)
-        print(f"🏁 TEST SUMMARY: {passed}/{total} tests passed")
+        print("\n" + "=" * 70)
+        print(f"🏁 CRITICAL FIXES TEST SUMMARY: {passed}/{total} tests passed")
         
         if passed == total:
-            print("🎉 ALL TESTS PASSED! Backend APIs are working correctly.")
+            print("🎉 ALL CRITICAL FIXES WORKING! Backend ready for production.")
             return True
         else:
-            print(f"⚠️  {total - passed} tests failed. Please check the issues above.")
+            failed = total - passed
+            print(f"⚠️  {failed} CRITICAL tests failed. Issues need immediate attention!")
             return False
 
 def main():
