@@ -172,10 +172,10 @@ export const InvitationContent = ({ design, deity }) => {
           className="transition-all duration-700"
         >
           <Card className={`${config.cardBg} backdrop-blur-sm border-none shadow-xl p-8 md:p-12`}>
-            <h2 className={`${config.font} text-3xl md:text-4xl font-semibold ${config.accent} text-center mb-6`}>
+            <h2 className={`${config.font} text-3xl md:text-4xl font-semibold ${cardAccentColor} text-center mb-6`}>
               Our Story
             </h2>
-            <p className={`${config.text} text-center leading-relaxed text-lg opacity-90`}>
+            <p className={`${cardTextColor} text-center leading-relaxed text-lg opacity-90`}>
               Two hearts, two souls, and two families coming together to celebrate a love that was written in the stars.
               Join us as we begin this beautiful journey of togetherness.
             </p>
