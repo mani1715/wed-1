@@ -397,29 +397,147 @@ class WeddingAPITester:
         
         return False
     
-    def test_get_all_profiles(self):
-        """Test getting all profiles"""
+    def test_profile_crud_new_format(self):
+        """Test CRITICAL FIX: Profile CRUD with new format (language arrays, etc.)"""
+        print("\n📝 Testing CRITICAL FIX: Profile CRUD with New Format...")
+        
         if not self.admin_token:
-            self.log_test("Get All Profiles", False, "No admin token available")
+            self.log_test("Profile CRUD New Format", False, "No admin token available")
             return False
-            
+        
+        # Create profile with all new fields
+        profile_data = {
+            "groom_name": "Rohit Sharma",
+            "bride_name": "Ananya Gupta",
+            "event_type": "engagement",
+            "event_date": (datetime.now() + timedelta(days=20)).isoformat(),
+            "venue": "Taj Lake Palace, Udaipur",
+            "language": ["hindi", "english", "tamil"],  # Multi-language array
+            "sections_enabled": {
+                "opening": True,
+                "welcome": True,
+                "couple": True,
+                "photos": True,
+                "video": True,
+                "events": True,
+                "greetings": True,
+                "footer": True
+            },
+            "link_expiry_type": "days",
+            "link_expiry_value": 14
+        }
+        
         try:
-            response = self.session.get(f"{API_BASE}/admin/profiles")
+            # CREATE
+            response = self.session.post(f"{API_BASE}/admin/profiles", json=profile_data)
             
-            if response.status_code == 200:
-                data = response.json()
-                if isinstance(data, list):
-                    self.log_test("Get All Profiles", True, f"Retrieved {len(data)} profiles")
-                    return True
-                else:
-                    self.log_test("Get All Profiles", False, "Response is not a list")
-                    return False
-            else:
-                self.log_test("Get All Profiles", False, f"Status: {response.status_code}, Response: {response.text}")
+            if response.status_code != 200:
+                self.log_test("Profile CRUD - Create", False, f"Create failed: {response.status_code}")
                 return False
-                
+            
+            data = response.json()
+            profile_id = data["id"]
+            slug = data["slug"]
+            self.test_profile_ids.append(profile_id)
+            self.test_slugs.append(slug)
+            
+            # Verify creation with new format
+            if not isinstance(data.get("language"), list):
+                self.log_test("Profile CRUD - Create", False, "Language not returned as array")
+                return False
+            
+            self.log_test("Profile CRUD - Create", True, f"✅ Created with language array: {data['language']}")
+            
+            # UPDATE - Change language array
+            update_data = {
+                "language": ["english", "telugu"],  # Update to different languages
+                "venue": "Updated Venue - Hyatt Regency, Delhi"
+            }
+            
+            update_response = self.session.put(f"{API_BASE}/admin/profiles/{profile_id}", json=update_data)
+            
+            if update_response.status_code != 200:
+                self.log_test("Profile CRUD - Update", False, f"Update failed: {update_response.status_code}")
+                return False
+            
+            update_result = update_response.json()
+            if (isinstance(update_result.get("language"), list) and 
+                set(update_result["language"]) == {"english", "telugu"}):
+                self.log_test("Profile CRUD - Update", True, f"✅ Updated language array: {update_result['language']}")
+            else:
+                self.log_test("Profile CRUD - Update", False, f"Language update failed: {update_result.get('language')}")
+                return False
+            
+            # GET ALL - Verify language arrays in list
+            all_profiles_response = self.session.get(f"{API_BASE}/admin/profiles")
+            
+            if all_profiles_response.status_code != 200:
+                self.log_test("Profile CRUD - Get All", False, f"Get all failed: {all_profiles_response.status_code}")
+                return False
+            
+            all_profiles = all_profiles_response.json()
+            our_profile = next((p for p in all_profiles if p["id"] == profile_id), None)
+            
+            if our_profile and isinstance(our_profile.get("language"), list):
+                self.log_test("Profile CRUD - Get All", True, "✅ Language arrays displayed correctly in list")
+            else:
+                self.log_test("Profile CRUD - Get All", False, "Language arrays not working in profile list")
+                return False
+            
+            # Verify slug generation still works
+            if slug and len(slug) > 10 and "-" in slug:
+                self.log_test("Profile CRUD - Slug Generation", True, f"✅ Slug generated: {slug}")
+            else:
+                self.log_test("Profile CRUD - Slug Generation", False, f"Invalid slug: {slug}")
+                return False
+            
+            return True
+            
         except Exception as e:
-            self.log_test("Get All Profiles", False, f"Exception: {str(e)}")
+            self.log_test("Profile CRUD New Format", False, f"Exception: {str(e)}")
+            return False
+
+    def test_immediate_link_access(self):
+        """Test that invitation links work immediately after creation (no 'Link Expired' errors)"""
+        print("\n🔗 Testing Immediate Link Access...")
+        
+        if not self.test_slugs:
+            self.log_test("Immediate Link Access", False, "No test slugs available")
+            return False
+        
+        # Test that newly created profiles are immediately accessible
+        success_count = 0
+        
+        for i, slug in enumerate(self.test_slugs[:3]):  # Test first 3 profiles
+            try:
+                public_session = requests.Session()
+                response = public_session.get(f"{API_BASE}/invite/{slug}")
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if "groom_name" in data and "bride_name" in data:
+                        success_count += 1
+                        self.log_test(f"Immediate Access {i+1}", True, 
+                                    f"✅ {data['groom_name']} & {data['bride_name']} invitation loads correctly")
+                    else:
+                        self.log_test(f"Immediate Access {i+1}", False, "Missing profile data")
+                elif response.status_code == 410:
+                    self.log_test(f"Immediate Access {i+1}", False, 
+                                "❌ CRITICAL: New profile shows as expired!")
+                else:
+                    self.log_test(f"Immediate Access {i+1}", False, 
+                                f"Unexpected status: {response.status_code}")
+                    
+            except Exception as e:
+                self.log_test(f"Immediate Access {i+1}", False, f"Exception: {str(e)}")
+        
+        if success_count >= 2:
+            self.log_test("Overall Immediate Access", True, 
+                        f"✅ {success_count} profiles accessible immediately after creation")
+            return True
+        else:
+            self.log_test("Overall Immediate Access", False, 
+                        f"❌ Only {success_count} profiles accessible - CRITICAL ISSUE")
             return False
     
     def test_get_single_profile(self):
