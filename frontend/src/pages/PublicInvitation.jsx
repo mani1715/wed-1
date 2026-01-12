@@ -4,6 +4,7 @@ import axios from 'axios';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Heart, Calendar, MapPin, Send } from 'lucide-react';
+import { getTheme, applyThemeVariables } from '@/config/themes';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
@@ -20,6 +21,20 @@ const PublicInvitation = () => {
   useEffect(() => {
     fetchInvitation();
   }, [slug]);
+
+  // Apply theme when invitation loads
+  useEffect(() => {
+    if (invitation && invitation.design_id) {
+      const theme = getTheme(invitation.design_id);
+      applyThemeVariables(theme);
+      
+      // Load Google Fonts dynamically
+      const link = document.createElement('link');
+      link.href = 'https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lora:wght@400;600;700&family=Playfair+Display:wght@400;600;700&family=Libre+Baskerville:wght@400;700&family=Quicksand:wght@400;600;700&family=Nunito:wght@400;600;700&family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@400;600;700&family=UnifrakturMaguntia&family=Merriweather:wght@400;700&family=Raleway:wght@400;600;700&family=Inter:wght@400;600;700&family=Poppins:wght@400;600;700&family=Open+Sans:wght@400;600;700&family=Indie+Flower&family=Architects+Daughter&display=swap';
+      link.rel = 'stylesheet';
+      document.head.appendChild(link);
+    }
+  }, [invitation]);
 
   const fetchInvitation = async () => {
     try {
