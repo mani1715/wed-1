@@ -542,16 +542,16 @@ class WeddingAPITester:
     
     def test_get_single_profile(self):
         """Test getting single profile"""
-        if not self.admin_token or not self.test_profile_id:
+        if not self.admin_token or not self.test_profile_ids:
             self.log_test("Get Single Profile", False, "No admin token or profile ID available")
             return False
             
         try:
-            response = self.session.get(f"{API_BASE}/admin/profiles/{self.test_profile_id}")
+            response = self.session.get(f"{API_BASE}/admin/profiles/{self.test_profile_ids[0]}")
             
             if response.status_code == 200:
                 data = response.json()
-                if "id" in data and data["id"] == self.test_profile_id:
+                if "id" in data and data["id"] == self.test_profile_ids[0]:
                     self.log_test("Get Single Profile", True, f"Retrieved profile: {data['groom_name']} & {data['bride_name']}")
                     return True
                 else:
