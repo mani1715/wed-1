@@ -158,6 +158,9 @@ backend:
         - working: true
         - agent: "testing"
         - comment: "✅ CRITICAL FIXES TESTED: All CRUD operations with new format working perfectly. Default expiry logic (30 days) working correctly. Multi-language support (language as array) fully functional. All expiry options (1 day, 7 days, 30 days, custom hours) working. Profile creation, update, and retrieval with language arrays successful. Slug generation still working correctly."
+        - working: true
+        - agent: "testing"
+        - comment: "✅ TIMEZONE FIX VERIFIED: All CRUD operations working with timezone-aware datetime handling. Profile creation defaults to is_active=True and 30-day expiry. All expiry calculations working correctly with timezone awareness. Profile updates maintain proper timezone handling. No timezone-related issues in CRUD operations."
 
   - task: "Media Management APIs"
     implemented: true
