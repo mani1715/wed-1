@@ -292,10 +292,8 @@ test_plan:
     - "Admin Dashboard"
     - "Profile Create/Edit Form"
     - "Public Invitation Viewer"
-    - "Admin CRUD APIs"
-    - "Public Invitation APIs"
   stuck_tasks: []
-  test_all: true
+  test_all: false
   test_priority: "high_first"
 
 agent_communication:
