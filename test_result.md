@@ -240,7 +240,7 @@ frontend:
 
   - task: "Admin Dashboard"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/pages/AdminDashboard.jsx"
     stuck_count: 0
     priority: "high"
@@ -249,10 +249,13 @@ frontend:
         - working: "NA"
         - agent: "main"
         - comment: "Profile list with create, edit, delete, view, and copy link actions. Shows event type, date, expiry info. Route: /admin/dashboard"
+        - working: true
+        - agent: "main"
+        - comment: "✅ UPDATED: Fixed language display to show multiple languages as comma-separated list. Dashboard now properly handles language arrays."
 
   - task: "Profile Create/Edit Form"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/pages/ProfileForm.jsx"
     stuck_count: 0
     priority: "high"
@@ -261,6 +264,9 @@ frontend:
         - working: "NA"
         - agent: "main"
         - comment: "Comprehensive form with all fields: groom/bride names, event type/date, venue, language, section toggles, link expiry settings. Routes: /admin/profile/new and /admin/profile/:id/edit"
+        - working: true
+        - agent: "main"
+        - comment: "✅ UPDATED: Changed language to multi-select checkboxes (Telugu, Hindi, Tamil, English). Updated expiry dropdown to: 1 Day / 7 Days / 30 Days (Default) / Custom. Added Preview Invitation button and Copy Link functionality. Shows generated link immediately after saving. Default expiry set to 30 days."
 
   - task: "Public Invitation Viewer"
     implemented: true
