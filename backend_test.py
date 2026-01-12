@@ -817,6 +817,298 @@ class WeddingAPITester:
             self.log_test("Expired Link Access", False, f"Exception: {str(e)}")
             return False
     
+    def test_design_system_default(self):
+        """Test Profile Creation with Default Design (temple_divine)"""
+        print("\n🎨 Testing Design System - Default Design...")
+        
+        if not self.admin_token:
+            self.log_test("Design System - Default", False, "No admin token available")
+            return False
+        
+        # Create profile without specifying design_id (should default to temple_divine)
+        profile_data = {
+            "groom_name": "Karthik Reddy",
+            "bride_name": "Divya Sharma",
+            "event_type": "marriage",
+            "event_date": (datetime.now() + timedelta(days=25)).isoformat(),
+            "venue": "Taj Falaknuma Palace, Hyderabad",
+            "language": ["english", "telugu"],
+            "sections_enabled": {
+                "opening": True,
+                "welcome": True,
+                "couple": True,
+                "photos": True,
+                "video": False,
+                "events": True,
+                "greetings": True,
+                "footer": True
+            }
+            # NOT specifying design_id - should default to temple_divine
+        }
+        
+        try:
+            response = self.session.post(f"{API_BASE}/admin/profiles", json=profile_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check default design_id
+                if data.get("design_id") == "temple_divine":
+                    self.test_profile_ids.append(data["id"])
+                    self.test_slugs.append(data["slug"])
+                    self.log_test("Design System - Default", True, 
+                                f"✅ Default design correctly set to: {data['design_id']}")
+                    return True
+                else:
+                    self.log_test("Design System - Default", False, 
+                                f"Expected 'temple_divine', got: {data.get('design_id')}")
+                    return False
+            else:
+                self.log_test("Design System - Default", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Design System - Default", False, f"Exception: {str(e)}")
+            return False
+
+    def test_design_system_specific(self):
+        """Test Profile Creation with Specific Design"""
+        print("\n🎨 Testing Design System - Specific Design...")
+        
+        if not self.admin_token:
+            self.log_test("Design System - Specific", False, "No admin token available")
+            return False
+        
+        # Create profile with specific design_id
+        profile_data = {
+            "groom_name": "Rajesh Kumar",
+            "bride_name": "Priya Nair",
+            "event_type": "engagement",
+            "event_date": (datetime.now() + timedelta(days=35)).isoformat(),
+            "venue": "ITC Grand Chola, Chennai",
+            "language": ["english", "tamil"],
+            "design_id": "royal_classic",  # Specific design
+            "sections_enabled": {
+                "opening": True,
+                "welcome": True,
+                "couple": True,
+                "photos": True,
+                "video": True,
+                "events": True,
+                "greetings": True,
+                "footer": True
+            }
+        }
+        
+        try:
+            response = self.session.post(f"{API_BASE}/admin/profiles", json=profile_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check specific design_id
+                if data.get("design_id") == "royal_classic":
+                    self.test_profile_ids.append(data["id"])
+                    self.test_slugs.append(data["slug"])
+                    self.log_test("Design System - Specific", True, 
+                                f"✅ Specific design correctly set to: {data['design_id']}")
+                    return True
+                else:
+                    self.log_test("Design System - Specific", False, 
+                                f"Expected 'royal_classic', got: {data.get('design_id')}")
+                    return False
+            else:
+                self.log_test("Design System - Specific", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Design System - Specific", False, f"Exception: {str(e)}")
+            return False
+
+    def test_design_system_retrieval(self):
+        """Test Profile Retrieval with Design ID in all endpoints"""
+        print("\n🎨 Testing Design System - Profile Retrieval...")
+        
+        if not self.admin_token or not self.test_profile_ids:
+            self.log_test("Design System - Retrieval", False, "No admin token or profile IDs available")
+            return False
+        
+        profile_id = self.test_profile_ids[0]
+        slug = self.test_slugs[0]
+        
+        try:
+            # Test 1: GET /api/admin/profiles - verify design_id in list
+            all_profiles_response = self.session.get(f"{API_BASE}/admin/profiles")
+            
+            if all_profiles_response.status_code != 200:
+                self.log_test("Design System - Get All Profiles", False, f"Status: {all_profiles_response.status_code}")
+                return False
+            
+            all_profiles = all_profiles_response.json()
+            our_profile = next((p for p in all_profiles if p["id"] == profile_id), None)
+            
+            if not our_profile or "design_id" not in our_profile:
+                self.log_test("Design System - Get All Profiles", False, "design_id missing in profiles list")
+                return False
+            
+            self.log_test("Design System - Get All Profiles", True, 
+                        f"✅ design_id included in list: {our_profile['design_id']}")
+            
+            # Test 2: GET /api/admin/profiles/:id - verify design_id in single profile
+            single_profile_response = self.session.get(f"{API_BASE}/admin/profiles/{profile_id}")
+            
+            if single_profile_response.status_code != 200:
+                self.log_test("Design System - Get Single Profile", False, f"Status: {single_profile_response.status_code}")
+                return False
+            
+            single_profile = single_profile_response.json()
+            
+            if "design_id" not in single_profile:
+                self.log_test("Design System - Get Single Profile", False, "design_id missing in single profile")
+                return False
+            
+            self.log_test("Design System - Get Single Profile", True, 
+                        f"✅ design_id included in details: {single_profile['design_id']}")
+            
+            # Test 3: GET /api/invite/:slug - verify design_id in public view
+            public_session = requests.Session()
+            public_response = public_session.get(f"{API_BASE}/invite/{slug}")
+            
+            if public_response.status_code != 200:
+                self.log_test("Design System - Public Invitation", False, f"Status: {public_response.status_code}")
+                return False
+            
+            public_data = public_response.json()
+            
+            if "design_id" not in public_data:
+                self.log_test("Design System - Public Invitation", False, "design_id missing in public invitation")
+                return False
+            
+            self.log_test("Design System - Public Invitation", True, 
+                        f"✅ design_id included in public view: {public_data['design_id']}")
+            
+            return True
+            
+        except Exception as e:
+            self.log_test("Design System - Retrieval", False, f"Exception: {str(e)}")
+            return False
+
+    def test_design_system_update(self):
+        """Test Profile Update with Design Change"""
+        print("\n🎨 Testing Design System - Design Update...")
+        
+        if not self.admin_token or not self.test_profile_ids:
+            self.log_test("Design System - Update", False, "No admin token or profile IDs available")
+            return False
+        
+        profile_id = self.test_profile_ids[0]
+        
+        # Update design from temple_divine to floral_soft
+        update_data = {
+            "design_id": "floral_soft"
+        }
+        
+        try:
+            response = self.session.put(f"{API_BASE}/admin/profiles/{profile_id}", json=update_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check updated design_id
+                if data.get("design_id") == "floral_soft":
+                    self.log_test("Design System - Update", True, 
+                                f"✅ Design successfully updated to: {data['design_id']}")
+                    
+                    # Verify persistence by getting the profile again
+                    verify_response = self.session.get(f"{API_BASE}/admin/profiles/{profile_id}")
+                    if verify_response.status_code == 200:
+                        verify_data = verify_response.json()
+                        if verify_data.get("design_id") == "floral_soft":
+                            self.log_test("Design System - Update Persistence", True, 
+                                        "✅ Design change persisted correctly")
+                            return True
+                        else:
+                            self.log_test("Design System - Update Persistence", False, 
+                                        f"Design not persisted: {verify_data.get('design_id')}")
+                            return False
+                    else:
+                        self.log_test("Design System - Update Persistence", False, "Failed to verify persistence")
+                        return False
+                else:
+                    self.log_test("Design System - Update", False, 
+                                f"Expected 'floral_soft', got: {data.get('design_id')}")
+                    return False
+            else:
+                self.log_test("Design System - Update", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Design System - Update", False, f"Exception: {str(e)}")
+            return False
+
+    def test_design_system_validation(self):
+        """Test All 8 Design IDs Work Correctly"""
+        print("\n🎨 Testing Design System - All Design Validation...")
+        
+        if not self.admin_token:
+            self.log_test("Design System - Validation", False, "No admin token available")
+            return False
+        
+        # All 8 valid design IDs
+        valid_designs = [
+            "temple_divine", "royal_classic", "floral_soft", "cinematic_luxury",
+            "heritage_scroll", "minimal_elegant", "modern_premium", "artistic_handcrafted"
+        ]
+        
+        all_passed = True
+        
+        for i, design_id in enumerate(valid_designs):
+            profile_data = {
+                "groom_name": f"Design Test Groom {i+1}",
+                "bride_name": f"Design Test Bride {i+1}",
+                "event_type": "marriage",
+                "event_date": (datetime.now() + timedelta(days=40 + i)).isoformat(),
+                "venue": f"Design Test Venue {i+1}",
+                "language": ["english"],
+                "design_id": design_id,
+                "sections_enabled": {
+                    "opening": True,
+                    "welcome": True,
+                    "couple": True,
+                    "photos": False,
+                    "video": False,
+                    "events": True,
+                    "greetings": True,
+                    "footer": True
+                }
+            }
+            
+            try:
+                response = self.session.post(f"{API_BASE}/admin/profiles", json=profile_data)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    if data.get("design_id") == design_id:
+                        self.test_profile_ids.append(data["id"])
+                        self.test_slugs.append(data["slug"])
+                        self.log_test(f"Design Validation: {design_id}", True, 
+                                    f"✅ Design {design_id} works correctly")
+                    else:
+                        self.log_test(f"Design Validation: {design_id}", False, 
+                                    f"Design mismatch: expected {design_id}, got {data.get('design_id')}")
+                        all_passed = False
+                else:
+                    self.log_test(f"Design Validation: {design_id}", False, 
+                                f"Status: {response.status_code}")
+                    all_passed = False
+                    
+            except Exception as e:
+                self.log_test(f"Design Validation: {design_id}", False, f"Exception: {str(e)}")
+                all_passed = False
+        
+        return all_passed
+
     def run_critical_fix_tests(self):
         """Run all CRITICAL FIX tests as specified in review request"""
         print("🚀 Starting CRITICAL FIXES Testing for Wedding Invitation Platform")
@@ -857,6 +1149,42 @@ class WeddingAPITester:
         else:
             failed = total - passed
             print(f"⚠️  {failed} CRITICAL tests failed. Issues need immediate attention!")
+            return False
+
+    def run_design_system_tests(self):
+        """Run all DESIGN SYSTEM tests as specified in review request"""
+        print("🚀 Starting DESIGN SYSTEM Testing for Wedding Invitation Platform")
+        print("=" * 70)
+        
+        test_results = []
+        
+        # Authentication (prerequisite)
+        test_results.append(self.test_admin_login())
+        if not self.admin_token:
+            print("❌ Cannot proceed without authentication")
+            return False
+        
+        # DESIGN SYSTEM TESTING
+        print("\n🎨 DESIGN SYSTEM TESTS:")
+        test_results.append(self.test_design_system_default())
+        test_results.append(self.test_design_system_specific())
+        test_results.append(self.test_design_system_retrieval())
+        test_results.append(self.test_design_system_update())
+        test_results.append(self.test_design_system_validation())
+        
+        # Summary
+        passed = sum(test_results)
+        total = len(test_results)
+        
+        print("\n" + "=" * 70)
+        print(f"🏁 DESIGN SYSTEM TEST SUMMARY: {passed}/{total} tests passed")
+        
+        if passed == total:
+            print("🎉 ALL DESIGN SYSTEM TESTS PASSED! Design system working correctly.")
+            return True
+        else:
+            failed = total - passed
+            print(f"⚠️  {failed} design system tests failed. Issues need immediate attention!")
             return False
 
 def main():
