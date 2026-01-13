@@ -330,7 +330,7 @@ const PublicInvitation = () => {
                 color: 'var(--color-primary, #8B7355)'
               }}
             >
-              Our Memories
+              {getT('photos', 'title')}
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {invitation.media
