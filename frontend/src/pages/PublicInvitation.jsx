@@ -325,6 +325,64 @@ const PublicInvitation = () => {
           </Card>
         )}
 
+        {/* WhatsApp Greeting Section */}
+        {(invitation.whatsapp_groom || invitation.whatsapp_bride) && (
+          <Card 
+            className="p-8 mb-8"
+            style={{
+              background: 'var(--color-card, #FFFDF7)',
+              boxShadow: 'var(--card-shadow, 0 4px 12px rgba(139, 115, 85, 0.15))',
+              border: 'var(--card-border, 1px solid #E8D9C5)',
+              borderRadius: 'var(--card-radius, 12px)',
+              marginBottom: 'var(--spacing-card, 1.5rem)'
+            }}
+          >
+            <h3 
+              className="text-2xl font-semibold mb-6 text-center"
+              style={{ 
+                fontFamily: 'var(--font-heading, "Cinzel", serif)',
+                color: 'var(--color-primary, #8B7355)'
+              }}
+            >
+              {getT('greetings', 'title')}
+            </h3>
+            <p 
+              className="text-center mb-6"
+              style={{ color: 'var(--color-text, #4A3728)' }}
+            >
+              Send your wishes directly via WhatsApp
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              {invitation.whatsapp_groom && (
+                <Button
+                  onClick={() => window.open(generateWhatsAppURL(invitation.whatsapp_groom), '_blank')}
+                  className="flex items-center justify-center gap-2 px-6 py-3"
+                  style={{
+                    background: 'var(--color-secondary, #25D366)',
+                    color: '#FFFFFF'
+                  }}
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  {getT('whatsapp', 'groomButton')}
+                </Button>
+              )}
+              {invitation.whatsapp_bride && (
+                <Button
+                  onClick={() => window.open(generateWhatsAppURL(invitation.whatsapp_bride), '_blank')}
+                  className="flex items-center justify-center gap-2 px-6 py-3"
+                  style={{
+                    background: 'var(--color-secondary, #25D366)',
+                    color: '#FFFFFF'
+                  }}
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  {getT('whatsapp', 'brideButton')}
+                </Button>
+              )}
+            </div>
+          </Card>
+        )}
+
         {/* Photos Section */}
         {invitation.sections_enabled.photos && invitation.media.length > 0 && (
           <Card 
