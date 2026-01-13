@@ -106,6 +106,14 @@ const PublicInvitation = () => {
   }
 
   const eventDate = new Date(invitation.event_date);
+  
+  // Get available languages for this invitation
+  const availableLanguages = invitation.enabled_languages || ['english'];
+  
+  // Get text helper functions with custom text
+  const customText = invitation.custom_text || {};
+  const getT = (section, key) => getText(selectedLanguage, section, key, customText);
+  const getSectionT = (section) => getSectionText(selectedLanguage, section, customText);
 
   return (
     <div 
@@ -119,6 +127,40 @@ const PublicInvitation = () => {
       }}
     >
       <div className="container mx-auto px-4 max-w-4xl">
+        
+        {/* Language Switcher - Only show if multiple languages available */}
+        {availableLanguages.length > 1 && (
+          <div className="flex justify-end mb-6">
+            <div className="flex gap-2 bg-white/80 backdrop-blur-sm rounded-lg p-2 shadow-sm">
+              {availableLanguages.map((langCode) => {
+                const lang = getLanguage(langCode);
+                if (!lang) return null;
+                
+                return (
+                  <button
+                    key={langCode}
+                    onClick={() => setSelectedLanguage(langCode)}
+                    className="px-4 py-2 rounded-md text-sm font-medium transition-all"
+                    style={{
+                      background: selectedLanguage === langCode 
+                        ? 'var(--color-primary, #8B7355)' 
+                        : 'transparent',
+                      color: selectedLanguage === langCode 
+                        ? 'white' 
+                        : 'var(--color-text, #4A3728)',
+                      border: selectedLanguage === langCode 
+                        ? 'none' 
+                        : '1px solid var(--color-accent, #C9A961)'
+                    }}
+                  >
+                    {lang.nativeName}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        
         {/* Opening Section */}
         {invitation.sections_enabled.opening && (
           <div className="text-center" style={{ marginBottom: 'var(--spacing-section, 3rem)' }}>
