@@ -3,8 +3,9 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Heart, Calendar, MapPin, Send } from 'lucide-react';
+import { Heart, Calendar, MapPin, Send, Languages } from 'lucide-react';
 import { getTheme, applyThemeVariables } from '@/config/themes';
+import { getText, getSectionText, getLanguage } from '@/config/languageTemplates';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
@@ -13,6 +14,7 @@ const PublicInvitation = () => {
   const [invitation, setInvitation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedLanguage, setSelectedLanguage] = useState('english');
   const [guestName, setGuestName] = useState('');
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
