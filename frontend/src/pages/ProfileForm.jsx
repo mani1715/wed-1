@@ -4,7 +4,10 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import axios from 'axios';
-import { ArrowLeft, Save, Eye } from 'lucide-react';
+import { ArrowLeft, Save, Eye, ChevronDown, ChevronUp, Check } from 'lucide-react';
+import { DESIGN_THEMES } from '@/config/designThemes';
+import { DEITY_OPTIONS } from '@/config/religiousAssets';
+import { LANGUAGES } from '@/config/languageTemplates';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
@@ -16,6 +19,11 @@ const ProfileForm = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showCustomText, setShowCustomText] = useState(false);
+  const [whatsappErrors, setWhatsappErrors] = useState({
+    groom: '',
+    bride: ''
+  });
 
   const [formData, setFormData] = useState({
     groom_name: '',
@@ -24,7 +32,12 @@ const ProfileForm = () => {
     event_date: '',
     venue: '',
     language: ['english'],
-    design_id: 'temple_divine',
+    design_id: 'royal_classic',
+    deity_id: null,
+    whatsapp_groom: '',
+    whatsapp_bride: '',
+    enabled_languages: ['english'],
+    custom_text: {},
     link_expiry_type: 'days',
     link_expiry_value: '30',
     sections_enabled: {
@@ -64,7 +77,12 @@ const ProfileForm = () => {
         event_date: new Date(profile.event_date).toISOString().split('T')[0],
         venue: profile.venue,
         language: Array.isArray(profile.language) ? profile.language : [profile.language],
-        design_id: profile.design_id || 'temple_divine',
+        design_id: profile.design_id || 'royal_classic',
+        deity_id: profile.deity_id || null,
+        whatsapp_groom: profile.whatsapp_groom || '',
+        whatsapp_bride: profile.whatsapp_bride || '',
+        enabled_languages: profile.enabled_languages || ['english'],
+        custom_text: profile.custom_text || {},
         link_expiry_type: profile.link_expiry_type,
         link_expiry_value: profile.link_expiry_value || '30',
         sections_enabled: profile.sections_enabled,
@@ -97,6 +115,60 @@ const ProfileForm = () => {
         language: newLangs.length > 0 ? newLangs : currentLangs
       };
     });
+  };
+
+  const handleEnabledLanguageToggle = (lang) => {
+    setFormData(prev => {
+      const currentLangs = prev.enabled_languages;
+      const newLangs = currentLangs.includes(lang)
+        ? currentLangs.filter(l => l !== lang)
+        : [...currentLangs, lang];
+      
+      // Ensure at least one language is enabled
+      return {
+        ...prev,
+        enabled_languages: newLangs.length > 0 ? newLangs : currentLangs
+      };
+    });
+  };
+
+  const validateWhatsAppNumber = (number) => {
+    if (!number || number.trim() === '') return true; // Optional field
+    const e164Pattern = /^\+[1-9]\d{1,14}$/;
+    return e164Pattern.test(number);
+  };
+
+  const handleWhatsAppChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+
+    // Validate
+    if (value && !validateWhatsAppNumber(value)) {
+      setWhatsappErrors(prev => ({
+        ...prev,
+        [field === 'whatsapp_groom' ? 'groom' : 'bride']: 'Must be in E.164 format (e.g., +919876543210)'
+      }));
+    } else {
+      setWhatsappErrors(prev => ({
+        ...prev,
+        [field === 'whatsapp_groom' ? 'groom' : 'bride']: ''
+      }));
+    }
+  };
+
+  const handleCustomTextChange = (language, section, value) => {
+    setFormData(prev => ({
+      ...prev,
+      custom_text: {
+        ...prev.custom_text,
+        [language]: {
+          ...(prev.custom_text[language] || {}),
+          [section]: value
+        }
+      }
+    }));
   };
 
   const handleExpiryPresetChange = (e) => {
@@ -150,13 +222,27 @@ const ProfileForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    // Validate WhatsApp numbers
+    if (formData.whatsapp_groom && !validateWhatsAppNumber(formData.whatsapp_groom)) {
+      setError('Groom WhatsApp number must be in E.164 format');
+      return;
+    }
+    if (formData.whatsapp_bride && !validateWhatsAppNumber(formData.whatsapp_bride)) {
+      setError('Bride WhatsApp number must be in E.164 format');
+      return;
+    }
+
     setLoading(true);
 
     try {
       const submitData = {
         ...formData,
         event_date: new Date(formData.event_date).toISOString(),
-        link_expiry_value: formData.link_expiry_value ? parseInt(formData.link_expiry_value) : 30
+        link_expiry_value: formData.link_expiry_value ? parseInt(formData.link_expiry_value) : 30,
+        whatsapp_groom: formData.whatsapp_groom || null,
+        whatsapp_bride: formData.whatsapp_bride || null,
+        deity_id: formData.deity_id || null
       };
 
       let response;
@@ -217,7 +303,7 @@ const ProfileForm = () => {
       </div>
 
       {/* Form */}
-      <div className="container mx-auto px-4 py-8 max-w-3xl">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
         <h1 className="text-3xl font-bold text-gray-800 mb-8">
           {isEdit ? 'Edit Profile' : 'Create New Profile'}
         </h1>
@@ -301,59 +387,248 @@ const ProfileForm = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
                 />
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Language(s) * (Select one or more)
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  {['english', 'telugu', 'hindi', 'tamil'].map((lang) => (
-                    <label key={lang} className="flex items-center space-x-2 cursor-pointer p-2 border rounded hover:bg-gray-50">
-                      <input
-                        type="checkbox"
-                        checked={formData.language.includes(lang)}
-                        onChange={() => handleLanguageToggle(lang)}
-                        className="w-4 h-4 text-rose-600 border-gray-300 rounded focus:ring-rose-500"
-                      />
-                      <span className="text-sm text-gray-700 capitalize">{lang}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
             </div>
           </Card>
 
-          {/* Design Selection */}
+          {/* Design Theme Selection */}
           <Card className="p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Select Design Theme *</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { id: 'temple_divine', name: 'Temple Divine', desc: 'Warm ivory, gold accents' },
-                { id: 'royal_classic', name: 'Royal Classic', desc: 'Maroon, gold, cream' },
-                { id: 'floral_soft', name: 'Floral Soft', desc: 'Pastel pink, peach' },
-                { id: 'cinematic_luxury', name: 'Cinematic Luxury', desc: 'Dark gradient, gold' },
-                { id: 'heritage_scroll', name: 'Heritage Scroll', desc: 'Parchment, brown' },
-                { id: 'minimal_elegant', name: 'Minimal Elegant', desc: 'White, gray, black' },
-                { id: 'modern_premium', name: 'Modern Premium', desc: 'Charcoal, teal, gold' },
-                { id: 'artistic_handcrafted', name: 'Artistic Handcrafted', desc: 'Watercolor tones' }
-              ].map((design) => (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {DESIGN_THEMES.map((design) => (
                 <div
                   key={design.id}
                   onClick={() => setFormData(prev => ({ ...prev, design_id: design.id }))}
-                  className={`cursor-pointer p-4 border-2 rounded-lg transition-all ${
+                  className={`cursor-pointer p-4 border-2 rounded-lg transition-all hover:shadow-md ${
                     formData.design_id === design.id
-                      ? 'border-rose-500 bg-rose-50'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-rose-500 bg-rose-50 shadow-lg'
+                      : 'border-gray-200 hover:border-gray-400'
                   }`}
                 >
+                  <div className="aspect-video bg-gradient-to-br rounded-md mb-3 overflow-hidden" 
+                       style={{
+                         backgroundImage: `linear-gradient(to bottom right, ${design.colors.primary}, ${design.colors.secondary})`
+                       }}>
+                  </div>
                   <div className="text-sm font-semibold text-gray-800 mb-1">{design.name}</div>
-                  <div className="text-xs text-gray-600">{design.desc}</div>
+                  <div className="text-xs text-gray-600 mb-2">{design.description}</div>
                   {formData.design_id === design.id && (
-                    <div className="mt-2 text-rose-600 text-xs font-semibold">✓ Selected</div>
+                    <div className="flex items-center text-rose-600 text-xs font-semibold">
+                      <Check className="w-3 h-3 mr-1" />
+                      Selected
+                    </div>
                   )}
                 </div>
               ))}
             </div>
+          </Card>
+
+          {/* Deity/Religious Background Selection */}
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Religious Background (Optional)</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Select a deity theme for your invitation, or choose "No Religious Theme" for a secular invitation
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {DEITY_OPTIONS.map((deity) => (
+                <div
+                  key={deity.id}
+                  onClick={() => setFormData(prev => ({ ...prev, deity_id: deity.id === 'none' ? null : deity.id }))}
+                  className={`cursor-pointer p-4 border-2 rounded-lg transition-all hover:shadow-md ${
+                    (formData.deity_id === deity.id || (deity.id === 'none' && !formData.deity_id))
+                      ? 'border-rose-500 bg-rose-50 shadow-lg'
+                      : 'border-gray-200 hover:border-gray-400'
+                  }`}
+                >
+                  <div className="aspect-square bg-gray-100 rounded-md mb-3 flex items-center justify-center">
+                    <img 
+                      src={deity.thumbnail} 
+                      alt={deity.name}
+                      className="w-full h-full object-contain rounded-md"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                    <div className="w-full h-full items-center justify-center text-gray-400 text-xs" style={{display: 'none'}}>
+                      {deity.name}
+                    </div>
+                  </div>
+                  <div className="text-xs font-semibold text-gray-800 mb-1 text-center">{deity.name}</div>
+                  <div className="text-xs text-gray-600 mb-2 text-center line-clamp-2">{deity.description}</div>
+                  {(formData.deity_id === deity.id || (deity.id === 'none' && !formData.deity_id)) && (
+                    <div className="flex items-center justify-center text-rose-600 text-xs font-semibold">
+                      <Check className="w-3 h-3 mr-1" />
+                      Selected
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* Language Configuration */}
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Language Configuration *</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Select which languages guests can view the invitation in. At least one must be selected.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {LANGUAGES.map((lang) => (
+                <label 
+                  key={lang.code} 
+                  className={`flex items-center space-x-3 cursor-pointer p-4 border-2 rounded-lg transition-all ${
+                    formData.enabled_languages.includes(lang.code)
+                      ? 'border-rose-500 bg-rose-50'
+                      : 'border-gray-200 hover:border-gray-400'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={formData.enabled_languages.includes(lang.code)}
+                    onChange={() => handleEnabledLanguageToggle(lang.code)}
+                    className="w-5 h-5 text-rose-600 border-gray-300 rounded focus:ring-rose-500"
+                  />
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-gray-800">{lang.name}</div>
+                    <div className="text-xs text-gray-600">{lang.nativeName}</div>
+                  </div>
+                  {formData.enabled_languages.includes(lang.code) && (
+                    <Check className="w-4 h-4 text-rose-600" />
+                  )}
+                </label>
+              ))}
+            </div>
+          </Card>
+
+          {/* WhatsApp Numbers */}
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">WhatsApp Contact Numbers (Optional)</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Allow guests to send WhatsApp wishes directly. Include country code (e.g., +91 for India)
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Groom's WhatsApp Number
+                </label>
+                <input
+                  type="tel"
+                  value={formData.whatsapp_groom}
+                  onChange={(e) => handleWhatsAppChange('whatsapp_groom', e.target.value)}
+                  placeholder="+91 98765 43210"
+                  className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-rose-500 ${
+                    whatsappErrors.groom ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                {whatsappErrors.groom && (
+                  <p className="text-xs text-red-600 mt-1">{whatsappErrors.groom}</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">Format: +[country code][number]</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Bride's WhatsApp Number
+                </label>
+                <input
+                  type="tel"
+                  value={formData.whatsapp_bride}
+                  onChange={(e) => handleWhatsAppChange('whatsapp_bride', e.target.value)}
+                  placeholder="+91 98765 43210"
+                  className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-rose-500 ${
+                    whatsappErrors.bride ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                {whatsappErrors.bride && (
+                  <p className="text-xs text-red-600 mt-1">{whatsappErrors.bride}</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">Format: +[country code][number]</p>
+              </div>
+            </div>
+          </Card>
+
+          {/* Sections Enabled */}
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Enable/Disable Sections</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {Object.keys(formData.sections_enabled).map((section) => (
+                <label key={section} className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.sections_enabled[section]}
+                    onChange={() => handleSectionToggle(section)}
+                    className="w-4 h-4 text-rose-600 border-gray-300 rounded focus:ring-rose-500"
+                  />
+                  <span className="text-sm text-gray-700 capitalize">{section}</span>
+                </label>
+              ))}
+            </div>
+          </Card>
+
+          {/* Custom Text Overrides (Collapsible) */}
+          <Card className="p-6">
+            <div 
+              onClick={() => setShowCustomText(!showCustomText)}
+              className="flex items-center justify-between cursor-pointer"
+            >
+              <div>
+                <h2 className="text-xl font-semibold text-gray-800">Customize Text (Optional)</h2>
+                <p className="text-sm text-gray-600 mt-1">Override default text templates for enabled languages</p>
+              </div>
+              {showCustomText ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+            </div>
+            
+            {showCustomText && (
+              <div className="mt-6 space-y-6">
+                {formData.enabled_languages.map((lang) => {
+                  const langConfig = LANGUAGES.find(l => l.code === lang);
+                  return (
+                    <div key={lang} className="border-t pt-4">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                        {langConfig?.name} ({langConfig?.nativeName})
+                      </h3>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Opening Title
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.custom_text[lang]?.opening_title || ''}
+                            onChange={(e) => handleCustomTextChange(lang, 'opening_title', e.target.value)}
+                            placeholder="Leave empty to use default"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-rose-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Welcome Message
+                          </label>
+                          <textarea
+                            value={formData.custom_text[lang]?.welcome_message || ''}
+                            onChange={(e) => handleCustomTextChange(lang, 'welcome_message', e.target.value)}
+                            placeholder="Leave empty to use default"
+                            rows="2"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-rose-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Footer Thank You Message
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.custom_text[lang]?.footer_thankyou || ''}
+                            onChange={(e) => handleCustomTextChange(lang, 'footer_thankyou', e.target.value)}
+                            placeholder="Leave empty to use default"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-rose-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </Card>
 
           {/* Link Expiry */}
@@ -410,24 +685,6 @@ const ProfileForm = () => {
                   </div>
                 </div>
               )}
-            </div>
-          </Card>
-
-          {/* Sections Enabled */}
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Enable/Disable Sections</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {Object.keys(formData.sections_enabled).map((section) => (
-                <label key={section} className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.sections_enabled[section]}
-                    onChange={() => handleSectionToggle(section)}
-                    className="w-4 h-4 text-rose-600 border-gray-300 rounded focus:ring-rose-500"
-                  />
-                  <span className="text-sm text-gray-700 capitalize">{section}</span>
-                </label>
-              ))}
             </div>
           </Card>
 
