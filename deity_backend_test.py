@@ -137,7 +137,7 @@ class DeityBackendTester:
                 "event_date": "2024-12-26T11:00:00Z",
                 "venue": f"Temple for {deity_name}",
                 "language": ["english", "telugu"],
-                "design_id": "temple_divine",
+                "design_id": "divine_temple",
                 "deity_id": deity_id,
                 "whatsapp_groom": "+919876543211",
                 "whatsapp_bride": "+918765432110",
