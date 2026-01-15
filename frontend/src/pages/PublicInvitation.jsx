@@ -194,17 +194,24 @@ const PublicInvitation = () => {
   };
 
   return (
-    <div 
-      className="min-h-screen" 
-      style={{ 
-        background: 'var(--color-background, #FFF8E7)',
-        fontFamily: 'var(--font-body, "Lora", serif)',
-        color: 'var(--color-text, #4A3728)',
-        paddingTop: 'var(--spacing-section, 3rem)',
-        paddingBottom: 'var(--spacing-section, 3rem)'
-      }}
-    >
-      <div className="container mx-auto px-4 max-w-4xl">
+    <>
+      {/* Deity Background Layer - Optional, behind all content */}
+      <DeityBackground deityId={invitation.deity_id} />
+      
+      {/* Main Content - Positioned above deity background */}
+      <div 
+        className="min-h-screen" 
+        style={{ 
+          position: 'relative',
+          zIndex: 1,
+          background: 'var(--color-background, #FFF8E7)',
+          fontFamily: 'var(--font-body, "Lora", serif)',
+          color: 'var(--color-text, #4A3728)',
+          paddingTop: 'var(--spacing-section, 3rem)',
+          paddingBottom: 'var(--spacing-section, 3rem)'
+        }}
+      >
+        <div className="container mx-auto px-4 max-w-4xl">
         
         {/* Language Switcher - Only show if multiple languages available */}
         {availableLanguages.length > 1 && (
