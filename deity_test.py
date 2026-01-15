@@ -337,7 +337,7 @@ class DeityBackgroundTester:
             "event_date": "2025-03-20T14:00:00Z",
             "venue": "Grand Ballroom, Hyderabad",
             "language": ["english", "hindi"],
-            "design_id": "modern_premium",
+            "design_id": "modern_minimal",
             "deity_id": "none",
             "whatsapp_groom": "+919567890123",
             "whatsapp_bride": "+918543219876",
