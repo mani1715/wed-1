@@ -71,7 +71,7 @@ class DeityBackgroundTester:
             "event_date": "2024-12-25T10:00:00Z",
             "venue": "Grand Palace Hotel, Mumbai",
             "language": ["english", "hindi"],
-            "design_id": "temple_divine",
+            "design_id": "divine_temple",
             "whatsapp_groom": "+919876543210",
             "whatsapp_bride": "+918765432109",
             "enabled_languages": ["english", "hindi"],
