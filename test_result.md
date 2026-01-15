@@ -324,6 +324,9 @@ frontend:
         - working: "NA"
         - agent: "main"
         - comment: "✅ LANGUAGE SWITCHING IMPLEMENTED: Added multi-language support with runtime language switching. Language switcher UI shows enabled languages from profile (only visible when 2+ languages enabled). Default language set from first enabled language. All text sections (opening, welcome, events, photos, video, greetings, footer) now use getText/getSectionText with proper fallback (custom_text → languageTemplates → english). No page reload required. Supports English, Telugu, Hindi. Clean button-based toggle UI. Ready for testing."
+        - working: "NA"
+        - agent: "main"
+        - comment: "✅ PHASE 3 - DEITY BACKGROUND LAYER IMPLEMENTED: Added optional religious background layer. DeityBackground component with progressive image loading (thumbnail → mobile/desktop). Fixed position with z-index 0, max opacity 0.2. Lazy loading enabled. WebP only. Main content positioned above (z-index 1). Layer structure: Fragment → DeityBackground → Main Content Wrapper. Deity renders when deity_id is present, null shows no background. No animations or effects. Production-ready layering system."
 
   - task: "Theme Configuration System"
     implemented: true
