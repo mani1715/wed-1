@@ -584,6 +584,61 @@ const ProfileForm = () => {
             </div>
           </Card>
 
+          {/* Background Music (Optional) */}
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Background Music (Optional)</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Add background music to your invitation. Music will NOT autoplay and guests can control playback.
+            </p>
+            
+            {/* Enable/Disable Toggle */}
+            <label className="flex items-center space-x-3 mb-4 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.background_music.enabled}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  background_music: {
+                    ...prev.background_music,
+                    enabled: e.target.checked,
+                    file_url: e.target.checked ? prev.background_music.file_url : null
+                  }
+                }))}
+                className="w-5 h-5 text-rose-600 border-gray-300 rounded focus:ring-rose-500"
+              />
+              <span className="text-sm font-medium text-gray-700">Enable Background Music</span>
+            </label>
+
+            {/* Music Upload Field */}
+            {formData.background_music.enabled && (
+              <div className="mt-4 space-y-3">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Music File URL *
+                </label>
+                <input
+                  type="url"
+                  value={formData.background_music.file_url || ''}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    background_music: {
+                      ...prev.background_music,
+                      file_url: e.target.value
+                    }
+                  }))}
+                  placeholder="https://example.com/wedding-music.mp3"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-rose-500"
+                  required={formData.background_music.enabled}
+                />
+                <div className="text-xs text-gray-600 space-y-1">
+                  <p>• Supported format: MP3 only</p>
+                  <p>• Maximum file size: 5MB recommended</p>
+                  <p>• Music will play in a loop at 50% volume</p>
+                  <p>• Guests can toggle music ON/OFF anytime</p>
+                </div>
+              </div>
+            )}
+          </Card>
+
           {/* Custom Text Overrides (Collapsible) */}
           <Card className="p-6">
             <div 
