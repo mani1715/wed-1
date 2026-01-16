@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import axios from 'axios';
-import { Plus, LogOut, ExternalLink, Copy, Edit, Trash2, Calendar, Clock, Palette, Church, Languages } from 'lucide-react';
+import { Plus, LogOut, ExternalLink, Copy, Edit, Trash2, Calendar, Clock, Palette, Church, Languages, Users } from 'lucide-react';
 import { DESIGN_THEMES } from '@/config/designThemes';
 import { DEITY_OPTIONS } from '@/config/religiousAssets';
 
