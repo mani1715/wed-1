@@ -16,7 +16,8 @@ from models import (
     Profile, ProfileCreate, ProfileUpdate, ProfileResponse,
     ProfileMedia, ProfileMediaCreate,
     Greeting, GreetingCreate, GreetingResponse,
-    InvitationPublicView, SectionsEnabled
+    InvitationPublicView, SectionsEnabled, BackgroundMusic,
+    RSVP, RSVPCreate, RSVPResponse, RSVPStats
 )
 from auth import (
     get_password_hash, verify_password, 
