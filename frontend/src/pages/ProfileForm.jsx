@@ -470,33 +470,42 @@ const ProfileForm = () => {
           <Card className="p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Language Configuration *</h2>
             <p className="text-sm text-gray-600 mb-4">
-              Select which languages guests can view the invitation in. At least one must be selected.
+              Select which languages guests can view the invitation in. English is mandatory and always enabled.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {LANGUAGES.map((lang) => (
-                <label 
-                  key={lang.code} 
-                  className={`flex items-center space-x-3 cursor-pointer p-4 border-2 rounded-lg transition-all ${
-                    formData.enabled_languages.includes(lang.code)
-                      ? 'border-rose-500 bg-rose-50'
-                      : 'border-gray-200 hover:border-gray-400'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={formData.enabled_languages.includes(lang.code)}
-                    onChange={() => handleEnabledLanguageToggle(lang.code)}
-                    className="w-5 h-5 text-rose-600 border-gray-300 rounded focus:ring-rose-500"
-                  />
-                  <div className="flex-1">
-                    <div className="text-sm font-medium text-gray-800">{lang.name}</div>
-                    <div className="text-xs text-gray-600">{lang.nativeName}</div>
-                  </div>
-                  {formData.enabled_languages.includes(lang.code) && (
-                    <Check className="w-4 h-4 text-rose-600" />
-                  )}
-                </label>
-              ))}
+              {LANGUAGES.map((lang) => {
+                const isEnglish = lang.code === 'english';
+                const isChecked = formData.enabled_languages.includes(lang.code);
+                
+                return (
+                  <label 
+                    key={lang.code} 
+                    className={`flex items-center space-x-3 p-4 border-2 rounded-lg transition-all ${
+                      isChecked
+                        ? 'border-rose-500 bg-rose-50'
+                        : 'border-gray-200'
+                    } ${isEnglish ? 'opacity-75' : 'cursor-pointer hover:border-gray-400'}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={() => !isEnglish && handleEnabledLanguageToggle(lang.code)}
+                      disabled={isEnglish}
+                      className="w-5 h-5 text-rose-600 border-gray-300 rounded focus:ring-rose-500 disabled:opacity-50"
+                    />
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-gray-800">
+                        {lang.name}
+                        {isEnglish && <span className="ml-2 text-xs text-gray-500">(Required)</span>}
+                      </div>
+                      <div className="text-xs text-gray-600">{lang.nativeName}</div>
+                    </div>
+                    {isChecked && (
+                      <Check className="w-4 h-4 text-rose-600" />
+                    )}
+                  </label>
+                );
+              })}
             </div>
           </Card>
 
