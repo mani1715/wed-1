@@ -120,6 +120,12 @@ const ProfileForm = () => {
   const handleEnabledLanguageToggle = (lang) => {
     setFormData(prev => {
       const currentLangs = prev.enabled_languages;
+      
+      // Prevent removing English (mandatory language)
+      if (lang === 'english' && currentLangs.includes('english')) {
+        return prev; // Cannot remove English
+      }
+      
       const newLangs = currentLangs.includes(lang)
         ? currentLangs.filter(l => l !== lang)
         : [...currentLangs, lang];
