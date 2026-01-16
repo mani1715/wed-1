@@ -453,6 +453,157 @@ async def get_profile_greetings(profile_id: str, admin_id: str = Depends(get_cur
     return [GreetingResponse(**g) for g in greetings]
 
 
+# ==================== RSVP ROUTES ====================
+
+@api_router.post("/rsvp", response_model=RSVPResponse)
+async def submit_rsvp(slug: str, rsvp_data: RSVPCreate):
+    """Submit RSVP for invitation (public endpoint)"""
+    # Find profile by slug
+    profile = await db.profiles.find_one({"slug": slug}, {"_id": 0})
+    
+    if not profile:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    
+    # Check if profile is active and not expired
+    if not await check_profile_active(profile):
+        raise HTTPException(status_code=410, detail="This invitation link has expired")
+    
+    # Check for duplicate RSVP (profile_id + guest_phone)
+    existing_rsvp = await db.rsvps.find_one({
+        "profile_id": profile['id'],
+        "guest_phone": rsvp_data.guest_phone
+    })
+    
+    if existing_rsvp:
+        raise HTTPException(
+            status_code=400,
+            detail="You have already submitted an RSVP for this invitation"
+        )
+    
+    # Create RSVP
+    rsvp = RSVP(
+        profile_id=profile['id'],
+        guest_name=rsvp_data.guest_name,
+        guest_phone=rsvp_data.guest_phone,
+        status=rsvp_data.status,
+        guest_count=rsvp_data.guest_count,
+        message=rsvp_data.message
+    )
+    
+    doc = rsvp.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    
+    await db.rsvps.insert_one(doc)
+    
+    return RSVPResponse(
+        id=rsvp.id,
+        guest_name=rsvp.guest_name,
+        guest_phone=rsvp.guest_phone,
+        status=rsvp.status,
+        guest_count=rsvp.guest_count,
+        message=rsvp.message,
+        created_at=rsvp.created_at
+    )
+
+
+@api_router.get("/admin/profiles/{profile_id}/rsvps", response_model=List[RSVPResponse])
+async def get_profile_rsvps(
+    profile_id: str,
+    status: Optional[str] = None,
+    admin_id: str = Depends(get_current_admin)
+):
+    """Get all RSVPs for a profile with optional status filter"""
+    # Build query
+    query = {"profile_id": profile_id}
+    if status and status in ['yes', 'no', 'maybe']:
+        query['status'] = status
+    
+    # Fetch RSVPs (limit 500)
+    rsvps = await db.rsvps.find(
+        query,
+        {"_id": 0}
+    ).sort("created_at", -1).limit(500).to_list(500)
+    
+    # Convert date strings
+    for rsvp in rsvps:
+        if isinstance(rsvp.get('created_at'), str):
+            rsvp['created_at'] = datetime.fromisoformat(rsvp['created_at'])
+    
+    return [RSVPResponse(**r) for r in rsvps]
+
+
+@api_router.get("/admin/profiles/{profile_id}/rsvps/stats", response_model=RSVPStats)
+async def get_rsvp_stats(profile_id: str, admin_id: str = Depends(get_current_admin)):
+    """Get RSVP statistics for a profile"""
+    # Get all RSVPs for the profile
+    rsvps = await db.rsvps.find(
+        {"profile_id": profile_id},
+        {"_id": 0}
+    ).to_list(500)
+    
+    # Calculate statistics
+    total_rsvps = len(rsvps)
+    attending_count = sum(1 for r in rsvps if r['status'] == 'yes')
+    not_attending_count = sum(1 for r in rsvps if r['status'] == 'no')
+    maybe_count = sum(1 for r in rsvps if r['status'] == 'maybe')
+    total_guest_count = sum(r.get('guest_count', 1) for r in rsvps if r['status'] == 'yes')
+    
+    return RSVPStats(
+        total_rsvps=total_rsvps,
+        attending_count=attending_count,
+        not_attending_count=not_attending_count,
+        maybe_count=maybe_count,
+        total_guest_count=total_guest_count
+    )
+
+
+@api_router.get("/admin/profiles/{profile_id}/rsvps/export")
+async def export_rsvps_csv(profile_id: str, admin_id: str = Depends(get_current_admin)):
+    """Export RSVPs as CSV"""
+    from fastapi.responses import StreamingResponse
+    import io
+    import csv
+    
+    # Fetch all RSVPs
+    rsvps = await db.rsvps.find(
+        {"profile_id": profile_id},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(500)
+    
+    # Convert to CSV
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Write header
+    writer.writerow(['Guest Name', 'Phone', 'Status', 'Guest Count', 'Message', 'Submitted At'])
+    
+    # Write data
+    for rsvp in rsvps:
+        created_at = rsvp.get('created_at')
+        if isinstance(created_at, str):
+            created_at = datetime.fromisoformat(created_at)
+        
+        writer.writerow([
+            rsvp.get('guest_name', ''),
+            rsvp.get('guest_phone', ''),
+            rsvp.get('status', ''),
+            rsvp.get('guest_count', 1),
+            rsvp.get('message', ''),
+            created_at.strftime('%Y-%m-%d %H:%M:%S') if created_at else ''
+        ])
+    
+    # Prepare response
+    output.seek(0)
+    
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f"attachment; filename=rsvps_{profile_id}.csv"
+        }
+    )
+
+
 # ==================== CONFIGURATION ROUTES ====================
 
 @api_router.get("/config/designs")
