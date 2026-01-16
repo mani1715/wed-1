@@ -415,6 +415,30 @@ frontend:
         - agent: "main"
         - comment: "🔄 PHASE 5 - JSON-BASED LAZY LANGUAGE LOADING: Migrated language system from in-memory JS objects to separate JSON files with lazy loading. Created /app/frontend/public/lang/ directory with 5 JSON files: en.json, te.json, ta.json, kn.json, ml.json (removed Hindi as per requirements). Implemented languageLoader.js utility with: 1) In-memory caching for loaded languages, 2) Lazy loading - loads only selected language file on-demand, 3) Fallback to English if key missing, 4) LANGUAGES constant with 5 languages (English, Telugu, Tamil, Kannada, Malayalam), 5) Preloading support for faster language switching. Updated PublicInvitation.jsx to use async language loading with proper state management. Updated ProfileForm.jsx to import LANGUAGES from languageLoader. Backend validation updated: English is now mandatory and cannot be removed, removed Hindi support, validates English presence in all enabled_languages arrays. Frontend updates: English checkbox disabled in ProfileForm with '(Required)' label, language toggle handler prevents removing English, supports localStorage for language preference. All changes maintain existing functionality while improving performance through lazy loading. Production-ready for testing."
 
+  - task: "PHASE 6 - RSVP System (Core Feature)"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py, /app/frontend/src/pages/RSVPManagement.jsx, /app/frontend/src/pages/PublicInvitation.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+        - agent: "main"
+        - comment: "✅ PHASE 6 RSVP SYSTEM IMPLEMENTED: Complete production-ready RSVP system with all specifications. BACKEND: Created RSVP, RSVPCreate, RSVPResponse, RSVPStats models with validation (status: yes/no/maybe, guest_count: 1-10, message: max 250 chars, phone: E.164 format). API endpoints: POST /api/rsvp (public endpoint with duplicate prevention using profile_id + guest_phone), GET /api/admin/profiles/{id}/rsvps (with optional status filter, limit 500, sorted by created_at desc), GET /api/admin/profiles/{id}/rsvps/stats (returns total_rsvps, attending_count, not_attending_count, maybe_count, total_guest_count), GET /api/admin/profiles/{id}/rsvps/export (CSV export). FRONTEND ADMIN: RSVPManagement.jsx page with profile info display, RSVP statistics cards (Attending, Not Attending, Maybe, Total Guest Count), RSVP list with latest first, filter by status (all/yes/no/maybe), export CSV button. FRONTEND PUBLIC: RSVP section at bottom of PublicInvitation with form fields (guest_name, guest_phone with E.164 format hint, status buttons with emojis, guest_count conditional on 'yes', message textarea with 250 char limit), duplicate prevention with clear error message, success confirmation message, offline detection with message 'Internet connection required to submit RSVP', form disabled after successful submission. AdminDashboard updated with RSVP Management button (Users icon) for each profile. All requirements met: optional for guests, one RSVP per phone per invitation, allowed only before expiry, disabled when offline, no editing after submission."
+
+  - task: "PHASE 6 - Background Music (Optional Feature)"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/models.py, /app/frontend/src/pages/ProfileForm.jsx, /app/frontend/src/pages/PublicInvitation.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+        - agent: "main"
+        - comment: "✅ PHASE 6 BACKGROUND MUSIC IMPLEMENTED: Complete optional background music feature with all specifications. BACKEND: BackgroundMusic model with enabled (boolean, default: false) and file_url (optional string) fields. Integrated into Profile, ProfileCreate, ProfileUpdate, ProfileResponse, InvitationPublicView models. FRONTEND ADMIN: ProfileForm.jsx updated with 'Enable Background Music' toggle (default: OFF), music file URL input field (shown only when enabled, required when enabled, placeholder with mp3 example), instructions about mp3 format, max 5MB, loop behavior at 50% volume, guest control. FRONTEND PUBLIC: PublicInvitation.jsx with fixed-position music player icon (top-left, z-index 50), shown ONLY when music enabled and file_url present, states: 🔊 (playing) with pause icon, 🔇 (default/paused) with play icon, HTML5 audio element with preload='none', loop enabled, volume capped at 0.5 (50%), NO autoplay - music starts only after user clicks icon, pause on page blur/tab change using visibilitychange event, music stops immediately when toggled OFF. Respects browser autoplay policies. NO animations on speaker icon. NO visual effects tied to music. Music is OPTIONAL and non-blocking. All requirements met: music not autoplay, starts only after user interaction, guest can toggle ON/OFF anytime, music continues across scroll, pauses on blur/tab change."
+
 metadata:
   created_by: "main_agent"
   version: "3.0"
