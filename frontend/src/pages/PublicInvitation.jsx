@@ -369,6 +369,29 @@ const PublicInvitation = () => {
       >
         <div className="container mx-auto px-4 max-w-4xl">
         
+        {/* Music Player Icon - Fixed Position */}
+        {invitation.background_music && invitation.background_music.enabled && invitation.background_music.file_url && (
+          <button
+            onClick={toggleMusic}
+            className="fixed top-4 left-4 z-50 w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110"
+            style={{
+              background: 'var(--color-primary, #8B7355)',
+              color: 'white'
+            }}
+            aria-label={musicPlaying ? 'Pause music' : 'Play music'}
+          >
+            {musicPlaying ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+              </svg>
+            )}
+          </button>
+        )}
+        
         {/* Language Switcher - Only show if multiple languages available */}
         {availableLanguages.length > 1 && (
           <div className="flex justify-end mb-6">
