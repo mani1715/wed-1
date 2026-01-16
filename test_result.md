@@ -441,16 +441,19 @@ frontend:
 
 metadata:
   created_by: "main_agent"
-  version: "3.0"
+  version: "4.0"
   test_sequence: 1
   run_ui: true
 
 test_plan:
   current_focus:
-    - "PHASE 4 - Extended Multi-Language System"
-    - "Language Templates - Tamil, Kannada, Malayalam"
-    - "Profile Form - 6 Language Selection"
-    - "Public Invitation - Language Switcher"
+    - "PHASE 6 - RSVP System"
+    - "PHASE 6 - Background Music"
+    - "AdminDashboard - RSVP Management Button"
+    - "RSVPManagement Page - Stats, List, Filter, Export"
+    - "PublicInvitation - RSVP Form"
+    - "PublicInvitation - Music Player"
+    - "ProfileForm - Music Upload Field"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -461,6 +464,9 @@ test_plan:
   phase_4_language_extension_implemented: true
   phase_4_complete: true
   phase_4_backend_testing_complete: true
+  phase_6_rsvp_system_implemented: true
+  phase_6_background_music_implemented: true
+  phase_6_verification_needed: true
 
 agent_communication:
     - agent: "main"
