@@ -196,10 +196,41 @@ const PublicInvitation = () => {
   // Get available languages for this invitation
   const availableLanguages = invitation.enabled_languages || ['english'];
   
-  // Get text helper functions with custom text
+  // Get text helper functions with custom text and fallback
   const customText = invitation.custom_text || {};
-  const getT = (section, key) => getText(selectedLanguage, section, key, customText);
-  const getSectionT = (section) => getSectionText(selectedLanguage, section, customText);
+  
+  const getT = (section, key) => {
+    // Check custom text first
+    if (customText[selectedLanguage]?.[`${section}.${key}`]) {
+      return customText[selectedLanguage][`${section}.${key}`];
+    }
+    
+    // Get from loaded language data
+    if (languageData?.[section]?.[key]) {
+      return languageData[section][key];
+    }
+    
+    // Fallback to key
+    return key;
+  };
+  
+  const getSectionT = (section) => {
+    const sectionData = languageData?.[section] || {};
+    
+    // Merge with custom text
+    const result = { ...sectionData };
+    
+    if (customText[selectedLanguage]) {
+      Object.keys(customText[selectedLanguage]).forEach(customKey => {
+        if (customKey.startsWith(`${section}.`)) {
+          const key = customKey.replace(`${section}.`, '');
+          result[key] = customText[selectedLanguage][customKey];
+        }
+      });
+    }
+    
+    return result;
+  };
 
   // Generate WhatsApp URL with pre-filled message
   const generateWhatsAppURL = (phoneNumber) => {
@@ -214,6 +245,15 @@ const PublicInvitation = () => {
     // Generate wa.me URL
     return `https://wa.me/${phoneNumber.replace(/[^0-9]/g, '')}?text=${encodedMessage}`;
   };
+  
+  // Show loading if language data not loaded yet
+  if (!languageData && !error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--color-background, #FFF8E7)' }}>
+        <p style={{ color: 'var(--color-text, #4A3728)' }}>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <>
