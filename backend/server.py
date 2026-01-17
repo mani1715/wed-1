@@ -17,6 +17,7 @@ from models import (
     ProfileMedia, ProfileMediaCreate,
     Greeting, GreetingCreate, GreetingResponse,
     InvitationPublicView, SectionsEnabled, BackgroundMusic,
+    WeddingEvent,
     RSVP, RSVPCreate, RSVPResponse, RSVPStats
 )
 from auth import (
