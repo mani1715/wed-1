@@ -599,6 +599,9 @@ frontend:
         - working: "NA"
         - agent: "main"
         - comment: "✅ PHASE 8 PDF GENERATION IMPLEMENTED: Server-side PDF generation with ReportLab. Created generate_invitation_pdf() function with A4 portrait layout, design theme colors applied (8 themes supported), language-specific text (6 languages), clean typography with proper spacing. PDF includes: couple names, event schedule with dates/times/venues, contact information (WhatsApp numbers). Excluded: RSVP buttons, wishes, maps, music, interactive elements. Added admin-only endpoint GET /api/admin/profiles/{id}/download-pdf with query param for language selection. Returns PDF as downloadable file with filename format: wedding-invitation-{groom}-{bride}.pdf. PDF optimized for printing with proper margins (0.75 inch), high-quality text rendering, lightweight (<2MB). Security: admin authentication required, public users cannot access."
+        - working: "NA"
+        - agent: "main"
+        - comment: "✅ PHASE 8 ENHANCEMENT - DEITY BACKGROUND IN PDF: Added deity/temple background image to PDF with VERY LIGHT opacity (0.12). Background renders on all pages when deity_id is present (ganesha, venkateswara_padmavati, shiva_parvati, lakshmi_vishnu). Implementation: 1) Deity images loaded from local filesystem (/app/frontend/public/assets/deities/), 2) Images optimized for PDF - resized to max 800px width, compressed with JPEG quality 70, 3) Background centered on page with aspect ratio preserved, 4) Opacity set to 0.12 for subtle appearance that doesn't interfere with text readability, 5) Applied to all pages using onFirstPage and onLaterPages callbacks, 6) Error handling - continues without background if image fails to load. PDF size kept optimized with image compression. Printer-safe with proper white margins (0.75 inch). All PHASE 8 requirements now complete."
 
   - task: "PHASE 8 - PDF Download Frontend"
     implemented: true
