@@ -54,6 +54,9 @@ const ProfileForm = () => {
       enabled: false,
       file_url: null
     },
+    map_settings: {
+      embed_enabled: false
+    },
     events: []
   });
 
