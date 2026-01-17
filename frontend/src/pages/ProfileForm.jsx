@@ -786,6 +786,37 @@ const ProfileForm = () => {
             )}
           </Card>
 
+          {/* Map Settings */}
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Map Display Settings</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Control how maps are displayed on the invitation page.
+            </p>
+            
+            <label className="flex items-center space-x-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.map_settings.embed_enabled}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  map_settings: {
+                    ...prev.map_settings,
+                    embed_enabled: e.target.checked
+                  }
+                }))}
+                className="w-5 h-5 text-rose-600 border-gray-300 rounded focus:ring-rose-500"
+              />
+              <span className="text-sm font-medium text-gray-700">Enable Map Embeds on Desktop</span>
+            </label>
+            
+            <div className="mt-3 text-xs text-gray-600 space-y-1 ml-8">
+              <p>• Map embeds will only show on desktop screens (≥768px)</p>
+              <p>• Mobile devices will always show "Get Directions" link only</p>
+              <p>• Maps are embedded below event information</p>
+              <p>• Guests can still use the "Get Directions" link on all devices</p>
+            </div>
+          </Card>
+
           {/* Wedding Events Schedule */}
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
