@@ -598,13 +598,6 @@ test_plan:
   current_focus:
     - "PHASE 7 - Invitation View Tracking"
     - "PHASE 7 - Analytics Display in Admin Dashboard"
-    - "PHASE 6 - RSVP System"
-    - "PHASE 6 - Background Music"
-    - "AdminDashboard - RSVP Management Button"
-    - "RSVPManagement Page - Stats, List, Filter, Export"
-    - "PublicInvitation - RSVP Form"
-    - "PublicInvitation - Music Player"
-    - "ProfileForm - Music Upload Field"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -617,10 +610,11 @@ test_plan:
   phase_4_backend_testing_complete: true
   phase_6_rsvp_system_implemented: true
   phase_6_background_music_implemented: true
-  phase_6_verification_needed: true
+  phase_6_verification_needed: false
+  phase_6_backend_testing_complete: true
   phase_7_analytics_implemented: true
-  phase_7_verification_needed: false
   phase_7_backend_testing_complete: true
+  phase_7_verification_complete: true
 
 agent_communication:
     - agent: "main"
