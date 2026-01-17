@@ -53,7 +53,8 @@ const ProfileForm = () => {
     background_music: {
       enabled: false,
       file_url: null
-    }
+    },
+    events: []
   });
 
   const [savedProfile, setSavedProfile] = useState(null);
