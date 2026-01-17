@@ -181,6 +181,7 @@ async def create_profile(profile_data: ProfileCreate, admin_id: str = Depends(ge
         custom_text=profile_data.custom_text,
         sections_enabled=profile_data.sections_enabled,
         background_music=profile_data.background_music,
+        map_settings=profile_data.map_settings,
         events=profile_data.events,
         link_expiry_type=profile_data.link_expiry_type,
         link_expiry_value=profile_data.link_expiry_value,
