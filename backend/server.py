@@ -712,6 +712,298 @@ async def get_profile_analytics(profile_id: str, admin_id: str = Depends(get_cur
     )
 
 
+# ==================== PDF GENERATION ====================
+
+# Design theme color mappings for PDF
+THEME_COLORS = {
+    'temple_divine': {'primary': (139, 115, 85), 'secondary': (212, 175, 55), 'text': (74, 55, 40), 'bg': (255, 248, 231)},
+    'royal_classic': {'primary': (139, 0, 0), 'secondary': (255, 215, 0), 'text': (74, 26, 26), 'bg': (255, 245, 230)},
+    'floral_soft': {'primary': (255, 182, 193), 'secondary': (255, 218, 185), 'text': (107, 78, 113), 'bg': (255, 240, 245)},
+    'cinematic_luxury': {'primary': (26, 26, 26), 'secondary': (212, 175, 55), 'text': (245, 245, 245), 'bg': (44, 44, 44)},
+    'heritage_scroll': {'primary': (139, 90, 43), 'secondary': (205, 133, 63), 'text': (74, 48, 23), 'bg': (250, 240, 230)},
+    'minimal_elegant': {'primary': (128, 128, 128), 'secondary': (169, 169, 169), 'text': (64, 64, 64), 'bg': (255, 255, 255)},
+    'modern_premium': {'primary': (47, 79, 79), 'secondary': (72, 209, 204), 'text': (245, 245, 245), 'bg': (32, 32, 32)},
+    'artistic_handcrafted': {'primary': (160, 82, 45), 'secondary': (210, 180, 140), 'text': (101, 67, 33), 'bg': (255, 250, 240)}
+}
+
+# Language templates for PDF
+LANGUAGE_TEMPLATES = {
+    'english': {
+        'opening_title': 'Wedding Invitation',
+        'couple_label': 'Join us in celebrating the union of',
+        'events_title': 'Event Schedule',
+        'date_label': 'Date',
+        'time_label': 'Time',
+        'venue_label': 'Venue',
+        'contact_title': 'Contact Information',
+        'groom_label': 'Groom',
+        'bride_label': 'Bride'
+    },
+    'telugu': {
+        'opening_title': 'వివాహ ఆహ్వానం',
+        'couple_label': 'మా వివాహ వేడుకలో పాల్గొనండి',
+        'events_title': 'కార్యక్రమ షెడ్యూల్',
+        'date_label': 'తేదీ',
+        'time_label': 'సమయం',
+        'venue_label': 'స్థలం',
+        'contact_title': 'సంప్రదించండి',
+        'groom_label': 'వరుడు',
+        'bride_label': 'వధువు'
+    },
+    'hindi': {
+        'opening_title': 'विवाह निमंत्रण',
+        'couple_label': 'हमारे विवाह समारोह में शामिल हों',
+        'events_title': 'कार्यक्रम कार्यक्रम',
+        'date_label': 'तारीख',
+        'time_label': 'समय',
+        'venue_label': 'स्थान',
+        'contact_title': 'संपर्क जानकारी',
+        'groom_label': 'वर',
+        'bride_label': 'वधू'
+    },
+    'tamil': {
+        'opening_title': 'திருமண அழைப்பிதழ்',
+        'couple_label': 'எங்கள் திருமண நிகழ்வில் சேரவும்',
+        'events_title': 'நிகழ்வு அட்டவணை',
+        'date_label': 'தேதி',
+        'time_label': 'நேரம்',
+        'venue_label': 'இடம்',
+        'contact_title': 'தொடர்பு தகவல்',
+        'groom_label': 'மணமகன்',
+        'bride_label': 'மணமகள்'
+    },
+    'kannada': {
+        'opening_title': 'ಮದುವೆ ಆಮಂತ್ರಣ',
+        'couple_label': 'ನಮ್ಮ ಮದುವೆ ಸಮಾರಂಭದಲ್ಲಿ ಸೇರಿ',
+        'events_title': 'ಕಾರ್ಯಕ್ರಮದ ವೇಳಾಪಟ್ಟಿ',
+        'date_label': 'ದಿನಾಂಕ',
+        'time_label': 'ಸಮಯ',
+        'venue_label': 'ಸ್ಥಳ',
+        'contact_title': 'ಸಂಪರ್ಕ ಮಾಹಿತಿ',
+        'groom_label': 'ವರ',
+        'bride_label': 'ವಧು'
+    },
+    'malayalam': {
+        'opening_title': 'വിവാഹ ക്ഷണം',
+        'couple_label': 'ഞങ്ങളുടെ വിവാഹ ചടങ്ങിൽ പങ്കെടുക്കൂ',
+        'events_title': 'പരിപാടി ഷെഡ്യൂൾ',
+        'date_label': 'തീയതി',
+        'time_label': 'സമയം',
+        'venue_label': 'സ്ഥലം',
+        'contact_title': 'ബന്ധപ്പെടുക',
+        'groom_label': 'വരൻ',
+        'bride_label': 'വധു'
+    }
+}
+
+
+def get_theme_colors(design_id: str):
+    """Get theme colors for PDF generation"""
+    return THEME_COLORS.get(design_id, THEME_COLORS['royal_classic'])
+
+
+def get_language_text(language: str):
+    """Get language-specific text for PDF"""
+    return LANGUAGE_TEMPLATES.get(language, LANGUAGE_TEMPLATES['english'])
+
+
+def rgb_to_reportlab_color(rgb_tuple):
+    """Convert RGB tuple to ReportLab color"""
+    r, g, b = rgb_tuple
+    return rl_colors.Color(r/255.0, g/255.0, b/255.0)
+
+
+async def generate_invitation_pdf(profile: dict, language: str = 'english'):
+    """Generate PDF invitation from profile data"""
+    buffer = io.BytesIO()
+    
+    # Get theme colors and language text
+    theme = get_theme_colors(profile.get('design_id', 'royal_classic'))
+    lang_text = get_language_text(language)
+    
+    # Convert colors
+    primary_color = rgb_to_reportlab_color(theme['primary'])
+    secondary_color = rgb_to_reportlab_color(theme['secondary'])
+    text_color = rgb_to_reportlab_color(theme['text'])
+    bg_color = rgb_to_reportlab_color(theme['bg'])
+    
+    # Create PDF document
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=0.75*inch,
+        leftMargin=0.75*inch,
+        topMargin=0.75*inch,
+        bottomMargin=0.75*inch
+    )
+    
+    # Container for PDF elements
+    story = []
+    
+    # Define styles
+    styles = getSampleStyleSheet()
+    
+    # Title style
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=28,
+        textColor=primary_color,
+        spaceAfter=20,
+        alignment=TA_CENTER,
+        fontName='Helvetica-Bold'
+    )
+    
+    # Heading style
+    heading_style = ParagraphStyle(
+        'CustomHeading',
+        parent=styles['Heading2'],
+        fontSize=18,
+        textColor=secondary_color,
+        spaceAfter=12,
+        spaceBefore=20,
+        alignment=TA_CENTER,
+        fontName='Helvetica-Bold'
+    )
+    
+    # Subheading style
+    subheading_style = ParagraphStyle(
+        'CustomSubHeading',
+        parent=styles['Heading3'],
+        fontSize=14,
+        textColor=primary_color,
+        spaceAfter=8,
+        alignment=TA_CENTER,
+        fontName='Helvetica-Bold'
+    )
+    
+    # Body style
+    body_style = ParagraphStyle(
+        'CustomBody',
+        parent=styles['Normal'],
+        fontSize=11,
+        textColor=text_color,
+        spaceAfter=6,
+        alignment=TA_LEFT,
+        fontName='Helvetica'
+    )
+    
+    # Center body style
+    center_body_style = ParagraphStyle(
+        'CustomCenterBody',
+        parent=body_style,
+        alignment=TA_CENTER
+    )
+    
+    # Add title
+    story.append(Paragraph(lang_text['opening_title'], title_style))
+    story.append(Spacer(1, 0.3*inch))
+    
+    # Add couple names
+    story.append(Paragraph(lang_text['couple_label'], center_body_style))
+    story.append(Spacer(1, 0.2*inch))
+    
+    couple_text = f"<b>{profile['groom_name']}</b> & <b>{profile['bride_name']}</b>"
+    story.append(Paragraph(couple_text, heading_style))
+    story.append(Spacer(1, 0.4*inch))
+    
+    # Add events section
+    events = profile.get('events', [])
+    visible_events = [e for e in events if e.get('visible', True)]
+    
+    if visible_events:
+        story.append(Paragraph(lang_text['events_title'], heading_style))
+        story.append(Spacer(1, 0.2*inch))
+        
+        # Sort events by date
+        sorted_events = sorted(visible_events, key=lambda x: x.get('date', ''))
+        
+        for event in sorted_events:
+            # Event name
+            event_name_style = ParagraphStyle(
+                'EventName',
+                parent=subheading_style,
+                fontSize=14,
+                textColor=primary_color,
+                alignment=TA_LEFT
+            )
+            story.append(Paragraph(f"<b>{event['name']}</b>", event_name_style))
+            story.append(Spacer(1, 0.1*inch))
+            
+            # Event details
+            date_str = event.get('date', '')
+            time_str = event.get('start_time', '')
+            if event.get('end_time'):
+                time_str += f" - {event['end_time']}"
+            
+            story.append(Paragraph(f"<b>{lang_text['date_label']}:</b> {date_str}", body_style))
+            story.append(Paragraph(f"<b>{lang_text['time_label']}:</b> {time_str}", body_style))
+            story.append(Paragraph(f"<b>{lang_text['venue_label']}:</b> {event.get('venue_name', '')}", body_style))
+            story.append(Paragraph(f"{event.get('venue_address', '')}", body_style))
+            
+            if event.get('description'):
+                story.append(Spacer(1, 0.05*inch))
+                story.append(Paragraph(event['description'], body_style))
+            
+            story.append(Spacer(1, 0.25*inch))
+    
+    # Add contact information
+    if profile.get('whatsapp_groom') or profile.get('whatsapp_bride'):
+        story.append(Spacer(1, 0.3*inch))
+        story.append(Paragraph(lang_text['contact_title'], heading_style))
+        story.append(Spacer(1, 0.15*inch))
+        
+        if profile.get('whatsapp_groom'):
+            story.append(Paragraph(
+                f"<b>{lang_text['groom_label']}:</b> {profile['whatsapp_groom']}", 
+                body_style
+            ))
+        
+        if profile.get('whatsapp_bride'):
+            story.append(Paragraph(
+                f"<b>{lang_text['bride_label']}:</b> {profile['whatsapp_bride']}", 
+                body_style
+            ))
+    
+    # Build PDF
+    doc.build(story)
+    
+    # Get PDF data
+    buffer.seek(0)
+    return buffer
+
+
+@api_router.get("/admin/profiles/{profile_id}/download-pdf")
+async def download_invitation_pdf(
+    profile_id: str, 
+    language: str = 'english',
+    admin_id: str = Depends(get_current_admin)
+):
+    """Generate and download PDF invitation (admin only)"""
+    # Fetch profile
+    profile = await db.profiles.find_one({"id": profile_id}, {"_id": 0})
+    
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    # Generate PDF
+    pdf_buffer = await generate_invitation_pdf(profile, language)
+    
+    # Create filename
+    groom_name = re.sub(r'[^a-zA-Z]', '', profile['groom_name'].split()[0].lower())
+    bride_name = re.sub(r'[^a-zA-Z]', '', profile['bride_name'].split()[0].lower())
+    filename = f"wedding-invitation-{groom_name}-{bride_name}.pdf"
+    
+    # Return PDF as download
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}"
+        }
+    )
+
+
 # ==================== CONFIGURATION ROUTES ====================
 
 @api_router.get("/config/designs")
