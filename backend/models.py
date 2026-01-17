@@ -63,6 +63,10 @@ class BackgroundMusic(BaseModel):
     file_url: Optional[str] = None
 
 
+class MapSettings(BaseModel):
+    embed_enabled: bool = False  # Default OFF (safe default)
+
+
 class Profile(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
