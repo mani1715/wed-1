@@ -371,6 +371,23 @@ const ProfileForm = () => {
       return;
     }
 
+    // Validate events if any exist
+    if (formData.events.length > 0) {
+      const visibleEvents = formData.events.filter(e => e.visible);
+      if (visibleEvents.length === 0) {
+        setError('At least one event must be visible');
+        return;
+      }
+
+      // Validate required fields for all events
+      for (const evt of formData.events) {
+        if (!evt.name || !evt.date || !evt.start_time || !evt.venue_name || !evt.venue_address || !evt.map_link) {
+          setError(`Please fill all required fields for event: ${evt.name || 'Unnamed'}`);
+          return;
+        }
+      }
+    }
+
     setLoading(true);
 
     try {
