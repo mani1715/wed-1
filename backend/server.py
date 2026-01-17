@@ -978,8 +978,66 @@ async def generate_invitation_pdf(profile: dict, language: str = 'english'):
                 body_style
             ))
     
-    # Build PDF
-    doc.build(story)
+    # Build PDF with deity background if present
+    if deity_bg_path and os.path.exists(deity_bg_path):
+        def add_deity_background(canvas_obj, doc_obj):
+            """Add deity background with very light opacity"""
+            canvas_obj.saveState()
+            try:
+                # Load and compress deity image
+                img = PILImage.open(deity_bg_path)
+                
+                # Resize to optimize file size (max 800px width)
+                max_width = 800
+                if img.width > max_width:
+                    ratio = max_width / img.width
+                    new_height = int(img.height * ratio)
+                    img = img.resize((max_width, new_height), PILImage.Resampling.LANCZOS)
+                
+                # Convert to RGB if needed
+                if img.mode != 'RGB':
+                    img = img.convert('RGB')
+                
+                # Save compressed image to buffer
+                img_buffer = io.BytesIO()
+                img.save(img_buffer, format='JPEG', quality=70, optimize=True)
+                img_buffer.seek(0)
+                
+                # Create ReportLab Image
+                img_reader = ImageReader(img_buffer)
+                
+                # Calculate centered position
+                page_width, page_height = A4
+                img_width, img_height = img.size
+                
+                # Scale to fit page while maintaining aspect ratio
+                scale = min(page_width / img_width, page_height / img_height)
+                scaled_width = img_width * scale
+                scaled_height = img_height * scale
+                
+                # Center on page
+                x = (page_width - scaled_width) / 2
+                y = (page_height - scaled_height) / 2
+                
+                # Draw with very light opacity (0.12)
+                canvas_obj.setFillAlpha(0.12)
+                canvas_obj.drawImage(
+                    img_reader, 
+                    x, y, 
+                    width=scaled_width, 
+                    height=scaled_height,
+                    preserveAspectRatio=True,
+                    mask='auto'
+                )
+            except Exception as e:
+                # If deity image fails, continue without it
+                logging.warning(f"Failed to add deity background: {e}")
+            finally:
+                canvas_obj.restoreState()
+        
+        doc.build(story, onFirstPage=add_deity_background, onLaterPages=add_deity_background)
+    else:
+        doc.build(story)
     
     # Get PDF data
     buffer.seek(0)
