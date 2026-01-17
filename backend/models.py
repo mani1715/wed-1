@@ -393,6 +393,7 @@ class InvitationPublicView(BaseModel):
     custom_text: Dict[str, Dict[str, str]]
     sections_enabled: SectionsEnabled
     background_music: BackgroundMusic
+    map_settings: MapSettings
     events: List[WeddingEvent]
     media: List[ProfileMedia]
     greetings: List[GreetingResponse]
