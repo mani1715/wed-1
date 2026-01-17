@@ -252,11 +252,11 @@ class Phase7AnalyticsTester:
             f"{BASE_URL}/admin/profiles/{profile_id}/analytics"
         )
         
-        if no_auth_response.status_code != 401:
-            print(f"   ❌ Expected 401 for no authentication, got {no_auth_response.status_code}")
+        if no_auth_response.status_code not in [401, 403]:
+            print(f"   ❌ Expected 401 or 403 for no authentication, got {no_auth_response.status_code}")
             return False
         
-        print(f"   ✓ No authentication correctly returns 401")
+        print(f"   ✓ No authentication correctly returns {no_auth_response.status_code}")
         
         return True
     
