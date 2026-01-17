@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import axios from 'axios';
-import { Plus, LogOut, ExternalLink, Copy, Edit, Trash2, Calendar, Clock, Palette, Church, Languages, Users } from 'lucide-react';
+import { Plus, LogOut, ExternalLink, Copy, Edit, Trash2, Calendar, Clock, Palette, Church, Languages, Users, Eye, Smartphone, Monitor } from 'lucide-react';
 import { DESIGN_THEMES } from '@/config/designThemes';
 import { DEITY_OPTIONS } from '@/config/religiousAssets';
 
@@ -15,6 +15,7 @@ const AdminDashboard = () => {
   const { admin, logout } = useAuth();
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [analytics, setAnalytics] = useState({});  // PHASE 7: Store analytics data
 
   useEffect(() => {
     if (!admin) {
@@ -28,11 +29,37 @@ const AdminDashboard = () => {
     try {
       const response = await axios.get(`${API_URL}/api/admin/profiles`);
       setProfiles(response.data);
+      
+      // PHASE 7: Fetch analytics for all profiles
+      fetchAllAnalytics(response.data);
     } catch (error) {
       console.error('Failed to fetch profiles:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // PHASE 7: Fetch analytics for all profiles
+  const fetchAllAnalytics = async (profilesList) => {
+    const analyticsData = {};
+    
+    for (const profile of profilesList) {
+      try {
+        const response = await axios.get(`${API_URL}/api/admin/profiles/${profile.id}/analytics`);
+        analyticsData[profile.id] = response.data;
+      } catch (error) {
+        console.debug('Failed to fetch analytics for profile:', profile.id);
+        // Set default empty analytics if fetch fails
+        analyticsData[profile.id] = {
+          total_views: 0,
+          mobile_views: 0,
+          desktop_views: 0,
+          last_viewed_at: null
+        };
+      }
+    }
+    
+    setAnalytics(analyticsData);
   };
 
   const handleLogout = () => {
