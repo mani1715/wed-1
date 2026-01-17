@@ -160,6 +160,9 @@ frontend:
       - working: true
         agent: "main"
         comment: "Added comprehensive events management section with add/edit/delete/reorder/visibility toggle. Includes default events button (Mehendi, Sangeet, Wedding, Reception)"
+      - working: "NA"
+        agent: "main"
+        comment: "ADDED Map Display Settings section - Admin toggle to enable/disable map embeds on desktop devices. Includes explanatory text about responsive behavior."
   
   - task: "Events Display in Public Invitation"
     implemented: true
@@ -172,6 +175,9 @@ frontend:
       - working: true
         agent: "main"
         comment: "Added event schedule section that displays visible events in chronological order with map directions. Includes fallback for backward compatibility"
+      - working: "NA"
+        agent: "main"
+        comment: "ADDED Map Embed Display - Shows embedded Google Maps for each event on desktop (≥768px) ONLY when admin enables it via map_settings.embed_enabled. Mobile always shows link only. Embed appears below 'Get Directions' button. Converts Google Maps links to embed format automatically."
 
 metadata:
   created_by: "main_agent"
