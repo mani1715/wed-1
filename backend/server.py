@@ -18,7 +18,8 @@ from models import (
     Greeting, GreetingCreate, GreetingResponse,
     InvitationPublicView, SectionsEnabled, BackgroundMusic, MapSettings,
     WeddingEvent,
-    RSVP, RSVPCreate, RSVPResponse, RSVPStats
+    RSVP, RSVPCreate, RSVPResponse, RSVPStats,
+    Analytics, ViewTrackingRequest, AnalyticsResponse
 )
 from auth import (
     get_password_hash, verify_password, 
