@@ -827,6 +827,19 @@ async def generate_invitation_pdf(profile: dict, language: str = 'english'):
     text_color = rgb_to_reportlab_color(theme['text'])
     bg_color = rgb_to_reportlab_color(theme['bg'])
     
+    # Get deity background path if present
+    deity_id = profile.get('deity_id')
+    deity_bg_path = None
+    if deity_id and deity_id != 'none':
+        # Map deity IDs to local file paths
+        deity_file_map = {
+            'ganesha': '/app/frontend/public/assets/deities/ganesha_desktop.jpg',
+            'venkateswara_padmavati': '/app/frontend/public/assets/deities/venkateswara_padmavati_desktop.jpg',
+            'shiva_parvati': '/app/frontend/public/assets/deities/shiva_parvati_desktop.jpg',
+            'lakshmi_vishnu': '/app/frontend/public/assets/deities/lakshmi_vishnu_desktop.jpg'
+        }
+        deity_bg_path = deity_file_map.get(deity_id)
+    
     # Create PDF document
     doc = SimpleDocTemplate(
         buffer,
