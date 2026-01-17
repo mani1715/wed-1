@@ -243,6 +243,7 @@ class ProfileUpdate(BaseModel):
     custom_text: Optional[Dict[str, Dict[str, str]]] = None
     sections_enabled: Optional[SectionsEnabled] = None
     background_music: Optional[BackgroundMusic] = None
+    map_settings: Optional[MapSettings] = None
     events: Optional[List[WeddingEvent]] = None
     link_expiry_type: Optional[str] = None
     link_expiry_value: Optional[int] = None
