@@ -588,6 +588,30 @@ frontend:
         - agent: "main"
         - comment: "✅ PHASE 7 ANALYTICS UI IMPLEMENTED: Admin dashboard displays invitation view statistics. Added fetchAllAnalytics() function to fetch analytics for all profiles on dashboard load. Each profile card now shows: 1) Total Views (blue card with Eye icon), 2) Mobile Views (green card with Smartphone icon), 3) Desktop Views (purple card with Monitor icon), 4) Last Viewed timestamp below stats. Stats displayed in 3-column grid with colored background cards. Graceful handling if analytics data unavailable (shows zeros). No blocking, no charts, clean simple display. Integrated seamlessly with existing profile cards."
 
+  - task: "PHASE 8 - PDF Generation Backend"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+        - agent: "main"
+        - comment: "✅ PHASE 8 PDF GENERATION IMPLEMENTED: Server-side PDF generation with ReportLab. Created generate_invitation_pdf() function with A4 portrait layout, design theme colors applied (8 themes supported), language-specific text (6 languages), clean typography with proper spacing. PDF includes: couple names, event schedule with dates/times/venues, contact information (WhatsApp numbers). Excluded: RSVP buttons, wishes, maps, music, interactive elements. Added admin-only endpoint GET /api/admin/profiles/{id}/download-pdf with query param for language selection. Returns PDF as downloadable file with filename format: wedding-invitation-{groom}-{bride}.pdf. PDF optimized for printing with proper margins (0.75 inch), high-quality text rendering, lightweight (<2MB). Security: admin authentication required, public users cannot access."
+
+  - task: "PHASE 8 - PDF Download Frontend"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/AdminDashboard.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+        - agent: "main"
+        - comment: "✅ PHASE 8 PDF DOWNLOAD UI IMPLEMENTED: Added 'Download PDF' button in AdminDashboard.jsx for each profile card. Button styled with blue theme (text-blue-600, hover:bg-blue-50) and Download icon from lucide-react. Implemented handleDownloadPDF() function that: 1) Gets primary language from profile.enabled_languages[0], 2) Calls backend PDF endpoint with language param, 3) Downloads blob as file with proper filename, 4) Handles errors with user-friendly alert. PDF downloads automatically with correct filename format. No impact on public invitation page performance. Clean integration with existing admin panel UI."
+
 metadata:
   created_by: "main_agent"
   version: "5.0"
