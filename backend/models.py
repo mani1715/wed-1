@@ -166,6 +166,7 @@ class ProfileCreate(BaseModel):
     custom_text: Dict[str, Dict[str, str]] = Field(default_factory=dict)
     sections_enabled: SectionsEnabled = Field(default_factory=SectionsEnabled)
     background_music: BackgroundMusic = Field(default_factory=BackgroundMusic)
+    map_settings: MapSettings = Field(default_factory=MapSettings)
     events: List[WeddingEvent] = Field(default_factory=list)
     link_expiry_type: str = "days"
     link_expiry_value: Optional[int] = 30
