@@ -161,8 +161,23 @@ class ProfileCreate(BaseModel):
     custom_text: Dict[str, Dict[str, str]] = Field(default_factory=dict)
     sections_enabled: SectionsEnabled = Field(default_factory=SectionsEnabled)
     background_music: BackgroundMusic = Field(default_factory=BackgroundMusic)
+    events: List[WeddingEvent] = Field(default_factory=list)
     link_expiry_type: str = "days"
     link_expiry_value: Optional[int] = 30
+    
+    @field_validator('events')
+    def validate_events(cls, v):
+        """Validate events list"""
+        if v is not None:
+            if len(v) > 7:
+                raise ValueError('Maximum 7 events allowed')
+            
+            # Check at least one visible event if events exist
+            if len(v) > 0:
+                visible_events = [e for e in v if e.visible]
+                if len(visible_events) == 0:
+                    raise ValueError('At least one event must be visible')
+        return v
     
     @field_validator('whatsapp_groom', 'whatsapp_bride')
     def validate_whatsapp_number(cls, v):
