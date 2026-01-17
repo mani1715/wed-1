@@ -237,9 +237,24 @@ class ProfileUpdate(BaseModel):
     custom_text: Optional[Dict[str, Dict[str, str]]] = None
     sections_enabled: Optional[SectionsEnabled] = None
     background_music: Optional[BackgroundMusic] = None
+    events: Optional[List[WeddingEvent]] = None
     link_expiry_type: Optional[str] = None
     link_expiry_value: Optional[int] = None
     is_active: Optional[bool] = None
+    
+    @field_validator('events')
+    def validate_events(cls, v):
+        """Validate events list"""
+        if v is not None:
+            if len(v) > 7:
+                raise ValueError('Maximum 7 events allowed')
+            
+            # Check at least one visible event if events exist
+            if len(v) > 0:
+                visible_events = [e for e in v if e.visible]
+                if len(visible_events) == 0:
+                    raise ValueError('At least one event must be visible')
+        return v
     
     @field_validator('whatsapp_groom', 'whatsapp_bride')
     def validate_whatsapp_number(cls, v):
