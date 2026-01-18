@@ -1499,6 +1499,175 @@ const PublicInvitation = () => {
         </Card>
         )}
 
+        {/* Contact Information Section */}
+        {invitation.sections_enabled.contact && invitation.contact_info && (
+          invitation.contact_info.groom_phone || invitation.contact_info.bride_phone || invitation.contact_info.emergency_phone || invitation.contact_info.email
+        ) && (
+          <Card 
+            className="p-8 mb-8"
+            style={{
+              background: 'var(--color-card, #FFFDF7)',
+              boxShadow: 'var(--card-shadow, 0 4px 12px rgba(139, 115, 85, 0.15))',
+              border: 'var(--card-border, 1px solid #E8D9C5)',
+              borderRadius: 'var(--card-radius, 12px)',
+              marginBottom: 'var(--spacing-card, 1.5rem)'
+            }}
+          >
+            <h3 
+              className="text-2xl font-semibold mb-6 text-center"
+              style={{ 
+                fontFamily: 'var(--font-heading, "Cinzel", serif)',
+                color: 'var(--color-primary, #8B7355)'
+              }}
+            >
+              Contact Us
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {invitation.contact_info.groom_phone && (
+                <div className="flex items-center gap-3 p-4 rounded-lg bg-white/50">
+                  <Phone className="w-5 h-5" style={{ color: 'var(--color-primary, #8B7355)' }} />
+                  <div>
+                    <p className="text-sm font-medium" style={{ color: 'var(--color-text, #4A3728)' }}>
+                      Groom Family
+                    </p>
+                    <a 
+                      href={`tel:${invitation.contact_info.groom_phone}`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      {invitation.contact_info.groom_phone}
+                    </a>
+                  </div>
+                </div>
+              )}
+              {invitation.contact_info.bride_phone && (
+                <div className="flex items-center gap-3 p-4 rounded-lg bg-white/50">
+                  <Phone className="w-5 h-5" style={{ color: 'var(--color-primary, #8B7355)' }} />
+                  <div>
+                    <p className="text-sm font-medium" style={{ color: 'var(--color-text, #4A3728)' }}>
+                      Bride Family
+                    </p>
+                    <a 
+                      href={`tel:${invitation.contact_info.bride_phone}`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      {invitation.contact_info.bride_phone}
+                    </a>
+                  </div>
+                </div>
+              )}
+              {invitation.contact_info.emergency_phone && (
+                <div className="flex items-center gap-3 p-4 rounded-lg bg-white/50">
+                  <Phone className="w-5 h-5" style={{ color: 'var(--color-secondary, #D4AF37)' }} />
+                  <div>
+                    <p className="text-sm font-medium" style={{ color: 'var(--color-text, #4A3728)' }}>
+                      Emergency Contact
+                    </p>
+                    <a 
+                      href={`tel:${invitation.contact_info.emergency_phone}`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      {invitation.contact_info.emergency_phone}
+                    </a>
+                  </div>
+                </div>
+              )}
+              {invitation.contact_info.email && (
+                <div className="flex items-center gap-3 p-4 rounded-lg bg-white/50">
+                  <Mail className="w-5 h-5" style={{ color: 'var(--color-primary, #8B7355)' }} />
+                  <div>
+                    <p className="text-sm font-medium" style={{ color: 'var(--color-text, #4A3728)' }}>
+                      Email
+                    </p>
+                    <a 
+                      href={`mailto:${invitation.contact_info.email}`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      {invitation.contact_info.email}
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
+
+        {/* Add to Calendar & QR Code Section */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          {/* Add to Calendar Button */}
+          {invitation.sections_enabled.calendar && invitation.events && invitation.events.filter(e => e.visible).length > 0 && (
+            <Card 
+              className="p-6 flex-1 text-center"
+              style={{
+                background: 'var(--color-card, #FFFDF7)',
+                boxShadow: 'var(--card-shadow, 0 4px 12px rgba(139, 115, 85, 0.15))',
+                border: 'var(--card-border, 1px solid #E8D9C5)',
+                borderRadius: 'var(--card-radius, 12px)'
+              }}
+            >
+              <Calendar 
+                className="w-10 h-10 mx-auto mb-3" 
+                style={{ color: 'var(--color-secondary, #D4AF37)' }} 
+              />
+              <h4 
+                className="text-lg font-semibold mb-3"
+                style={{ 
+                  color: 'var(--color-primary, #8B7355)',
+                  fontFamily: 'var(--font-heading, "Cinzel", serif)'
+                }}
+              >
+                Save the Date
+              </h4>
+              <Button
+                onClick={() => window.open(`${API_URL}/api/invite/${slug}/calendar`, '_blank')}
+                className="w-full"
+                style={{
+                  background: 'var(--color-primary, #8B7355)',
+                  color: 'white'
+                }}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Add to Calendar
+              </Button>
+            </Card>
+          )}
+
+          {/* QR Code Display */}
+          {invitation.sections_enabled.qr && (
+            <Card 
+              className="p-6 flex-1 text-center"
+              style={{
+                background: 'var(--color-card, #FFFDF7)',
+                boxShadow: 'var(--card-shadow, 0 4px 12px rgba(139, 115, 85, 0.15))',
+                border: 'var(--card-border, 1px solid #E8D9C5)',
+                borderRadius: 'var(--card-radius, 12px)'
+              }}
+            >
+              <QrCode 
+                className="w-10 h-10 mx-auto mb-3" 
+                style={{ color: 'var(--color-secondary, #D4AF37)' }} 
+              />
+              <h4 
+                className="text-lg font-semibold mb-3"
+                style={{ 
+                  color: 'var(--color-primary, #8B7355)',
+                  fontFamily: 'var(--font-heading, "Cinzel", serif)'
+                }}
+              >
+                Share Invitation
+              </h4>
+              <img 
+                src={`${API_URL}/api/invite/${slug}/qr`} 
+                alt="Invitation QR Code" 
+                className="w-48 h-48 mx-auto rounded-lg"
+                style={{ border: '2px solid var(--color-accent, #C9A961)' }}
+              />
+              <p className="text-xs mt-3" style={{ color: 'var(--color-text, #4A3728)' }}>
+                Scan to view this invitation
+              </p>
+            </Card>
+          )}
+        </div>
+
         {/* Footer Section */}
         {invitation.sections_enabled.footer && (
           <div className="text-center py-8">
