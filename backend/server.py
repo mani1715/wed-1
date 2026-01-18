@@ -839,6 +839,62 @@ async def submit_rsvp(slug: str, rsvp_data: RSVPCreate):
     )
 
 
+@api_router.put("/rsvp/{rsvp_id}", response_model=RSVPResponse)
+async def update_rsvp(rsvp_id: str, rsvp_data: RSVPCreate):
+    """PHASE 11: Update RSVP within 48 hours of creation"""
+    # Find existing RSVP
+    existing_rsvp = await db.rsvps.find_one({"id": rsvp_id}, {"_id": 0})
+    
+    if not existing_rsvp:
+        raise HTTPException(status_code=404, detail="RSVP not found")
+    
+    # Convert created_at if string
+    if isinstance(existing_rsvp.get('created_at'), str):
+        created_at = datetime.fromisoformat(existing_rsvp['created_at'])
+    else:
+        created_at = existing_rsvp['created_at']
+    
+    # Check if within 48 hours
+    time_since_creation = datetime.now(timezone.utc) - created_at
+    if time_since_creation > timedelta(hours=48):
+        raise HTTPException(
+            status_code=403,
+            detail="Cannot edit RSVP after 48 hours of submission"
+        )
+    
+    # Verify phone number matches (security check)
+    if existing_rsvp['guest_phone'] != rsvp_data.guest_phone:
+        raise HTTPException(
+            status_code=403,
+            detail="Phone number does not match original RSVP"
+        )
+    
+    # Update RSVP
+    update_doc = {
+        "guest_name": rsvp_data.guest_name,
+        "status": rsvp_data.status,
+        "guest_count": rsvp_data.guest_count,
+        "message": rsvp_data.message
+    }
+    
+    result = await db.rsvps.update_one(
+        {"id": rsvp_id},
+        {"$set": update_doc}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="RSVP not found or no changes made")
+    
+    # Fetch updated RSVP
+    updated_rsvp = await db.rsvps.find_one({"id": rsvp_id}, {"_id": 0})
+    
+    # Convert date strings
+    if isinstance(updated_rsvp.get('created_at'), str):
+        updated_rsvp['created_at'] = datetime.fromisoformat(updated_rsvp['created_at'])
+    
+    return RSVPResponse(**updated_rsvp)
+
+
 @api_router.get("/admin/profiles/{profile_id}/rsvps", response_model=List[RSVPResponse])
 async def get_profile_rsvps(
     profile_id: str,
