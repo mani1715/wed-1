@@ -58,8 +58,12 @@ class SectionsEnabled(BaseModel):
     video: bool = False
     events: bool = True
     rsvp: bool = False  # RSVP section (default DISABLED)
-    greetings: bool = True
+    greetings: bool = True  # Greetings/Wishes wall (default ENABLED)
     footer: bool = True
+    contact: bool = False  # PHASE 11: Contact information section
+    calendar: bool = False  # PHASE 11: Add to calendar feature
+    countdown: bool = False  # PHASE 11: Event countdown
+    qr: bool = False  # PHASE 11: QR code display
 
 
 class BackgroundMusic(BaseModel):
