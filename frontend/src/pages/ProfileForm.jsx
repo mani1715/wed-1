@@ -510,6 +510,35 @@ const ProfileForm = () => {
     }
   };
 
+  const handleMovePhoto = (photoId, direction) => {
+    const currentIndex = photos.findIndex(p => p.id === photoId);
+    if (currentIndex === -1) return;
+
+    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (newIndex < 0 || newIndex >= photos.length) return;
+
+    // Swap photos
+    const newPhotos = [...photos];
+    [newPhotos[currentIndex], newPhotos[newIndex]] = [newPhotos[newIndex], newPhotos[currentIndex]];
+    setPhotos(newPhotos);
+
+    // Update order on backend
+    handleReorderPhotos(newPhotos.map(p => p.id));
+  };
+
+  const handleReorderPhotos = async (photoIds) => {
+    try {
+      const token = localStorage.getItem('admin_token');
+      await axios.post(
+        `${API_URL}/api/admin/profiles/${profileId}/reorder-media`,
+        { media_ids: photoIds },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch (error) {
+      console.error('Failed to reorder photos:', error);
+    }
+  };
+
   const handlePreview = () => {
     if (isEdit && formData.slug) {
       window.open(`/invite/${formData.slug}`, '_blank');
