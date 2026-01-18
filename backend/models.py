@@ -296,6 +296,7 @@ class ProfileUpdate(BaseModel):
     sections_enabled: Optional[SectionsEnabled] = None
     background_music: Optional[BackgroundMusic] = None
     map_settings: Optional[MapSettings] = None
+    contact_info: Optional[ContactInfo] = None  # PHASE 11: Contact information
     events: Optional[List[WeddingEvent]] = None
     link_expiry_type: Optional[str] = None
     link_expiry_value: Optional[int] = None
