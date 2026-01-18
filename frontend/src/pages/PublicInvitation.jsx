@@ -974,6 +974,55 @@ const PublicInvitation = () => {
           </Card>
         )}
 
+        {/* Event Countdown Section */}
+        {invitation.sections_enabled.countdown && invitation.events && invitation.events.length > 0 && (() => {
+          // Find main wedding event or first event
+          const mainEvent = invitation.events.find(e => e.name.toLowerCase().includes('wedding') && e.visible) || invitation.events.find(e => e.visible);
+          if (!mainEvent) return null;
+          
+          const eventDate = new Date(mainEvent.date);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          eventDate.setHours(0, 0, 0, 0);
+          const daysToGo = Math.ceil((eventDate - today) / (1000 * 60 * 60 * 24));
+          
+          // Don't show countdown after the event date
+          if (daysToGo < 0) return null;
+          
+          return (
+            <Card 
+              className="p-6 mb-8 text-center"
+              style={{
+                background: 'var(--color-card, #FFFDF7)',
+                boxShadow: 'var(--card-shadow, 0 4px 12px rgba(139, 115, 85, 0.15))',
+                border: 'var(--card-border, 1px solid #E8D9C5)',
+                borderRadius: 'var(--card-radius, 12px)',
+                marginBottom: 'var(--spacing-card, 1.5rem)'
+              }}
+            >
+              <Clock 
+                className="w-12 h-12 mx-auto mb-4" 
+                style={{ color: 'var(--color-secondary, #D4AF37)' }} 
+              />
+              <p 
+                className="text-3xl md:text-4xl font-bold"
+                style={{ 
+                  color: 'var(--color-primary, #8B7355)',
+                  fontFamily: 'var(--font-heading, "Cinzel", serif)'
+                }}
+              >
+                ⏳ {daysToGo === 0 ? "Today's the Day!" : `${daysToGo} Day${daysToGo > 1 ? 's' : ''} to Go`}
+              </p>
+              <p 
+                className="text-sm mt-2"
+                style={{ color: 'var(--color-text, #4A3728)' }}
+              >
+                {mainEvent.name} • {new Date(mainEvent.date).toLocaleDateString()}
+              </p>
+            </Card>
+          );
+        })()}
+
         {/* WhatsApp Greeting Section */}
         {(invitation.whatsapp_groom || invitation.whatsapp_bride) && (
           <Card 
