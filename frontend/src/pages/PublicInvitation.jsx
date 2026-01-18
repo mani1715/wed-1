@@ -1173,7 +1173,11 @@ const PublicInvitation = () => {
                     <button
                       key={option.value}
                       type="button"
-                      onClick={() => setRsvpData(prev => ({ ...prev, status: option.value }))}
+                      onClick={() => {
+                        setRsvpData(prev => ({ ...prev, status: option.value }));
+                        // PHASE 9: Track RSVP button click
+                        trackInteraction('rsvp_click');
+                      }}
                       className="px-4 py-3 rounded-md text-sm font-medium transition-all"
                       style={{
                         background: rsvpData.status === option.value 
