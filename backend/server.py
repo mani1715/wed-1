@@ -622,19 +622,46 @@ async def export_rsvps_csv(profile_id: str, admin_id: str = Depends(get_current_
     )
 
 
-# ==================== ANALYTICS ROUTES (PHASE 7) ====================
+# ==================== ANALYTICS ROUTES (PHASE 9 - ENHANCED) ====================
 
 @api_router.post("/invite/{slug}/view", status_code=204)
 async def track_invitation_view(slug: str, view_data: ViewTrackingRequest):
-    """Track invitation view (public endpoint, privacy-first)"""
+    """Track invitation view with session-based unique visitor tracking (Phase 9)"""
     # Find profile by slug
     profile = await db.profiles.find_one({"slug": slug}, {"_id": 0})
     
     if not profile:
         raise HTTPException(status_code=404, detail="Invitation not found")
     
-    # Check if active (but still track view even if expired for analytics)
     profile_id = profile['id']
+    now = datetime.now(timezone.utc)
+    current_date = now.date().isoformat()
+    current_hour = str(now.hour)
+    
+    # Check if session exists and is valid (24-hour window)
+    existing_session = await db.view_sessions.find_one({
+        "session_id": view_data.session_id,
+        "profile_id": profile_id,
+        "expires_at": {"$gt": now.isoformat()}
+    })
+    
+    is_unique_view = existing_session is None
+    
+    # If no valid session exists, create one
+    if is_unique_view:
+        session = ViewSession(
+            session_id=view_data.session_id,
+            profile_id=profile_id,
+            device_type=view_data.device_type,
+            created_at=now,
+            expires_at=now + timedelta(hours=24)
+        )
+        
+        session_doc = session.model_dump()
+        session_doc['created_at'] = session_doc['created_at'].isoformat()
+        session_doc['expires_at'] = session_doc['expires_at'].isoformat()
+        
+        await db.view_sessions.insert_one(session_doc)
     
     # Find or create analytics document
     analytics_doc = await db.analytics.find_one({"profile_id": profile_id}, {"_id": 0})
@@ -643,14 +670,44 @@ async def track_invitation_view(slug: str, view_data: ViewTrackingRequest):
         # Update existing analytics
         update_data = {
             "total_views": analytics_doc.get('total_views', 0) + 1,
-            "last_viewed_at": datetime.now(timezone.utc).isoformat()
+            "last_viewed_at": now.isoformat()
         }
+        
+        # Update unique views if new session
+        if is_unique_view:
+            update_data["unique_views"] = analytics_doc.get('unique_views', 0) + 1
+            
+            # Set first_viewed_at if not set
+            if not analytics_doc.get('first_viewed_at'):
+                update_data["first_viewed_at"] = now.isoformat()
         
         # Increment device-specific counter
         if view_data.device_type == "mobile":
             update_data["mobile_views"] = analytics_doc.get('mobile_views', 0) + 1
-        else:
+        elif view_data.device_type == "desktop":
             update_data["desktop_views"] = analytics_doc.get('desktop_views', 0) + 1
+        elif view_data.device_type == "tablet":
+            update_data["tablet_views"] = analytics_doc.get('tablet_views', 0) + 1
+        
+        # Update hourly distribution
+        hourly_dist = analytics_doc.get('hourly_distribution', {})
+        hourly_dist[current_hour] = hourly_dist.get(current_hour, 0) + 1
+        update_data["hourly_distribution"] = hourly_dist
+        
+        # Update daily views (keep last 30 days)
+        daily_views = analytics_doc.get('daily_views', [])
+        today_entry = next((dv for dv in daily_views if dv['date'] == current_date), None)
+        
+        if today_entry:
+            today_entry['count'] += 1
+        else:
+            daily_views.append({"date": current_date, "count": 1})
+        
+        # Keep only last 30 days
+        if len(daily_views) > 30:
+            daily_views = sorted(daily_views, key=lambda x: x['date'], reverse=True)[:30]
+        
+        update_data["daily_views"] = daily_views
         
         await db.analytics.update_one(
             {"profile_id": profile_id},
@@ -661,13 +718,24 @@ async def track_invitation_view(slug: str, view_data: ViewTrackingRequest):
         analytics = Analytics(
             profile_id=profile_id,
             total_views=1,
+            unique_views=1 if is_unique_view else 0,
             mobile_views=1 if view_data.device_type == "mobile" else 0,
             desktop_views=1 if view_data.device_type == "desktop" else 0,
-            last_viewed_at=datetime.now(timezone.utc)
+            tablet_views=1 if view_data.device_type == "tablet" else 0,
+            first_viewed_at=now,
+            last_viewed_at=now,
+            daily_views=[{"date": current_date, "count": 1}],
+            hourly_distribution={current_hour: 1},
+            language_views={},
+            map_clicks=0,
+            rsvp_clicks=0,
+            music_plays=0,
+            music_pauses=0
         )
         
         doc = analytics.model_dump()
         doc['created_at'] = doc['created_at'].isoformat()
+        doc['first_viewed_at'] = doc['first_viewed_at'].isoformat()
         doc['last_viewed_at'] = doc['last_viewed_at'].isoformat()
         
         await db.analytics.insert_one(doc)
@@ -676,9 +744,70 @@ async def track_invitation_view(slug: str, view_data: ViewTrackingRequest):
     return None
 
 
+@api_router.post("/invite/{slug}/track-language", status_code=204)
+async def track_language_view(slug: str, language_data: LanguageTrackingRequest):
+    """Track language selection (public endpoint, Phase 9)"""
+    # Find profile by slug
+    profile = await db.profiles.find_one({"slug": slug}, {"_id": 0})
+    
+    if not profile:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    
+    profile_id = profile['id']
+    
+    # Update analytics with language view
+    analytics_doc = await db.analytics.find_one({"profile_id": profile_id}, {"_id": 0})
+    
+    if analytics_doc:
+        language_views = analytics_doc.get('language_views', {})
+        language_views[language_data.language_code] = language_views.get(language_data.language_code, 0) + 1
+        
+        await db.analytics.update_one(
+            {"profile_id": profile_id},
+            {"$set": {"language_views": language_views}}
+        )
+    
+    return None
+
+
+@api_router.post("/invite/{slug}/track-interaction", status_code=204)
+async def track_interaction(slug: str, interaction_data: InteractionTrackingRequest):
+    """Track user interactions (public endpoint, Phase 9)"""
+    # Find profile by slug
+    profile = await db.profiles.find_one({"slug": slug}, {"_id": 0})
+    
+    if not profile:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    
+    profile_id = profile['id']
+    
+    # Update analytics with interaction
+    analytics_doc = await db.analytics.find_one({"profile_id": profile_id}, {"_id": 0})
+    
+    if analytics_doc:
+        update_data = {}
+        
+        if interaction_data.interaction_type == "map_click":
+            update_data["map_clicks"] = analytics_doc.get('map_clicks', 0) + 1
+        elif interaction_data.interaction_type == "rsvp_click":
+            update_data["rsvp_clicks"] = analytics_doc.get('rsvp_clicks', 0) + 1
+        elif interaction_data.interaction_type == "music_play":
+            update_data["music_plays"] = analytics_doc.get('music_plays', 0) + 1
+        elif interaction_data.interaction_type == "music_pause":
+            update_data["music_pauses"] = analytics_doc.get('music_pauses', 0) + 1
+        
+        if update_data:
+            await db.analytics.update_one(
+                {"profile_id": profile_id},
+                {"$set": update_data}
+            )
+    
+    return None
+
+
 @api_router.get("/admin/profiles/{profile_id}/analytics", response_model=AnalyticsResponse)
 async def get_profile_analytics(profile_id: str, admin_id: str = Depends(get_current_admin)):
-    """Get analytics for a specific profile (admin only)"""
+    """Get detailed analytics for a specific profile (admin only, Phase 9)"""
     # Verify profile exists
     profile = await db.profiles.find_one({"id": profile_id}, {"_id": 0})
     
@@ -693,22 +822,108 @@ async def get_profile_analytics(profile_id: str, admin_id: str = Depends(get_cur
         return AnalyticsResponse(
             profile_id=profile_id,
             total_views=0,
+            unique_views=0,
             mobile_views=0,
             desktop_views=0,
-            last_viewed_at=None
+            tablet_views=0,
+            first_viewed_at=None,
+            last_viewed_at=None,
+            daily_views=[],
+            hourly_distribution={},
+            language_views={},
+            map_clicks=0,
+            rsvp_clicks=0,
+            music_plays=0,
+            music_pauses=0
         )
     
-    # Convert datetime string if needed
+    # Convert datetime strings if needed
+    first_viewed = analytics_doc.get('first_viewed_at')
+    if isinstance(first_viewed, str):
+        first_viewed = datetime.fromisoformat(first_viewed)
+    
     last_viewed = analytics_doc.get('last_viewed_at')
     if isinstance(last_viewed, str):
         last_viewed = datetime.fromisoformat(last_viewed)
     
+    # Convert daily_views to DailyView objects
+    daily_views_data = analytics_doc.get('daily_views', [])
+    daily_views = [DailyView(**dv) if isinstance(dv, dict) else dv for dv in daily_views_data]
+    
     return AnalyticsResponse(
         profile_id=analytics_doc['profile_id'],
         total_views=analytics_doc.get('total_views', 0),
+        unique_views=analytics_doc.get('unique_views', 0),
         mobile_views=analytics_doc.get('mobile_views', 0),
         desktop_views=analytics_doc.get('desktop_views', 0),
-        last_viewed_at=last_viewed
+        tablet_views=analytics_doc.get('tablet_views', 0),
+        first_viewed_at=first_viewed,
+        last_viewed_at=last_viewed,
+        daily_views=daily_views,
+        hourly_distribution=analytics_doc.get('hourly_distribution', {}),
+        language_views=analytics_doc.get('language_views', {}),
+        map_clicks=analytics_doc.get('map_clicks', 0),
+        rsvp_clicks=analytics_doc.get('rsvp_clicks', 0),
+        music_plays=analytics_doc.get('music_plays', 0),
+        music_pauses=analytics_doc.get('music_pauses', 0)
+    )
+
+
+@api_router.get("/admin/profiles/{profile_id}/analytics/summary", response_model=AnalyticsSummary)
+async def get_analytics_summary(profile_id: str, date_range: str = "7d", admin_id: str = Depends(get_current_admin)):
+    """Get analytics summary with date range filter (admin only, Phase 9)
+    
+    Args:
+        date_range: "7d" (last 7 days), "30d" (last 30 days), or "all" (all time)
+    """
+    # Verify profile exists
+    profile = await db.profiles.find_one({"id": profile_id}, {"_id": 0})
+    
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    # Get analytics
+    analytics_doc = await db.analytics.find_one({"profile_id": profile_id}, {"_id": 0})
+    
+    if not analytics_doc:
+        return AnalyticsSummary(
+            total_views=0,
+            unique_visitors=0,
+            most_viewed_language=None,
+            peak_hour=None,
+            device_breakdown={"mobile": 0, "desktop": 0, "tablet": 0}
+        )
+    
+    # Apply date range filter for daily views
+    daily_views = analytics_doc.get('daily_views', [])
+    if date_range != "all" and daily_views:
+        cutoff_date = (datetime.now(timezone.utc) - timedelta(days=int(date_range[:-1]))).date().isoformat()
+        daily_views = [dv for dv in daily_views if dv['date'] >= cutoff_date]
+    
+    # Calculate filtered total views
+    if date_range == "all":
+        filtered_total_views = analytics_doc.get('total_views', 0)
+    else:
+        filtered_total_views = sum(dv['count'] for dv in daily_views)
+    
+    # Find most viewed language
+    language_views = analytics_doc.get('language_views', {})
+    most_viewed_language = max(language_views.items(), key=lambda x: x[1])[0] if language_views else None
+    
+    # Find peak hour
+    hourly_dist = analytics_doc.get('hourly_distribution', {})
+    peak_hour = int(max(hourly_dist.items(), key=lambda x: x[1])[0]) if hourly_dist else None
+    
+    return AnalyticsSummary(
+        total_views=filtered_total_views,
+        unique_visitors=analytics_doc.get('unique_views', 0),
+        most_viewed_language=most_viewed_language,
+        peak_hour=peak_hour,
+        device_breakdown={
+            "mobile": analytics_doc.get('mobile_views', 0),
+            "desktop": analytics_doc.get('desktop_views', 0),
+            "tablet": analytics_doc.get('tablet_views', 0)
+        }
     )
 
 
