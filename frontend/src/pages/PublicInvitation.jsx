@@ -331,7 +331,55 @@ const PublicInvitation = () => {
     }
   };
 
-  // RSVP submission
+  // PHASE 11: Check existing RSVP status
+  const handleCheckRsvp = async (e) => {
+    e.preventDefault();
+    
+    if (!checkPhone || checkPhone.trim().length === 0) {
+      setRsvpError('Please enter your phone number');
+      return;
+    }
+
+    setCheckingRsvp(true);
+    setRsvpError('');
+
+    try {
+      const response = await axios.get(`${API_URL}/api/invite/${slug}/rsvp/check`, {
+        params: { phone: checkPhone.trim() }
+      });
+
+      if (response.data.exists) {
+        setExistingRsvp(response.data.rsvp);
+        setCanEditRsvp(response.data.can_edit);
+        setHoursRemaining(Math.floor(response.data.hours_remaining || 0));
+        
+        // Pre-fill form with existing data for editing
+        if (response.data.can_edit) {
+          setRsvpData({
+            guest_name: response.data.rsvp.guest_name,
+            guest_phone: response.data.rsvp.guest_phone,
+            status: response.data.rsvp.status,
+            guest_count: response.data.rsvp.guest_count,
+            message: response.data.rsvp.message || ''
+          });
+          setIsEditMode(true);
+        }
+      } else {
+        // No existing RSVP - allow new submission
+        setExistingRsvp(null);
+        setCanEditRsvp(false);
+        setIsEditMode(false);
+        setRsvpData(prev => ({ ...prev, guest_phone: checkPhone.trim() }));
+      }
+    } catch (error) {
+      console.error('Failed to check RSVP:', error);
+      setRsvpError('Failed to check RSVP status. Please try again.');
+    } finally {
+      setCheckingRsvp(false);
+    }
+  };
+
+  // RSVP submission (create or update)
   const handleSubmitRSVP = async (e) => {
     e.preventDefault();
     
@@ -345,9 +393,19 @@ const PublicInvitation = () => {
     setRsvpError('');
 
     try {
-      await axios.post(`${API_URL}/api/rsvp?slug=${slug}`, rsvpData);
-      setRsvpSuccess(true);
-      setSubmittedRsvpStatus(rsvpData.status); // Save the status before clearing
+      if (isEditMode && existingRsvp) {
+        // Update existing RSVP
+        await axios.put(`${API_URL}/api/rsvp/${existingRsvp.id}`, rsvpData);
+        setRsvpSuccess(true);
+        setSubmittedRsvpStatus(rsvpData.status);
+      } else {
+        // Create new RSVP
+        await axios.post(`${API_URL}/api/rsvp?slug=${slug}`, rsvpData);
+        setRsvpSuccess(true);
+        setSubmittedRsvpStatus(rsvpData.status);
+      }
+      
+      // Reset states
       setRsvpData({
         guest_name: '',
         guest_phone: '',
@@ -356,12 +414,16 @@ const PublicInvitation = () => {
         message: ''
       });
       setShowRSVP(false);
+      setExistingRsvp(null);
+      setIsEditMode(false);
+      setCheckPhone('');
     } catch (error) {
       console.error('Failed to submit RSVP:', error);
       if (error.response?.status === 400) {
-        // PHASE 11: Better error message for 48-hour restriction
         const errorMsg = error.response?.data?.detail || 'You have already submitted an RSVP';
         setRsvpError(errorMsg);
+      } else if (error.response?.status === 403) {
+        setRsvpError('Cannot edit RSVP after 48 hours of submission');
       } else if (error.response?.status === 410) {
         setRsvpError('This invitation link has expired');
       } else {
