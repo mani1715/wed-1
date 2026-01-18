@@ -351,7 +351,9 @@ const PublicInvitation = () => {
     } catch (error) {
       console.error('Failed to submit RSVP:', error);
       if (error.response?.status === 400) {
-        setRsvpError('You have already submitted an RSVP for this invitation');
+        // PHASE 11: Better error message for 48-hour restriction
+        const errorMsg = error.response?.data?.detail || 'You have already submitted an RSVP';
+        setRsvpError(errorMsg);
       } else if (error.response?.status === 410) {
         setRsvpError('This invitation link has expired');
       } else {
