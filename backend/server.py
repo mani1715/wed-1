@@ -629,11 +629,11 @@ async def get_invitation(slug: str):
         {"_id": 0}
     ).sort("order", 1).to_list(1000)
     
-    # Get greetings
+    # Get greetings - PHASE 11: Only return approved greetings for public view (last 20)
     greetings_list = await db.greetings.find(
-        {"profile_id": profile['id']},
+        {"profile_id": profile['id'], "approval_status": "approved"},
         {"_id": 0}
-    ).sort("created_at", -1).to_list(100)
+    ).sort("created_at", -1).limit(20).to_list(20)
     
     # Convert date strings
     if isinstance(profile.get('event_date'), str):
