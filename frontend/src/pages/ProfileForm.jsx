@@ -860,8 +860,152 @@ const ProfileForm = () => {
             </div>
           </Card>
 
-          {/* WhatsApp Numbers */}
+          {/* Rich Text Content Sections */}
           <Card className="p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Content Sections</h2>
+            <p className="text-sm text-gray-600 mb-6">
+              Add optional rich text content sections to tell your story
+            </p>
+            
+            <div className="space-y-6">
+              {/* About Couple */}
+              <RichTextEditor
+                label="About the Couple"
+                value={formData.about_couple}
+                onChange={(html) => setFormData(prev => ({ ...prev, about_couple: html }))}
+                enabled={formData.sections_enabled.about}
+                onToggle={() => handleSectionToggle('about')}
+              />
+
+              {/* Family Details */}
+              <RichTextEditor
+                label="Family Details"
+                value={formData.family_details}
+                onChange={(html) => setFormData(prev => ({ ...prev, family_details: html }))}
+                enabled={formData.sections_enabled.family}
+                onToggle={() => handleSectionToggle('family')}
+              />
+
+              {/* Love Story */}
+              <RichTextEditor
+                label="Love Story"
+                value={formData.love_story}
+                onChange={(html) => setFormData(prev => ({ ...prev, love_story: html }))}
+                enabled={formData.sections_enabled.love_story}
+                onToggle={() => handleSectionToggle('love_story')}
+              />
+            </div>
+          </Card>
+
+          {/* Photo Gallery Management */}
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Photo Gallery</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Upload up to 20 photos. Max 5MB each. Images will be converted to WebP format.
+            </p>
+
+            {!isEdit && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-4">
+                <p className="text-sm text-yellow-800">
+                  Please save the profile first before uploading photos.
+                </p>
+              </div>
+            )}
+
+            {isEdit && (
+              <>
+                {/* Upload Button */}
+                <div className="mb-6">
+                  <label className={`inline-flex items-center px-4 py-2 border-2 border-dashed rounded-lg cursor-pointer transition-all ${
+                    photos.length >= 20 || uploadingPhoto
+                      ? 'border-gray-300 bg-gray-50 cursor-not-allowed'
+                      : 'border-rose-300 hover:border-rose-500 hover:bg-rose-50'
+                  }`}>
+                    <Upload className="w-5 h-5 mr-2 text-rose-600" />
+                    <span className="text-sm font-medium text-gray-700">
+                      {uploadingPhoto ? 'Uploading...' : 'Upload Photos'}
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handlePhotoUpload}
+                      disabled={photos.length >= 20 || uploadingPhoto}
+                      className="hidden"
+                    />
+                  </label>
+                  <p className="text-xs text-gray-500 mt-2">
+                    {photos.length}/20 photos uploaded
+                  </p>
+                </div>
+
+                {/* Photos Grid */}
+                {photos.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {photos.map((photo) => (
+                      <div key={photo.id} className="relative group">
+                        {/* Photo */}
+                        <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 border-2 border-gray-200">
+                          <img
+                            src={`${API_URL}${photo.media_url}`}
+                            alt={photo.caption || 'Wedding photo'}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+
+                        {/* Cover Badge */}
+                        {photo.is_cover && (
+                          <div className="absolute top-2 left-2 bg-yellow-500 text-white px-2 py-1 rounded-md flex items-center gap-1 text-xs font-semibold">
+                            <Star className="w-3 h-3" />
+                            Cover
+                          </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            type="button"
+                            onClick={() => handleSetCoverPhoto(photo.id)}
+                            className="p-1.5 bg-white rounded-full shadow-md hover:bg-yellow-50"
+                            title="Set as cover"
+                          >
+                            <Star className={`w-4 h-4 ${photo.is_cover ? 'text-yellow-500 fill-yellow-500' : 'text-gray-600'}`} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeletePhoto(photo.id)}
+                            className="p-1.5 bg-white rounded-full shadow-md hover:bg-red-50"
+                            title="Delete"
+                          >
+                            <X className="w-4 h-4 text-red-600" />
+                          </button>
+                        </div>
+
+                        {/* Caption */}
+                        <input
+                          type="text"
+                          value={photo.caption || ''}
+                          onChange={(e) => handleUpdateCaption(photo.id, e.target.value)}
+                          placeholder="Add caption..."
+                          className="w-full mt-2 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {photos.length === 0 && (
+                  <div className="text-center py-8 text-gray-500 text-sm">
+                    No photos uploaded yet. Click "Upload Photos" to add images.
+                  </div>
+                )}
+              </>
+            )}
+          </Card>
+
+          {/* WhatsApp Numbers */}
+          <Card className="p-6">`
+
             <h2 className="text-xl font-semibold text-gray-800 mb-4">WhatsApp Contact Numbers (Optional)</h2>
             <p className="text-sm text-gray-600 mb-4">
               Allow guests to send WhatsApp wishes directly. Include country code (e.g., +91 for India)
