@@ -257,6 +257,8 @@ class ProfileUpdate(BaseModel):
     event_type: Optional[str] = None
     event_date: Optional[datetime] = None
     venue: Optional[str] = None
+    city: Optional[str] = None
+    invitation_message: Optional[str] = None
     language: Optional[List[str]] = None
     design_id: Optional[str] = None
     deity_id: Optional[str] = None
@@ -264,6 +266,10 @@ class ProfileUpdate(BaseModel):
     whatsapp_bride: Optional[str] = None
     enabled_languages: Optional[List[str]] = None
     custom_text: Optional[Dict[str, Dict[str, str]]] = None
+    about_couple: Optional[str] = None
+    family_details: Optional[str] = None
+    love_story: Optional[str] = None
+    cover_photo_id: Optional[str] = None
     sections_enabled: Optional[SectionsEnabled] = None
     background_music: Optional[BackgroundMusic] = None
     map_settings: Optional[MapSettings] = None
