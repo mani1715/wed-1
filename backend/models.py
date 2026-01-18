@@ -385,6 +385,9 @@ class ProfileMediaCreate(BaseModel):
     media_url: str
     caption: Optional[str] = None
     order: int = 0
+    is_cover: bool = False
+    file_size: Optional[int] = None
+    original_filename: Optional[str] = None
 
 
 class Greeting(BaseModel):
