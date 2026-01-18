@@ -101,6 +101,7 @@ const PublicInvitation = () => {
   const [rsvpSubmitting, setRsvpSubmitting] = useState(false);
   const [rsvpSuccess, setRsvpSuccess] = useState(false);
   const [rsvpError, setRsvpError] = useState('');
+  const [submittedRsvpStatus, setSubmittedRsvpStatus] = useState('');
 
   useEffect(() => {
     fetchInvitation();
