@@ -18,7 +18,7 @@ import traceback
 import time
 
 # Configuration
-BASE_URL = "https://wed-organizer-16.preview.emergentagent.com/api"
+BASE_URL = "https://marry-moments-10.preview.emergentagent.com/api"
 ADMIN_EMAIL = "admin@wedding.com"
 ADMIN_PASSWORD = "admin123"
 
