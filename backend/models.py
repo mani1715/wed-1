@@ -385,6 +385,7 @@ class ProfileResponse(BaseModel):
     sections_enabled: SectionsEnabled
     background_music: BackgroundMusic
     map_settings: MapSettings
+    contact_info: ContactInfo  # PHASE 11: Contact information
     events: List[WeddingEvent]
     link_expiry_type: str
     link_expiry_value: Optional[int]
