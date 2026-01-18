@@ -15,6 +15,7 @@ import string
 import io
 import shutil
 import bleach
+import uuid
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import inch
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
