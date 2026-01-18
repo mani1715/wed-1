@@ -105,6 +105,13 @@ class Profile(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
+    @field_validator('invitation_message')
+    def validate_invitation_message(cls, v):
+        """Validate invitation message max length"""
+        if v and len(v) > 200:
+            raise ValueError('Invitation message must be 200 characters or less')
+        return v
+    
     @field_validator('events')
     def validate_events(cls, v):
         """Validate events list"""
