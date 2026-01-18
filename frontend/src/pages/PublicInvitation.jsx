@@ -1159,12 +1159,17 @@ const PublicInvitation = () => {
                     className="block text-sm font-medium mb-2"
                     style={{ color: 'var(--color-text, #4A3728)' }}
                   >
-                    Your Message
+                    Your Message (max 250 characters)
                   </label>
                   <textarea
                     value={message}
-                    onChange={(e) => setMessage(e.target.value)}
+                    onChange={(e) => {
+                      if (e.target.value.length <= 250) {
+                        setMessage(e.target.value);
+                      }
+                    }}
                     required
+                    maxLength={250}
                     rows="4"
                     className="w-full px-4 py-2 border rounded-md"
                     style={{
@@ -1174,14 +1179,22 @@ const PublicInvitation = () => {
                     }}
                     placeholder={getT('greetings', 'messagePlaceholder')}
                   />
+                  <p className="text-xs text-gray-500 mt-1 text-right">
+                    {message.length}/250 characters
+                  </p>
                 </div>
+                {!navigator.onLine && (
+                  <p className="text-red-600 text-sm text-center">
+                    Internet connection required to submit greeting
+                  </p>
+                )}
                 <Button
                   type="submit"
-                  disabled={submitting}
+                  disabled={submitting || !navigator.onLine}
                   className="w-full text-white"
                   style={{
                     background: 'var(--color-primary, #8B7355)',
-                    opacity: submitting ? 0.6 : 1
+                    opacity: (submitting || !navigator.onLine) ? 0.6 : 1
                   }}
                 >
                   <Send className="w-4 h-4 mr-2" />
