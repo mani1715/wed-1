@@ -81,6 +81,8 @@ class Profile(BaseModel):
     event_type: str  # marriage, engagement, birthday
     event_date: datetime
     venue: str
+    city: Optional[str] = None  # City/location
+    invitation_message: Optional[str] = None  # Short welcome message (max 200 chars)
     language: List[str]  # telugu, hindi, tamil, english - multiple languages supported
     design_id: str = "royal_classic"  # Selected design theme
     deity_id: Optional[str] = None  # Selected deity: ganesha, venkateswara_padmavati, shiva_parvati, lakshmi_vishnu, none
@@ -88,6 +90,10 @@ class Profile(BaseModel):
     whatsapp_bride: Optional[str] = None  # Bride WhatsApp number in E.164 format
     enabled_languages: List[str] = Field(default=["english"])  # Languages enabled for this invitation
     custom_text: Dict[str, Dict[str, str]] = Field(default_factory=dict)  # Custom text overrides {language: {section: text}}
+    about_couple: Optional[str] = None  # Rich text HTML for about couple section
+    family_details: Optional[str] = None  # Rich text HTML for family details
+    love_story: Optional[str] = None  # Rich text HTML for love story
+    cover_photo_id: Optional[str] = None  # ID of media item to use as cover photo
     sections_enabled: SectionsEnabled = Field(default_factory=SectionsEnabled)
     background_music: BackgroundMusic = Field(default_factory=BackgroundMusic)  # Optional background music
     map_settings: MapSettings = Field(default_factory=MapSettings)  # Map embed settings
