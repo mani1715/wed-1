@@ -446,6 +446,150 @@ async def get_profile_media(profile_id: str, admin_id: str = Depends(get_current
     return media_list
 
 
+
+@api_router.post("/admin/profiles/{profile_id}/upload-photo", response_model=ProfileMedia)
+async def upload_photo(
+    profile_id: str,
+    file: UploadFile = File(...),
+    caption: str = Form(""),
+    admin_id: str = Depends(get_current_admin)
+):
+    """Upload a photo for a profile with WebP conversion"""
+    # Check if profile exists
+    profile = await db.profiles.find_one({"id": profile_id})
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    # Validate max 20 photos per profile
+    media_count = await db.profile_media.count_documents({
+        "profile_id": profile_id,
+        "media_type": "photo"
+    })
+    if media_count >= 20:
+        raise HTTPException(status_code=400, detail="Maximum 20 photos allowed per profile")
+    
+    # Validate image file
+    is_valid, error_msg = validate_image_file(file)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=error_msg)
+    
+    # Convert to WebP
+    webp_data, file_size = await convert_to_webp(file, quality=85)
+    
+    # Generate unique filename
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    random_suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
+    filename = f"{profile_id}_{timestamp}_{random_suffix}.webp"
+    file_path = UPLOADS_DIR / filename
+    
+    # Save file
+    with open(file_path, 'wb') as f:
+        f.write(webp_data)
+    
+    # Get next order number
+    max_order = await db.profile_media.find_one(
+        {"profile_id": profile_id},
+        sort=[("order", -1)]
+    )
+    next_order = (max_order.get('order', 0) + 1) if max_order else 0
+    
+    # Create media record
+    media = ProfileMedia(
+        profile_id=profile_id,
+        media_type="photo",
+        media_url=f"/uploads/photos/{filename}",
+        caption=caption if caption else None,
+        order=next_order,
+        is_cover=False,
+        file_size=file_size,
+        original_filename=file.filename
+    )
+    
+    doc = media.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    
+    await db.profile_media.insert_one(doc)
+    
+    return media
+
+
+@api_router.put("/admin/media/{media_id}/set-cover")
+async def set_cover_photo(
+    media_id: str,
+    admin_id: str = Depends(get_current_admin)
+):
+    """Set a photo as the cover photo"""
+    # Find the media
+    media = await db.profile_media.find_one({"id": media_id})
+    if not media:
+        raise HTTPException(status_code=404, detail="Media not found")
+    
+    if media['media_type'] != 'photo':
+        raise HTTPException(status_code=400, detail="Only photos can be set as cover")
+    
+    profile_id = media['profile_id']
+    
+    # Unset all other covers for this profile
+    await db.profile_media.update_many(
+        {"profile_id": profile_id},
+        {"$set": {"is_cover": False}}
+    )
+    
+    # Set this media as cover
+    await db.profile_media.update_one(
+        {"id": media_id},
+        {"$set": {"is_cover": True}}
+    )
+    
+    # Update profile cover_photo_id
+    await db.profiles.update_one(
+        {"id": profile_id},
+        {"$set": {"cover_photo_id": media_id}}
+    )
+    
+    return {"message": "Cover photo updated successfully"}
+
+
+@api_router.post("/admin/profiles/{profile_id}/reorder-media")
+async def reorder_media(
+    profile_id: str,
+    media_ids: List[str],
+    admin_id: str = Depends(get_current_admin)
+):
+    """Reorder media items"""
+    # Check if profile exists
+    profile = await db.profiles.find_one({"id": profile_id})
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    # Update order for each media
+    for index, media_id in enumerate(media_ids):
+        await db.profile_media.update_one(
+            {"id": media_id, "profile_id": profile_id},
+            {"$set": {"order": index}}
+        )
+    
+    return {"message": "Media reordered successfully"}
+
+
+@api_router.put("/admin/media/{media_id}/caption")
+async def update_media_caption(
+    media_id: str,
+    caption: str = Form(""),
+    admin_id: str = Depends(get_current_admin)
+):
+    """Update media caption"""
+    result = await db.profile_media.update_one(
+        {"id": media_id},
+        {"$set": {"caption": caption if caption else None}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Media not found")
+    
+    return {"message": "Caption updated successfully"}
+
+
 # ==================== PUBLIC INVITATION ROUTES ====================
 
 @api_router.get("/invite/{slug}", response_model=InvitationPublicView)
