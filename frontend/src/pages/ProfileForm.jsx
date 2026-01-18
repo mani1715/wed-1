@@ -31,6 +31,8 @@ const ProfileForm = () => {
     event_type: 'marriage',
     event_date: '',
     venue: '',
+    city: '',
+    invitation_message: '',
     language: ['english'],
     design_id: 'royal_classic',
     deity_id: null,
@@ -38,15 +40,23 @@ const ProfileForm = () => {
     whatsapp_bride: '',
     enabled_languages: ['english'],
     custom_text: {},
+    about_couple: '',
+    family_details: '',
+    love_story: '',
+    cover_photo_id: null,
     link_expiry_type: 'days',
     link_expiry_value: '30',
     sections_enabled: {
       opening: true,
       welcome: true,
       couple: true,
+      about: false,
+      family: false,
+      love_story: false,
       photos: true,
       video: false,
       events: true,
+      rsvp: false,
       greetings: true,
       footer: true
     },
@@ -61,6 +71,8 @@ const ProfileForm = () => {
   });
 
   const [savedProfile, setSavedProfile] = useState(null);
+  const [photos, setPhotos] = useState([]);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   useEffect(() => {
     if (!admin) {
