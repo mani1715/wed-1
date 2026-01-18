@@ -339,6 +339,7 @@ const PublicInvitation = () => {
     try {
       await axios.post(`${API_URL}/api/rsvp?slug=${slug}`, rsvpData);
       setRsvpSuccess(true);
+      setSubmittedRsvpStatus(rsvpData.status); // Save the status before clearing
       setRsvpData({
         guest_name: '',
         guest_phone: '',
