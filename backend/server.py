@@ -31,7 +31,7 @@ from models import (
     Profile, ProfileCreate, ProfileUpdate, ProfileResponse,
     ProfileMedia, ProfileMediaCreate,
     Greeting, GreetingCreate, GreetingResponse,
-    InvitationPublicView, SectionsEnabled, BackgroundMusic, MapSettings,
+    InvitationPublicView, SectionsEnabled, BackgroundMusic, MapSettings, ContactInfo,
     WeddingEvent,
     RSVP, RSVPCreate, RSVPResponse, RSVPStats,
     Analytics, ViewSession, DailyView, ViewTrackingRequest, InteractionTrackingRequest, 
