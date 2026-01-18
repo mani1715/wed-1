@@ -394,6 +394,129 @@ const ProfileForm = () => {
     }));
   };
 
+  // Photo Management Functions
+  const handlePhotoUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    if (photos.length + files.length > 20) {
+      alert('Maximum 20 photos allowed per profile');
+      return;
+    }
+
+    if (!isEdit) {
+      alert('Please save the profile first before uploading photos');
+      return;
+    }
+
+    setUploadingPhoto(true);
+
+    try {
+      const token = localStorage.getItem('admin_token');
+      
+      for (const file of files) {
+        if (file.size > 5 * 1024 * 1024) {
+          alert(`${file.name} is too large. Maximum 5MB per file.`);
+          continue;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('caption', '');
+
+        const response = await axios.post(
+          `${API_URL}/api/admin/profiles/${profileId}/upload-photo`,
+          formData,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data'
+            }
+          }
+        );
+
+        setPhotos(prev => [...prev, response.data]);
+      }
+    } catch (error) {
+      console.error('Photo upload failed:', error);
+      alert('Failed to upload photos. Please try again.');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const handleSetCoverPhoto = async (photoId) => {
+    try {
+      const token = localStorage.getItem('admin_token');
+      await axios.put(
+        `${API_URL}/api/admin/media/${photoId}/set-cover`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setPhotos(prev => prev.map(p => ({
+        ...p,
+        is_cover: p.id === photoId
+      })));
+
+      setFormData(prev => ({
+        ...prev,
+        cover_photo_id: photoId
+      }));
+    } catch (error) {
+      console.error('Failed to set cover photo:', error);
+      alert('Failed to set cover photo');
+    }
+  };
+
+  const handleDeletePhoto = async (photoId) => {
+    if (!window.confirm('Delete this photo?')) return;
+
+    try {
+      const token = localStorage.getItem('admin_token');
+      await axios.delete(`${API_URL}/api/admin/media/${photoId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setPhotos(prev => prev.filter(p => p.id !== photoId));
+
+      if (formData.cover_photo_id === photoId) {
+        setFormData(prev => ({ ...prev, cover_photo_id: null }));
+      }
+    } catch (error) {
+      console.error('Failed to delete photo:', error);
+      alert('Failed to delete photo');
+    }
+  };
+
+  const handleUpdateCaption = async (photoId, caption) => {
+    try {
+      const token = localStorage.getItem('admin_token');
+      const formDataPayload = new FormData();
+      formDataPayload.append('caption', caption);
+
+      await axios.put(
+        `${API_URL}/api/admin/media/${photoId}/caption`,
+        formDataPayload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setPhotos(prev => prev.map(p => 
+        p.id === photoId ? { ...p, caption } : p
+      ));
+    } catch (error) {
+      console.error('Failed to update caption:', error);
+    }
+  };
+
+  const handlePreview = () => {
+    if (isEdit && formData.slug) {
+      window.open(`/invite/${formData.slug}`, '_blank');
+    } else {
+      alert('Please save the profile first to preview');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
