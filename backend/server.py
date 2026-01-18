@@ -348,6 +348,14 @@ async def update_profile(
     # Prepare update
     update_dict = update_data.model_dump(exclude_unset=True)
     
+    # Sanitize HTML fields if present
+    if 'about_couple' in update_dict and update_dict['about_couple']:
+        update_dict['about_couple'] = sanitize_html(update_dict['about_couple'])
+    if 'family_details' in update_dict and update_dict['family_details']:
+        update_dict['family_details'] = sanitize_html(update_dict['family_details'])
+    if 'love_story' in update_dict and update_dict['love_story']:
+        update_dict['love_story'] = sanitize_html(update_dict['love_story'])
+    
     # Recalculate expiry if changed
     if 'link_expiry_type' in update_dict or 'link_expiry_value' in update_dict:
         expiry_type = update_dict.get('link_expiry_type', existing_profile['link_expiry_type'])
