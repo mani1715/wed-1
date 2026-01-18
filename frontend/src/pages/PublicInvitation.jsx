@@ -605,6 +605,102 @@ const PublicInvitation = () => {
           </Card>
         )}
 
+        {/* About Couple Section */}
+        {invitation.sections_enabled.about && invitation.about_couple && (
+          <Card 
+            className="p-8 mb-8"
+            style={{
+              background: 'var(--color-card, #FFFDF7)',
+              boxShadow: 'var(--card-shadow, 0 4px 12px rgba(139, 115, 85, 0.15))',
+              border: 'var(--card-border, 1px solid #E8D9C5)',
+              borderRadius: 'var(--card-radius, 12px)',
+              marginBottom: 'var(--spacing-card, 1.5rem)'
+            }}
+          >
+            <h3 
+              className="text-2xl font-semibold mb-6 text-center"
+              style={{ 
+                fontFamily: 'var(--font-heading, "Cinzel", serif)',
+                color: 'var(--color-primary, #8B7355)'
+              }}
+            >
+              About Us
+            </h3>
+            <div 
+              dangerouslySetInnerHTML={{ __html: invitation.about_couple }}
+              className="prose prose-lg max-w-none"
+              style={{ 
+                color: 'var(--color-text, #4A3728)',
+                fontFamily: 'var(--font-body, "Lora", serif)'
+              }}
+            />
+          </Card>
+        )}
+
+        {/* Family Details Section */}
+        {invitation.sections_enabled.family && invitation.family_details && (
+          <Card 
+            className="p-8 mb-8"
+            style={{
+              background: 'var(--color-card, #FFFDF7)',
+              boxShadow: 'var(--card-shadow, 0 4px 12px rgba(139, 115, 85, 0.15))',
+              border: 'var(--card-border, 1px solid #E8D9C5)',
+              borderRadius: 'var(--card-radius, 12px)',
+              marginBottom: 'var(--spacing-card, 1.5rem)'
+            }}
+          >
+            <h3 
+              className="text-2xl font-semibold mb-6 text-center"
+              style={{ 
+                fontFamily: 'var(--font-heading, "Cinzel", serif)',
+                color: 'var(--color-primary, #8B7355)'
+              }}
+            >
+              Our Families
+            </h3>
+            <div 
+              dangerouslySetInnerHTML={{ __html: invitation.family_details }}
+              className="prose prose-lg max-w-none"
+              style={{ 
+                color: 'var(--color-text, #4A3728)',
+                fontFamily: 'var(--font-body, "Lora", serif)'
+              }}
+            />
+          </Card>
+        )}
+
+        {/* Love Story Section */}
+        {invitation.sections_enabled.love_story && invitation.love_story && (
+          <Card 
+            className="p-8 mb-8"
+            style={{
+              background: 'var(--color-card, #FFFDF7)',
+              boxShadow: 'var(--card-shadow, 0 4px 12px rgba(139, 115, 85, 0.15))',
+              border: 'var(--card-border, 1px solid #E8D9C5)',
+              borderRadius: 'var(--card-radius, 12px)',
+              marginBottom: 'var(--spacing-card, 1.5rem)'
+            }}
+          >
+            <h3 
+              className="text-2xl font-semibold mb-6 text-center"
+              style={{ 
+                fontFamily: 'var(--font-heading, "Cinzel", serif)',
+                color: 'var(--color-primary, #8B7355)'
+              }}
+            >
+              Our Story
+            </h3>
+            <div 
+              dangerouslySetInnerHTML={{ __html: invitation.love_story }}
+              className="prose prose-lg max-w-none"
+              style={{ 
+                color: 'var(--color-text, #4A3728)',
+                fontFamily: 'var(--font-body, "Lora", serif)'
+              }}
+            />
+          </Card>
+        )}
+
         {/* Event Schedule Section */}
         {invitation.sections_enabled.events && invitation.events && invitation.events.length > 0 && (
           <Card 
