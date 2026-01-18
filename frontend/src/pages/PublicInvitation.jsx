@@ -1191,16 +1191,17 @@ const PublicInvitation = () => {
           </Card>
         )}
 
-        {/* RSVP Section */}
-        <Card 
-          className="mb-8 p-8"
-          style={{
-            background: 'var(--color-card, #FFFDF7)',
-            border: 'var(--card-border, 1px solid #E8D9C5)',
-            boxShadow: 'var(--card-shadow, 0 4px 6px rgba(0,0,0,0.1))',
-            borderRadius: 'var(--card-radius, 8px)'
-          }}
-        >
+        {/* RSVP Section - Conditional based on sections_enabled */}
+        {invitation.sections_enabled.rsvp && (
+          <Card 
+            className="mb-8 p-8"
+            style={{
+              background: 'var(--color-card, #FFFDF7)',
+              border: 'var(--card-border, 1px solid #E8D9C5)',
+              boxShadow: 'var(--card-shadow, 0 4px 6px rgba(0,0,0,0.1))',
+              borderRadius: 'var(--card-radius, 8px)'
+            }}
+          >
           <h3 
             className="text-2xl font-semibold mb-4 text-center"
             style={{ 
