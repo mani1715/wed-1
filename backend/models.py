@@ -497,29 +497,98 @@ class RSVPStats(BaseModel):
 
 
 
-# PHASE 7 - Analytics Models
+# PHASE 7 - Analytics Models (Enhanced in Phase 9)
+class DailyView(BaseModel):
+    """Model for daily view count"""
+    date: str  # yyyy-mm-dd format
+    count: int = 0
+
 class Analytics(BaseModel):
-    """Model for invitation view tracking"""
+    """Model for invitation view tracking with enhanced insights (Phase 9)"""
     model_config = ConfigDict(extra="ignore")
     
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     profile_id: str  # Reference to Profile
-    total_views: int = 0
+    
+    # View counts
+    total_views: int = 0  # Total page opens (including repeats)
+    unique_views: int = 0  # Unique visitors (session-based, 24-hour window)
+    
+    # Device breakdown
     mobile_views: int = 0
     desktop_views: int = 0
+    tablet_views: int = 0
+    
+    # Time tracking
+    first_viewed_at: Optional[datetime] = None
     last_viewed_at: Optional[datetime] = None
+    
+    # Daily views (last 30 days)
+    daily_views: List[DailyView] = Field(default_factory=list)
+    
+    # Hourly distribution (0-23)
+    hourly_distribution: Dict[str, int] = Field(default_factory=dict)  # {"0": 5, "13": 12, ...}
+    
+    # Language usage
+    language_views: Dict[str, int] = Field(default_factory=dict)  # {"english": 10, "telugu": 5, ...}
+    
+    # Interaction tracking
+    map_clicks: int = 0
+    rsvp_clicks: int = 0
+    music_plays: int = 0
+    music_pauses: int = 0
+    
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class ViewSession(BaseModel):
+    """Model for tracking unique visitor sessions (24-hour window)"""
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    session_id: str  # Client-generated session identifier
+    profile_id: str  # Reference to Profile
+    device_type: str  # mobile, desktop, or tablet
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    expires_at: datetime  # Session expires after 24 hours
 
 
 class ViewTrackingRequest(BaseModel):
     """Request model for tracking a view"""
-    device_type: str  # mobile or desktop
+    session_id: str  # Client-generated session identifier
+    device_type: str  # mobile, desktop, or tablet
     
     @field_validator('device_type')
     def validate_device_type(cls, v):
-        """Validate device type is mobile or desktop"""
-        if v not in ['mobile', 'desktop']:
-            raise ValueError('device_type must be either "mobile" or "desktop"')
+        """Validate device type"""
+        if v not in ['mobile', 'desktop', 'tablet']:
+            raise ValueError('device_type must be either "mobile", "desktop", or "tablet"')
+        return v
+
+
+class InteractionTrackingRequest(BaseModel):
+    """Request model for tracking interactions"""
+    session_id: str  # Client-generated session identifier
+    interaction_type: str  # map_click, rsvp_click, music_play, music_pause
+    
+    @field_validator('interaction_type')
+    def validate_interaction_type(cls, v):
+        """Validate interaction type"""
+        if v not in ['map_click', 'rsvp_click', 'music_play', 'music_pause']:
+            raise ValueError('interaction_type must be one of: map_click, rsvp_click, music_play, music_pause')
+        return v
+
+
+class LanguageTrackingRequest(BaseModel):
+    """Request model for tracking language switches"""
+    session_id: str  # Client-generated session identifier
+    language_code: str  # english, telugu, tamil, kannada, malayalam
+    
+    @field_validator('language_code')
+    def validate_language_code(cls, v):
+        """Validate language code"""
+        if v not in ['english', 'telugu', 'tamil', 'kannada', 'malayalam']:
+            raise ValueError('language_code must be one of: english, telugu, tamil, kannada, malayalam')
         return v
 
 
@@ -527,6 +596,25 @@ class AnalyticsResponse(BaseModel):
     """Response model for analytics data"""
     profile_id: str
     total_views: int
+    unique_views: int
     mobile_views: int
     desktop_views: int
+    tablet_views: int
+    first_viewed_at: Optional[datetime]
     last_viewed_at: Optional[datetime]
+    daily_views: List[DailyView]
+    hourly_distribution: Dict[str, int]
+    language_views: Dict[str, int]
+    map_clicks: int
+    rsvp_clicks: int
+    music_plays: int
+    music_pauses: int
+
+
+class AnalyticsSummary(BaseModel):
+    """Summary analytics for admin dashboard"""
+    total_views: int
+    unique_visitors: int
+    most_viewed_language: Optional[str]
+    peak_hour: Optional[int]  # Hour of day (0-23)
+    device_breakdown: Dict[str, int]  # {"mobile": 10, "desktop": 5, "tablet": 2}
