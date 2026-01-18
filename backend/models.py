@@ -427,18 +427,49 @@ class Greeting(BaseModel):
     profile_id: str
     guest_name: str
     message: str
+    approval_status: str = "pending"  # PHASE 11: pending, approved, rejected
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    
+    @field_validator('approval_status')
+    def validate_approval_status(cls, v):
+        """Validate approval status"""
+        if v not in ['pending', 'approved', 'rejected']:
+            raise ValueError('Approval status must be one of: pending, approved, rejected')
+        return v
+    
+    @field_validator('message')
+    def validate_message(cls, v):
+        """Validate message length and sanitize emoji spam"""
+        if len(v) > 250:
+            raise ValueError('Message must be 250 characters or less')
+        # Check for excessive emoji spam (more than 10 emojis)
+        emoji_count = sum(1 for char in v if ord(char) > 0x1F300)
+        if emoji_count > 10:
+            raise ValueError('Too many emojis in message')
+        return v
 
 
 class GreetingCreate(BaseModel):
     guest_name: str
     message: str
+    
+    @field_validator('message')
+    def validate_message(cls, v):
+        """Validate message length and sanitize emoji spam"""
+        if len(v) > 250:
+            raise ValueError('Message must be 250 characters or less')
+        # Check for excessive emoji spam (more than 10 emojis)
+        emoji_count = sum(1 for char in v if ord(char) > 0x1F300)
+        if emoji_count > 10:
+            raise ValueError('Too many emojis in message')
+        return v
 
 
 class GreetingResponse(BaseModel):
     id: str
     guest_name: str
     message: str
+    approval_status: str  # PHASE 11: Include approval status
     created_at: datetime
 
 
