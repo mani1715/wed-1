@@ -212,6 +212,7 @@ class ProfileCreate(BaseModel):
     sections_enabled: SectionsEnabled = Field(default_factory=SectionsEnabled)
     background_music: BackgroundMusic = Field(default_factory=BackgroundMusic)
     map_settings: MapSettings = Field(default_factory=MapSettings)
+    contact_info: ContactInfo = Field(default_factory=ContactInfo)  # PHASE 11: Contact information
     events: List[WeddingEvent] = Field(default_factory=list)
     link_expiry_type: str = "days"
     link_expiry_value: Optional[int] = 30
