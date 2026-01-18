@@ -1403,7 +1403,90 @@ const PublicInvitation = () => {
             You can edit your RSVP within 48 hours of submission
           </p>
 
-          {!rsvpSuccess ? (
+          {/* PHASE 11: Check Existing RSVP Status */}
+          {!existingRsvp && !rsvpSuccess && (
+            <div className="mb-6 p-4 rounded-lg" style={{ background: 'var(--color-background, #FFF8E7)', border: '1px dashed var(--color-accent, #C9A961)' }}>
+              <p className="text-sm mb-3 text-center" style={{ color: 'var(--color-text, #4A3728)' }}>
+                Already submitted? Check or edit your RSVP
+              </p>
+              <form onSubmit={handleCheckRsvp} className="flex gap-2">
+                <input
+                  type="tel"
+                  value={checkPhone}
+                  onChange={(e) => setCheckPhone(e.target.value)}
+                  placeholder="+91 98765 43210"
+                  className="flex-1 px-4 py-2 border rounded-md text-sm"
+                  style={{
+                    borderColor: 'var(--color-accent, #C9A961)',
+                    background: 'white',
+                    color: 'var(--color-text, #4A3728)'
+                  }}
+                />
+                <Button
+                  type="submit"
+                  disabled={checkingRsvp}
+                  className="text-white text-sm"
+                  style={{ background: 'var(--color-primary, #8B7355)' }}
+                >
+                  {checkingRsvp ? 'Checking...' : 'Check Status'}
+                </Button>
+              </form>
+            </div>
+          )}
+
+          {/* PHASE 11: Show existing RSVP info if found but not editable */}
+          {existingRsvp && !canEditRsvp && !rsvpSuccess && (
+            <div className="text-center py-6 mb-4 rounded-lg" style={{ background: 'var(--color-background, #FFF8E7)' }}>
+              <div className="text-5xl mb-3">
+                {existingRsvp.status === 'yes' && '✓'}
+                {existingRsvp.status === 'no' && '✗'}
+                {existingRsvp.status === 'maybe' && '?'}
+              </div>
+              <h4 className="text-lg font-semibold mb-2" style={{ color: 'var(--color-primary, #8B7355)' }}>
+                Your RSVP Status
+              </h4>
+              <p className="font-semibold mb-3" style={{ color: 'var(--color-text, #4A3728)' }}>
+                {existingRsvp.status === 'yes' && '✓ Attending'}
+                {existingRsvp.status === 'no' && 'Not Attending'}
+                {existingRsvp.status === 'maybe' && 'Maybe'}
+              </p>
+              <p className="text-sm mb-2" style={{ color: 'var(--color-text, #4A3728)' }}>
+                Name: <span className="font-medium">{existingRsvp.guest_name}</span>
+              </p>
+              {existingRsvp.status === 'yes' && existingRsvp.guest_count > 1 && (
+                <p className="text-sm mb-2" style={{ color: 'var(--color-text, #4A3728)' }}>
+                  Guests: <span className="font-medium">{existingRsvp.guest_count}</span>
+                </p>
+              )}
+              <p className="text-xs mt-4" style={{ color: 'var(--color-accent, #C9A961)' }}>
+                ⓘ Editing period (48 hours) has expired
+              </p>
+              <Button
+                onClick={() => {
+                  setExistingRsvp(null);
+                  setCheckPhone('');
+                }}
+                className="mt-4 text-sm"
+                style={{ background: 'var(--color-accent, #C9A961)', color: 'white' }}
+              >
+                Check Another Number
+              </Button>
+            </div>
+          )}
+
+          {/* RSVP Form - New or Edit */}
+          {!rsvpSuccess && (!existingRsvp || canEditRsvp) && (
+            <>
+              {/* Show edit info banner if in edit mode */}
+              {isEditMode && canEditRsvp && (
+                <div className="mb-4 p-3 rounded-lg" style={{ background: '#FFF3CD', border: '1px solid #FFC107' }}>
+                  <p className="text-sm text-center" style={{ color: '#856404' }}>
+                    ✏️ Editing your RSVP • {hoursRemaining} hours remaining to make changes
+                  </p>
+                </div>
+              )}
+
+            <form onSubmit={handleSubmitRSVP} className="space-y-4">
             <form onSubmit={handleSubmitRSVP} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text, #4A3728)' }}>
