@@ -167,34 +167,90 @@ const PublicInvitation = () => {
     }
   };
 
-  // PHASE 7: Track invitation view (privacy-first, no blocking)
+  // PHASE 9: Generate or retrieve session ID
+  const getSessionId = () => {
+    const SESSION_KEY = `session_id_${slug}`;
+    const EXPIRY_KEY = `session_expiry_${slug}`;
+    
+    const now = new Date().getTime();
+    const existingSessionId = localStorage.getItem(SESSION_KEY);
+    const expiry = localStorage.getItem(EXPIRY_KEY);
+    
+    // Check if session is still valid (24 hours)
+    if (existingSessionId && expiry && now < parseInt(expiry)) {
+      return existingSessionId;
+    }
+    
+    // Generate new session ID
+    const newSessionId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const newExpiry = now + (24 * 60 * 60 * 1000); // 24 hours
+    
+    localStorage.setItem(SESSION_KEY, newSessionId);
+    localStorage.setItem(EXPIRY_KEY, newExpiry.toString());
+    
+    return newSessionId;
+  };
+
+  // PHASE 9: Track invitation view (session-based unique tracking)
   const trackInvitationView = () => {
     try {
-      // Check if already viewed using localStorage
-      const viewKey = `invitation_viewed_${slug}`;
+      // Get or generate session ID
+      const sessionId = getSessionId();
       
-      if (localStorage.getItem(viewKey)) {
-        // Already tracked this view, skip
-        return;
+      // Detect device type (mobile, desktop, or tablet)
+      const width = window.innerWidth;
+      let deviceType;
+      if (width < 768) {
+        deviceType = 'mobile';
+      } else if (width >= 768 && width < 1024) {
+        deviceType = 'tablet';
+      } else {
+        deviceType = 'desktop';
       }
-      
-      // Detect device type (mobile or desktop only)
-      const isMobile = window.innerWidth < 768;
-      const deviceType = isMobile ? 'mobile' : 'desktop';
       
       // Send view tracking request (non-blocking)
       axios.post(`${API_URL}/api/invite/${slug}/view`, {
+        session_id: sessionId,
         device_type: deviceType
       }).catch(err => {
         // Silent fail - don't disrupt user experience
         console.debug('View tracking failed:', err);
       });
-      
-      // Mark as viewed in localStorage to prevent duplicate tracking
-      localStorage.setItem(viewKey, 'true');
     } catch (error) {
       // Silent fail - don't disrupt user experience
       console.debug('View tracking error:', error);
+    }
+  };
+
+  // PHASE 9: Track language selection
+  const trackLanguageView = (languageCode) => {
+    try {
+      const sessionId = getSessionId();
+      
+      axios.post(`${API_URL}/api/invite/${slug}/track-language`, {
+        session_id: sessionId,
+        language_code: languageCode
+      }).catch(err => {
+        console.debug('Language tracking failed:', err);
+      });
+    } catch (error) {
+      console.debug('Language tracking error:', error);
+    }
+  };
+
+  // PHASE 9: Track interactions (map clicks, RSVP clicks, music)
+  const trackInteraction = (interactionType) => {
+    try {
+      const sessionId = getSessionId();
+      
+      axios.post(`${API_URL}/api/invite/${slug}/track-interaction`, {
+        session_id: sessionId,
+        interaction_type: interactionType
+      }).catch(err => {
+        console.debug('Interaction tracking failed:', err);
+      });
+    } catch (error) {
+      console.debug('Interaction tracking error:', error);
     }
   };
 
