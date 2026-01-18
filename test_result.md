@@ -697,6 +697,57 @@ test_plan:
   phase_10_admin_cms_implemented: true
 
 backend:
+  - task: "PHASE 11 - Greetings Moderation Backend"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/models.py, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "✅ PHASE 11 BACKEND IMPLEMENTED: Updated Greeting model with approval_status field (pending/approved/rejected). Added sanitization with bleach library. Modified greeting submission to default to 'pending' status. Updated public invitation endpoint to return only approved greetings (last 20). Added admin endpoints: GET /api/admin/profiles/{id}/greetings (with status filter), PUT /api/admin/greetings/{id}/approve, PUT /api/admin/greetings/{id}/reject, DELETE /api/admin/greetings/{id}. Emoji spam validation (max 10 emojis). Message limit 250 chars enforced."
+
+  - task: "PHASE 11 - Contact Info & Sections Backend"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "✅ PHASE 11 BACKEND MODELS UPDATED: Added ContactInfo model with groom_phone, bride_phone, emergency_phone, email fields. All phone fields validated in E.164 format. Added contact_info field to Profile, ProfileCreate, ProfileUpdate, ProfileResponse, InvitationPublicView models. Updated SectionsEnabled with contact, calendar, countdown, qr toggles (all default false). Greetings toggle default remains true."
+
+  - task: "PHASE 11 - QR Code & Calendar Backend"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "✅ PHASE 11 API ENDPOINTS ADDED: GET /api/invite/{slug}/qr generates QR code PNG for invitation link using qrcode library. GET /api/invite/{slug}/calendar generates .ics file for all visible events with proper formatting for Google/Apple/Outlook. Multiple events combined into single .ics file. Includes event name, date/time, venue, address, description. Added qrcode>=7.4.0 to requirements.txt."
+
+frontend:
+  - task: "PHASE 11 - GreetingsManagement Admin Page"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/GreetingsManagement.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "✅ PHASE 11 ADMIN UI CREATED: Created GreetingsManagement.jsx page for greeting moderation. Features: Stats cards (Total/Pending/Approved/Rejected), Filter buttons (All/Pending/Approved/Rejected), Greeting cards with guest name, message, timestamp, status badge. Action buttons: Approve (green), Reject (red), Delete (gray). Sanitized text display. Route added to App.js: /admin/profile/:profileId/greetings."
+
+
+backend:
   - task: "PHASE 10 - CMS Backend Models & Fields"
     implemented: true
     working: "NA"
