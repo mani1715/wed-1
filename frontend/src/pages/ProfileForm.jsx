@@ -125,6 +125,7 @@ const ProfileForm = () => {
         sections_enabled: profile.sections_enabled,
         background_music: profile.background_music || { enabled: false, file_url: null },
         map_settings: profile.map_settings || { embed_enabled: false },
+        contact_info: profile.contact_info || { groom_phone: '', bride_phone: '', emergency_phone: '', email: '' },
         events: profile.events || [],
         slug: profile.slug
       });
