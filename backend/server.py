@@ -741,6 +741,47 @@ async def get_profile_greetings(
     return [GreetingResponse(**g) for g in greetings]
 
 
+# ==================== PHASE 11: GREETING MODERATION ROUTES ====================
+
+@api_router.put("/admin/greetings/{greeting_id}/approve")
+async def approve_greeting(greeting_id: str, admin_id: str = Depends(get_current_admin)):
+    """PHASE 11: Approve a greeting"""
+    result = await db.greetings.update_one(
+        {"id": greeting_id},
+        {"$set": {"approval_status": "approved"}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Greeting not found")
+    
+    return {"message": "Greeting approved successfully"}
+
+
+@api_router.put("/admin/greetings/{greeting_id}/reject")
+async def reject_greeting(greeting_id: str, admin_id: str = Depends(get_current_admin)):
+    """PHASE 11: Reject a greeting"""
+    result = await db.greetings.update_one(
+        {"id": greeting_id},
+        {"$set": {"approval_status": "rejected"}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Greeting not found")
+    
+    return {"message": "Greeting rejected successfully"}
+
+
+@api_router.delete("/admin/greetings/{greeting_id}")
+async def delete_greeting(greeting_id: str, admin_id: str = Depends(get_current_admin)):
+    """PHASE 11: Delete a greeting"""
+    result = await db.greetings.delete_one({"id": greeting_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Greeting not found")
+    
+    return {"message": "Greeting deleted successfully"}
+
+
 # ==================== RSVP ROUTES ====================
 
 @api_router.post("/rsvp", response_model=RSVPResponse)
