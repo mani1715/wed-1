@@ -493,7 +493,11 @@ const PublicInvitation = () => {
                 return (
                   <button
                     key={langCode}
-                    onClick={() => setSelectedLanguage(langCode)}
+                    onClick={() => {
+                      setSelectedLanguage(langCode);
+                      // PHASE 9: Track language change
+                      trackLanguageView(langCode);
+                    }}
                     className="px-4 py-2 rounded-md text-sm font-medium transition-all"
                     style={{
                       background: selectedLanguage === langCode 
