@@ -678,7 +678,7 @@ async def get_invitation(slug: str):
 
 @api_router.post("/invite/{slug}/greetings", response_model=GreetingResponse)
 async def submit_greeting(slug: str, greeting_data: GreetingCreate):
-    """Submit greeting for invitation"""
+    """Submit greeting for invitation - PHASE 11: Default status is 'pending' for moderation"""
     profile = await db.profiles.find_one({"slug": slug}, {"_id": 0})
     
     if not profile:
@@ -687,10 +687,16 @@ async def submit_greeting(slug: str, greeting_data: GreetingCreate):
     if not await check_profile_active(profile):
         raise HTTPException(status_code=410, detail="This invitation link has expired")
     
+    # Sanitize input using bleach
+    import bleach
+    sanitized_name = bleach.clean(greeting_data.guest_name, tags=[], strip=True)
+    sanitized_message = bleach.clean(greeting_data.message, tags=[], strip=True)
+    
     greeting = Greeting(
         profile_id=profile['id'],
-        guest_name=greeting_data.guest_name,
-        message=greeting_data.message
+        guest_name=sanitized_name,
+        message=sanitized_message,
+        approval_status="pending"  # PHASE 11: Default to pending for moderation
     )
     
     doc = greeting.model_dump()
@@ -702,6 +708,7 @@ async def submit_greeting(slug: str, greeting_data: GreetingCreate):
         id=greeting.id,
         guest_name=greeting.guest_name,
         message=greeting.message,
+        approval_status=greeting.approval_status,
         created_at=greeting.created_at
     )
 
