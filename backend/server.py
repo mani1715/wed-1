@@ -867,6 +867,50 @@ async def submit_rsvp(slug: str, rsvp_data: RSVPCreate):
     )
 
 
+@api_router.get("/invite/{slug}/rsvp/check")
+async def check_rsvp_status(slug: str, phone: str):
+    """PHASE 11: Check if RSVP exists and if it can be edited"""
+    # Find profile by slug
+    profile = await db.profiles.find_one({"slug": slug}, {"_id": 0})
+    
+    if not profile:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    
+    # Find RSVP by phone
+    existing_rsvp = await db.rsvps.find_one({
+        "profile_id": profile['id'],
+        "guest_phone": phone
+    }, {"_id": 0})
+    
+    if not existing_rsvp:
+        return {
+            "exists": False,
+            "can_edit": False,
+            "rsvp": None
+        }
+    
+    # Convert created_at if string
+    if isinstance(existing_rsvp.get('created_at'), str):
+        created_at = datetime.fromisoformat(existing_rsvp['created_at'])
+    else:
+        created_at = existing_rsvp['created_at']
+    
+    # Check if within 48 hours
+    time_since_creation = datetime.now(timezone.utc) - created_at
+    can_edit = time_since_creation <= timedelta(hours=48)
+    
+    # Convert dates for response
+    if isinstance(existing_rsvp.get('created_at'), str):
+        existing_rsvp['created_at'] = datetime.fromisoformat(existing_rsvp['created_at'])
+    
+    return {
+        "exists": True,
+        "can_edit": can_edit,
+        "hours_remaining": max(0, 48 - (time_since_creation.total_seconds() / 3600)) if can_edit else 0,
+        "rsvp": RSVPResponse(**existing_rsvp)
+    }
+
+
 @api_router.put("/rsvp/{rsvp_id}", response_model=RSVPResponse)
 async def update_rsvp(rsvp_id: str, rsvp_data: RSVPCreate):
     """PHASE 11: Update RSVP within 48 hours of creation"""
