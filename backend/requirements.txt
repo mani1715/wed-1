@@ -28,3 +28,4 @@ emergentintegrations==0.1.0
 python-jose[cryptography]>=3.3.0
 reportlab>=4.0.0
 Pillow>=10.0.0
+bleach>=6.0.0
