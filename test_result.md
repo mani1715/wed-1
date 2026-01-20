@@ -749,6 +749,18 @@ backend:
         comment: "✅ PHASE 11 API ENDPOINTS ADDED: GET /api/invite/{slug}/qr generates QR code PNG for invitation link using qrcode library. GET /api/invite/{slug}/calendar generates .ics file for all visible events with proper formatting for Google/Apple/Outlook. Multiple events combined into single .ics file. Includes event name, date/time, venue, address, description. Added qrcode>=7.4.0 to requirements.txt."
 
 frontend:
+  - task: "Profile Duplication UI"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/AdminDashboard.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "✅ DUPLICATE BUTTON ADDED: Added 'Duplicate' button in AdminDashboard for each profile card. Button styled with blue theme (text-blue-600, hover:bg-blue-50) and Copy icon. Implemented handleDuplicate() function that calls POST /api/admin/profiles/{id}/duplicate endpoint and redirects to edit page (/admin/profile/{newId}/edit) after successful duplication. Shows error alert if duplication fails. Placed before Delete button in actions list."
+
   - task: "PHASE 11 - GreetingsManagement Admin Page"
     implemented: true
     working: "NA"
