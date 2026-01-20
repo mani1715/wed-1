@@ -302,6 +302,7 @@ class ProfileUpdate(BaseModel):
     events: Optional[List[WeddingEvent]] = None
     link_expiry_type: Optional[str] = None
     link_expiry_value: Optional[int] = None
+    expires_at: Optional[datetime] = None  # PHASE 12: Invitation expiry date
     is_active: Optional[bool] = None
     
     @field_validator('events')
