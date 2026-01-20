@@ -864,6 +864,16 @@ async def submit_rsvp(slug: str, rsvp_data: RSVPCreate):
     if not await check_profile_active(profile):
         raise HTTPException(status_code=410, detail="This invitation link has expired")
     
+    # PHASE 12: Check invitation expiry (separate from link expiry)
+    expires_at = profile.get('expires_at')
+    if expires_at:
+        if isinstance(expires_at, str):
+            expires_at = datetime.fromisoformat(expires_at)
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) > expires_at:
+            raise HTTPException(status_code=403, detail="This invitation has expired. RSVP submissions are no longer available.")
+    
     # Check for duplicate RSVP (profile_id + guest_phone)
     existing_rsvp = await db.rsvps.find_one({
         "profile_id": profile['id'],
