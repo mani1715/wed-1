@@ -838,6 +838,8 @@ frontend:
 
 test_plan:
   current_focus:
+    - "Profile Duplication Feature - Backend API"
+    - "Profile Duplication UI - Admin Dashboard"
     - "PHASE 10 - CMS Backend Models & Fields"
     - "PHASE 10 - Photo Upload & Management APIs"
     - "PHASE 10 - ProfileForm CMS UI"
@@ -848,6 +850,65 @@ test_plan:
   test_priority: "high_first"
 
 agent_communication:
+    - agent: "main"
+      message: |
+        ✅ PROFILE DUPLICATION FEATURE IMPLEMENTED (Continuation from Part 1)
+        
+        User requested profile duplication feature for wedding invitations. Implementation complete:
+        
+        **BACKEND IMPLEMENTATION:**
+        - Created POST /api/admin/profiles/{id}/duplicate endpoint in server.py
+        - Deep clones all profile data with exclusions:
+          ✅ CLONED: All profile fields (groom/bride names, event details, venue, city, invitation message)
+          ✅ CLONED: Design theme (design_id), deity background (deity_id)
+          ✅ CLONED: Events array (all wedding events with dates/times/venues)
+          ✅ CLONED: Sections enabled settings
+          ✅ CLONED: Background music settings
+          ✅ CLONED: Map settings
+          ✅ CLONED: Contact info
+          ✅ CLONED: Rich content (about_couple, family_details, love_story)
+          ✅ CLONED: Language settings (enabled_languages, custom_text)
+          ✅ CLONED: WhatsApp numbers
+          ✅ CLONED: Link expiry settings
+          ✅ CLONED: Media references (cover_photo_id - references same media items)
+          
+          ❌ EXCLUDED: slug (new unique slug generated)
+          ❌ EXCLUDED: id (new UUID generated)
+          ❌ EXCLUDED: Analytics data (not copied)
+          ❌ EXCLUDED: RSVP entries (not copied)
+          ❌ EXCLUDED: Wishes/Greetings (not copied)
+          
+        - Appends "(Copy)" to both groom_name and bride_name
+        - Generates new unique slug using existing generate_slug() function
+        - Resets created_at and updated_at to current timestamp
+        - Recalculates link_expiry_date and expires_at based on profile settings
+        - Admin authentication required (protected endpoint)
+        
+        **FRONTEND IMPLEMENTATION:**
+        - Added "Duplicate" button in AdminDashboard.jsx
+        - Button positioned before Delete button in actions list
+        - Styled with blue theme (text-blue-600, hover:bg-blue-50)
+        - Uses Copy icon from lucide-react
+        - Implemented handleDuplicate() function:
+          * Calls POST /api/admin/profiles/{id}/duplicate
+          * Automatically redirects to edit page (/admin/profile/{newId}/edit) after success
+          * Shows error alert if duplication fails
+        
+        **KEY FEATURES:**
+        ✅ Simple deep copy - no breaking changes
+        ✅ Preserves all profile settings and configurations
+        ✅ New profile immediately editable after duplication
+        ✅ Media references preserved (photos reference same URLs)
+        ✅ Clean separation of analytics/RSVPs/wishes (starts fresh)
+        
+        **TESTING STATUS:**
+        - Backend and frontend services restarted successfully
+        - Both services running (backend: pid 3817, frontend: pid 3867)
+        - Ready for backend testing to verify duplication logic
+        - Frontend testing pending user confirmation
+        
+        READY FOR TESTING. Feature allows admin to quickly create similar invitations by duplicating existing profiles.
+
     - agent: "main"
       message: |
         🔄 PHASE 9 - ENHANCED ANALYTICS & INSIGHTS - VERIFICATION COMPLETE
