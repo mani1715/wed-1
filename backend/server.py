@@ -451,6 +451,91 @@ async def delete_profile(profile_id: str, admin_id: str = Depends(get_current_ad
     return {"message": "Profile deleted successfully"}
 
 
+@api_router.post("/admin/profiles/{profile_id}/duplicate", response_model=ProfileResponse)
+async def duplicate_profile(profile_id: str, admin_id: str = Depends(get_current_admin)):
+    """Duplicate an existing profile with new slug and appended (Copy) to names"""
+    # Fetch the original profile
+    original_profile = await db.profiles.find_one({"id": profile_id}, {"_id": 0})
+    
+    if not original_profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    # Convert date strings back to datetime objects
+    if isinstance(original_profile.get('event_date'), str):
+        original_profile['event_date'] = datetime.fromisoformat(original_profile['event_date'])
+    if isinstance(original_profile.get('created_at'), str):
+        original_profile['created_at'] = datetime.fromisoformat(original_profile['created_at'])
+    if isinstance(original_profile.get('updated_at'), str):
+        original_profile['updated_at'] = datetime.fromisoformat(original_profile['updated_at'])
+    if original_profile.get('link_expiry_date') and isinstance(original_profile['link_expiry_date'], str):
+        original_profile['link_expiry_date'] = datetime.fromisoformat(original_profile['link_expiry_date'])
+    if original_profile.get('expires_at') and isinstance(original_profile['expires_at'], str):
+        original_profile['expires_at'] = datetime.fromisoformat(original_profile['expires_at'])
+    
+    # Create new profile data from original
+    new_profile_data = original_profile.copy()
+    
+    # Generate new unique ID and slug
+    new_profile_data['id'] = str(uuid.uuid4())
+    
+    # Append "(Copy)" to groom and bride names
+    new_profile_data['groom_name'] = f"{original_profile['groom_name']} (Copy)"
+    new_profile_data['bride_name'] = f"{original_profile['bride_name']} (Copy)"
+    
+    # Generate unique slug with new names
+    slug = generate_slug(new_profile_data['groom_name'], new_profile_data['bride_name'])
+    while await db.profiles.find_one({"slug": slug}):
+        slug = generate_slug(new_profile_data['groom_name'], new_profile_data['bride_name'])
+    new_profile_data['slug'] = slug
+    
+    # Reset timestamps
+    now = datetime.now(timezone.utc)
+    new_profile_data['created_at'] = now
+    new_profile_data['updated_at'] = now
+    
+    # Recalculate expiry dates
+    expiry_date = calculate_expiry_date(
+        new_profile_data.get('link_expiry_type', 'days'),
+        new_profile_data.get('link_expiry_value', 30)
+    )
+    new_profile_data['link_expiry_date'] = expiry_date
+    
+    invitation_expires_at = calculate_invitation_expires_at(
+        new_profile_data['event_date'],
+        None  # Will use default: event_date + 7 days
+    )
+    new_profile_data['expires_at'] = invitation_expires_at
+    
+    # Copy media references (photos will reference same media items)
+    # Note: Media items themselves are not duplicated, only references in the profile
+    
+    # Serialize dates for MongoDB
+    new_profile_data['event_date'] = new_profile_data['event_date'].isoformat()
+    new_profile_data['created_at'] = new_profile_data['created_at'].isoformat()
+    new_profile_data['updated_at'] = new_profile_data['updated_at'].isoformat()
+    if new_profile_data['link_expiry_date']:
+        new_profile_data['link_expiry_date'] = new_profile_data['link_expiry_date'].isoformat()
+    if new_profile_data['expires_at']:
+        new_profile_data['expires_at'] = new_profile_data['expires_at'].isoformat()
+    
+    # Insert the duplicated profile
+    await db.profiles.insert_one(new_profile_data)
+    
+    # Prepare response with datetime objects
+    response_data = new_profile_data.copy()
+    response_data['event_date'] = datetime.fromisoformat(response_data['event_date'])
+    response_data['created_at'] = datetime.fromisoformat(response_data['created_at'])
+    response_data['updated_at'] = datetime.fromisoformat(response_data['updated_at'])
+    if response_data['link_expiry_date']:
+        response_data['link_expiry_date'] = datetime.fromisoformat(response_data['link_expiry_date'])
+    if response_data['expires_at']:
+        response_data['expires_at'] = datetime.fromisoformat(response_data['expires_at'])
+    
+    response_data['invitation_link'] = f"/invite/{response_data['slug']}"
+    
+    return ProfileResponse(**response_data)
+
+
 # ==================== ADMIN - MEDIA ROUTES ====================
 
 @api_router.post("/admin/profiles/{profile_id}/media", response_model=ProfileMedia)
