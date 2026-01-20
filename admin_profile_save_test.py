@@ -245,7 +245,7 @@ class AdminProfileSaveTester:
             },
             {
                 "name": "Multiple languages without English",
-                "enabled_languages": ["telugu", "hindi", "tamil"]
+                "enabled_languages": ["telugu", "tamil", "kannada"]
             },
             {
                 "name": "Empty languages array",
