@@ -87,6 +87,19 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleDuplicate = async (profileId) => {
+    try {
+      const response = await axios.post(`${API_URL}/api/admin/profiles/${profileId}/duplicate`);
+      const newProfile = response.data;
+      
+      // Redirect to edit page for the duplicated profile
+      navigate(`/admin/profile/${newProfile.id}/edit`);
+    } catch (error) {
+      console.error('Failed to duplicate profile:', error);
+      alert('Failed to duplicate profile. Please try again.');
+    }
+  };
+
   const getEventTypeLabel = (type) => {
     const labels = {
       marriage: 'Marriage',
