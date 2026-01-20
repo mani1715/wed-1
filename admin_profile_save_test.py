@@ -195,18 +195,10 @@ class AdminProfileSaveTester:
                     "event_date": "2026-02-15T10:00:00",
                     "enabled_languages": ["english"]
                 }
-            },
-            {
-                "name": "Missing enabled_languages",
-                "data": {
-                    "groom_name": "Rajesh",
-                    "bride_name": "Priya", 
-                    "event_type": "marriage",
-                    "event_date": "2026-02-15T10:00:00",
-                    "venue": "Grand Palace"
-                }
             }
         ]
+        
+        # NOTE: enabled_languages is NOT required - it has default value ["english"]
         
         all_passed = True
         
