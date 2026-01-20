@@ -450,6 +450,48 @@ class AdminProfileSaveTester:
             
         return all_fields_present
     
+    def test_enabled_languages_default_behavior(self):
+        """Test 6: enabled_languages Defaults to ['english'] When Not Provided"""
+        
+        profile_data = {
+            "groom_name": "Default Test Groom",
+            "bride_name": "Default Test Bride",
+            "event_type": "marriage",
+            "event_date": "2026-02-15T10:00:00",
+            "venue": "Grand Palace"
+            # Note: enabled_languages is NOT provided - should default to ["english"]
+        }
+        
+        response = requests.post(
+            f"{BASE_URL}/admin/profiles",
+            json=profile_data,
+            headers=self.get_headers()
+        )
+        
+        print(f"   📡 Response Status: {response.status_code}")
+        
+        if response.status_code in [200, 201]:
+            profile = response.json()
+            self.test_profiles.append(profile["id"])
+            
+            # Verify enabled_languages defaults to ["english"]
+            enabled_languages = profile.get('enabled_languages', [])
+            if enabled_languages == ["english"]:
+                print(f"   ✅ enabled_languages correctly defaults to ['english']")
+                print(f"   📋 Profile ID: {profile['id']}")
+                return True
+            else:
+                print(f"   ❌ enabled_languages should default to ['english'], got: {enabled_languages}")
+                return False
+        else:
+            print(f"   ❌ Profile creation failed: {response.status_code}")
+            try:
+                error_detail = response.json()
+                print(f"   📋 Error: {error_detail}")
+            except:
+                print(f"   📋 Raw Response: {response.text}")
+            return False
+    
     def cleanup_test_profiles(self):
         """Clean up test profiles"""
         if not self.test_profiles:
