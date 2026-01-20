@@ -1340,6 +1340,7 @@ const PublicInvitation = () => {
                 )}
               </div>
             </form>
+            )}
 
             {/* Display Greetings */}
             {invitation.greetings.length > 0 && (
