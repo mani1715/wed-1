@@ -597,6 +597,7 @@ const ProfileForm = () => {
       const submitData = {
         ...formData,
         event_date: new Date(formData.event_date).toISOString(),
+        expires_at: formData.expires_at ? new Date(formData.expires_at).toISOString() : null,  // PHASE 12
         link_expiry_value: formData.link_expiry_value ? parseInt(formData.link_expiry_value) : 30,
         whatsapp_groom: formData.whatsapp_groom || null,
         whatsapp_bride: formData.whatsapp_bride || null,
