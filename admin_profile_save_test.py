@@ -240,8 +240,8 @@ class AdminProfileSaveTester:
                 "enabled_languages": ["telugu"]
             },
             {
-                "name": "Only Hindi (no English)", 
-                "enabled_languages": ["hindi"]
+                "name": "Only Tamil (no English)",
+                "enabled_languages": ["tamil"]
             },
             {
                 "name": "Multiple languages without English",
