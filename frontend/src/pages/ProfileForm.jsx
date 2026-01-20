@@ -107,6 +107,7 @@ const ProfileForm = () => {
         bride_name: profile.bride_name,
         event_type: profile.event_type,
         event_date: new Date(profile.event_date).toISOString().split('T')[0],
+        expires_at: profile.expires_at ? new Date(profile.expires_at).toISOString().split('T')[0] : '',  // PHASE 12
         venue: profile.venue,
         city: profile.city || '',
         invitation_message: profile.invitation_message || '',
