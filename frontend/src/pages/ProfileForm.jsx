@@ -552,14 +552,6 @@ const ProfileForm = () => {
     }
   };
 
-  const handlePreview = () => {
-    if (isEdit && formData.slug) {
-      window.open(`/invite/${formData.slug}`, '_blank');
-    } else {
-      alert('Please save the profile first to preview');
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
