@@ -745,6 +745,16 @@ async def submit_greeting(slug: str, greeting_data: GreetingCreate):
     if not await check_profile_active(profile):
         raise HTTPException(status_code=410, detail="This invitation link has expired")
     
+    # PHASE 12: Check invitation expiry (separate from link expiry)
+    expires_at = profile.get('expires_at')
+    if expires_at:
+        if isinstance(expires_at, str):
+            expires_at = datetime.fromisoformat(expires_at)
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) > expires_at:
+            raise HTTPException(status_code=403, detail="This invitation has expired. Submitting wishes is no longer available.")
+    
     # Sanitize input using bleach
     import bleach
     sanitized_name = bleach.clean(greeting_data.guest_name, tags=[], strip=True)
