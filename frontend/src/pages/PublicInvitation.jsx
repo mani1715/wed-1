@@ -1770,7 +1770,7 @@ const PublicInvitation = () => {
               )}
             </div>
           </Card>
-        )}
+        ) : null}
 
         {/* Add to Calendar & QR Code Section */}
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
