@@ -614,7 +614,30 @@ const ProfileForm = () => {
       }
     } catch (error) {
       console.error('Failed to save profile:', error);
-      setError(error.response?.data?.detail || 'Failed to save profile');
+      
+      // Handle validation errors from backend (422 status)
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+        
+        // If detail is an array of validation errors, format them nicely
+        if (Array.isArray(detail)) {
+          const errorMessages = detail.map(err => {
+            const field = err.loc ? err.loc.join(' > ') : 'Unknown field';
+            return `${field}: ${err.msg}`;
+          }).join('; ');
+          setError(errorMessages);
+        } 
+        // If detail is a string, use it directly
+        else if (typeof detail === 'string') {
+          setError(detail);
+        }
+        // If detail is an object, convert to string
+        else {
+          setError(JSON.stringify(detail));
+        }
+      } else {
+        setError('Failed to save profile. Please check all required fields.');
+      }
     } finally {
       setLoading(false);
     }
