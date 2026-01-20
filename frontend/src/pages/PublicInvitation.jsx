@@ -1475,7 +1475,7 @@ const PublicInvitation = () => {
           )}
 
           {/* RSVP Form - New or Edit */}
-          {!rsvpSuccess && (!existingRsvp || canEditRsvp) && (
+          {!rsvpSuccess && (!existingRsvp || canEditRsvp) ? (
             <>
               {/* Show edit info banner if in edit mode */}
               {isEditMode && canEditRsvp && (
