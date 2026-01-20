@@ -96,6 +96,19 @@ def calculate_expiry_date(expiry_type: str, expiry_value: Optional[int]) -> Opti
     return None
 
 
+def calculate_invitation_expires_at(event_date: datetime, expires_at: Optional[datetime] = None) -> datetime:
+    """Calculate invitation expiry date. Default: event_date + 7 days"""
+    if expires_at:
+        return expires_at
+    
+    # Ensure event_date is timezone-aware
+    if event_date.tzinfo is None:
+        event_date = event_date.replace(tzinfo=timezone.utc)
+    
+    # Default: wedding date + 7 days
+    return event_date + timedelta(days=7)
+
+
 async def check_profile_active(profile: dict) -> bool:
     """Check if profile is active and not expired"""
     if not profile.get('is_active', True):
