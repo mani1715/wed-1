@@ -1414,8 +1414,17 @@ const PublicInvitation = () => {
             You can edit your RSVP within 48 hours of submission
           </p>
 
+          {/* PHASE 12: Expiry Notice for RSVP */}
+          {invitation.is_expired && (
+            <div className="mb-6 p-4 rounded-lg" style={{ background: '#FFF3CD', border: '1px solid #FFC107' }}>
+              <p className="text-sm text-center font-medium" style={{ color: '#856404' }}>
+                ⚠️ This invitation has expired. RSVP submissions are no longer available.
+              </p>
+            </div>
+          )}
+
           {/* PHASE 11: Check Existing RSVP Status */}
-          {!existingRsvp && !rsvpSuccess && (
+          {!invitation.is_expired && !existingRsvp && !rsvpSuccess && (
             <div className="mb-6 p-4 rounded-lg" style={{ background: 'var(--color-background, #FFF8E7)', border: '1px dashed var(--color-accent, #C9A961)' }}>
               <p className="text-sm mb-3 text-center" style={{ color: 'var(--color-text, #4A3728)' }}>
                 Already submitted? Check or edit your RSVP
