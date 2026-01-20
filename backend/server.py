@@ -388,6 +388,14 @@ async def update_profile(
         expiry_value = update_dict.get('link_expiry_value', existing_profile.get('link_expiry_value'))
         update_dict['link_expiry_date'] = calculate_expiry_date(expiry_type, expiry_value)
     
+    # PHASE 12: Recalculate invitation expiry if event_date or expires_at changed
+    if 'event_date' in update_dict or 'expires_at' in update_dict:
+        event_date_for_calc = update_dict.get('event_date', existing_profile.get('event_date'))
+        if isinstance(event_date_for_calc, str):
+            event_date_for_calc = datetime.fromisoformat(event_date_for_calc)
+        expires_at = update_dict.get('expires_at')
+        update_dict['expires_at'] = calculate_invitation_expires_at(event_date_for_calc, expires_at)
+    
     # Update timestamp
     update_dict['updated_at'] = datetime.now(timezone.utc)
     
@@ -397,6 +405,8 @@ async def update_profile(
     update_dict['updated_at'] = update_dict['updated_at'].isoformat()
     if 'link_expiry_date' in update_dict and update_dict['link_expiry_date']:
         update_dict['link_expiry_date'] = update_dict['link_expiry_date'].isoformat()
+    if 'expires_at' in update_dict and update_dict['expires_at']:
+        update_dict['expires_at'] = update_dict['expires_at'].isoformat()
     
     await db.profiles.update_one(
         {"id": profile_id},
@@ -415,6 +425,8 @@ async def update_profile(
         updated_profile['updated_at'] = datetime.fromisoformat(updated_profile['updated_at'])
     if updated_profile.get('link_expiry_date') and isinstance(updated_profile['link_expiry_date'], str):
         updated_profile['link_expiry_date'] = datetime.fromisoformat(updated_profile['link_expiry_date'])
+    if updated_profile.get('expires_at') and isinstance(updated_profile['expires_at'], str):
+        updated_profile['expires_at'] = datetime.fromisoformat(updated_profile['expires_at'])
     
     updated_profile['invitation_link'] = f"/invite/{updated_profile['slug']}"
     
