@@ -310,12 +310,12 @@ class AdminProfileSaveTester:
                 "enabled_languages": ["english", "telugu"]
             },
             {
-                "name": "English + Hindi + Tamil",
-                "enabled_languages": ["english", "hindi", "tamil"]
+                "name": "English + Tamil + Kannada",
+                "enabled_languages": ["english", "tamil", "kannada"]
             },
             {
                 "name": "All supported languages",
-                "enabled_languages": ["english", "telugu", "hindi", "tamil", "kannada", "malayalam"]
+                "enabled_languages": ["english", "telugu", "tamil", "kannada", "malayalam"]
             }
         ]
         
