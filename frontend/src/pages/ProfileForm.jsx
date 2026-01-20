@@ -731,6 +731,23 @@ const ProfileForm = () => {
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
                   />
                 </div>
+                
+                {/* PHASE 12: Invitation Expiry Date */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Invitation Expiry Date
+                  </label>
+                  <input
+                    type="date"
+                    name="expires_at"
+                    value={formData.expires_at}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Default: Event Date + 7 days. After expiry, guests can view but cannot RSVP or submit wishes.
+                  </p>
+                </div>
               </div>
 
               <div>
