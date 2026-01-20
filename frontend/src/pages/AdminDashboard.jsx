@@ -407,6 +407,17 @@ const AdminDashboard = () => {
                       <Button
                         variant="outline"
                         size="sm"
+                        onClick={() => handleDuplicate(profile.id)}
+                        className="flex-1 text-blue-600 hover:bg-blue-50"
+                      >
+                        <Copy className="w-4 h-4 mr-1" />
+                        Duplicate
+                      </Button>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => handleDelete(profile.id)}
                         className="flex-1 text-red-600 hover:bg-red-50"
                       >
