@@ -700,6 +700,18 @@ test_plan:
   phase_10_admin_cms_implemented: true
 
 backend:
+  - task: "Profile Duplication Feature"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "✅ PROFILE DUPLICATION IMPLEMENTED: Added POST /api/admin/profiles/{id}/duplicate endpoint. Clones all profile data including events, design, deity, sections, media references, contact info, and all other settings. Excludes: slug (generates new unique slug), analytics, RSVP entries, wishes/greetings. Appends '(Copy)' to both groom_name and bride_name. Resets created_at and updated_at timestamps. Recalculates expiry dates based on profile settings. Returns new profile with unique ID and slug."
+
   - task: "PHASE 11 - Greetings Moderation Backend"
     implemented: true
     working: "NA"
