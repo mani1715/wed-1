@@ -275,6 +275,12 @@ async def create_profile(profile_data: ProfileCreate, admin_id: str = Depends(ge
         profile_data.link_expiry_value
     )
     
+    # Calculate invitation expiry (PHASE 12: default event_date + 7 days)
+    invitation_expires_at = calculate_invitation_expires_at(
+        profile_data.event_date,
+        profile_data.expires_at
+    )
+    
     # Sanitize HTML fields
     about_couple = sanitize_html(profile_data.about_couple) if profile_data.about_couple else None
     family_details = sanitize_html(profile_data.family_details) if profile_data.family_details else None
@@ -307,7 +313,8 @@ async def create_profile(profile_data: ProfileCreate, admin_id: str = Depends(ge
         events=profile_data.events,
         link_expiry_type=profile_data.link_expiry_type,
         link_expiry_value=profile_data.link_expiry_value,
-        link_expiry_date=expiry_date
+        link_expiry_date=expiry_date,
+        expires_at=invitation_expires_at
     )
     
     # Convert to dict and serialize dates
@@ -317,6 +324,8 @@ async def create_profile(profile_data: ProfileCreate, admin_id: str = Depends(ge
     doc['updated_at'] = doc['updated_at'].isoformat()
     if doc['link_expiry_date']:
         doc['link_expiry_date'] = doc['link_expiry_date'].isoformat()
+    if doc['expires_at']:
+        doc['expires_at'] = doc['expires_at'].isoformat()
     
     await db.profiles.insert_one(doc)
     
