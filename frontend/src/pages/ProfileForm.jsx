@@ -31,6 +31,7 @@ const ProfileForm = () => {
     bride_name: '',
     event_type: 'marriage',
     event_date: '',
+    expires_at: '',  // PHASE 12: Invitation expiry date
     venue: '',
     city: '',
     invitation_message: '',
