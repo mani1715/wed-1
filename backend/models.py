@@ -217,6 +217,7 @@ class ProfileCreate(BaseModel):
     events: List[WeddingEvent] = Field(default_factory=list)
     link_expiry_type: str = "days"
     link_expiry_value: Optional[int] = 30
+    expires_at: Optional[datetime] = None  # PHASE 12: Invitation expiry date (default: event_date + 7 days)
     
     @field_validator('events')
     def validate_events(cls, v):
