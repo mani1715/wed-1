@@ -1253,7 +1253,17 @@ const PublicInvitation = () => {
               {getT('greetings', 'title')}
             </h3>
 
+            {/* PHASE 12: Expiry Notice for Greetings */}
+            {invitation.is_expired && (
+              <div className="mb-6 p-4 rounded-lg" style={{ background: '#FFF3CD', border: '1px solid #FFC107' }}>
+                <p className="text-sm text-center font-medium" style={{ color: '#856404' }}>
+                  ⚠️ This invitation has expired. Submitting new wishes is no longer available.
+                </p>
+              </div>
+            )}
+
             {/* Greeting Form */}
+            {!invitation.is_expired && (
             <form onSubmit={handleSubmitGreeting} className="mb-8">
               <div className="space-y-4">
                 <div>
