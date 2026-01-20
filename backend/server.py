@@ -353,6 +353,8 @@ async def get_profile(profile_id: str, admin_id: str = Depends(get_current_admin
         profile['updated_at'] = datetime.fromisoformat(profile['updated_at'])
     if profile.get('link_expiry_date') and isinstance(profile['link_expiry_date'], str):
         profile['link_expiry_date'] = datetime.fromisoformat(profile['link_expiry_date'])
+    if profile.get('expires_at') and isinstance(profile['expires_at'], str):
+        profile['expires_at'] = datetime.fromisoformat(profile['expires_at'])
     
     profile['invitation_link'] = f"/invite/{profile['slug']}"
     
