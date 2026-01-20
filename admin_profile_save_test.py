@@ -528,7 +528,8 @@ class AdminProfileSaveTester:
             ("Missing Required Fields Validation (422 Errors)", self.test_missing_required_fields_validation),
             ("English Language Requirement Validation", self.test_english_language_requirement),
             ("Valid Language Combinations with English", self.test_valid_language_combinations_with_english),
-            ("Response Format Verification", self.test_response_format_verification)
+            ("Response Format Verification", self.test_response_format_verification),
+            ("enabled_languages Default Behavior", self.test_enabled_languages_default_behavior)
         ]
         
         for test_name, test_func in tests:
