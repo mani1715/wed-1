@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { ArrowLeft, Check, X, Trash2, Filter, MessageSquare } from 'lucide-react';
@@ -14,7 +14,7 @@ function GreetingsManagement() {
   const [statusFilter, setStatusFilter] = useState('all'); // all, pending, approved, rejected
   const [stats, setStats] = useState({ pending: 0, approved: 0, rejected: 0, total: 0 });
 
-  const fetchProfileAndGreetings = async () => {
+  const fetchProfileAndGreetings = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       
