@@ -1561,6 +1561,45 @@ const ProfileForm = () => {
                 ))}
               </div>
             )}
+            
+            {/* PHASE 13: Event-Specific Links Display */}
+            {isEdit && Object.keys(eventLinks).length > 0 && (
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h3 className="text-sm font-semibold text-blue-900 mb-3">Event-Specific Invitation Links</h3>
+                <div className="space-y-2">
+                  {Object.entries(eventLinks).map(([eventType, link]) => {
+                    const eventTypeCapitalized = eventType.charAt(0).toUpperCase() + eventType.slice(1);
+                    const fullLink = `${window.location.origin}${link}`;
+                    return (
+                      <div key={eventType} className="flex items-center justify-between bg-white p-2 rounded border border-blue-100">
+                        <span className="text-sm font-medium text-gray-700">{eventTypeCapitalized}:</span>
+                        <div className="flex items-center gap-2">
+                          <a 
+                            href={fullLink} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="text-sm text-blue-600 hover:text-blue-800 underline truncate max-w-xs"
+                          >
+                            {link}
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(fullLink);
+                              alert('Link copied to clipboard!');
+                            }}
+                            className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                          >
+                            Copy
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-blue-700 mt-2">Each event has its own invitation page with event-specific design and details</p>
+              </div>
+            )}
 
             <Button
               type="button"
