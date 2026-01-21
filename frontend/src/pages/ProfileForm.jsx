@@ -1410,6 +1410,24 @@ const ProfileForm = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Event Type *
+                        </label>
+                        <select
+                          value={event.event_type || 'marriage'}
+                          onChange={(e) => updateEvent(event.event_id, 'event_type', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                          required
+                        >
+                          <option value="engagement">Engagement</option>
+                          <option value="haldi">Haldi</option>
+                          <option value="mehendi">Mehendi</option>
+                          <option value="marriage">Marriage</option>
+                          <option value="reception">Reception</option>
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
                           Event Name *
                         </label>
                         <input
