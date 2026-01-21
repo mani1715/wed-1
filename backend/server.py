@@ -162,7 +162,7 @@ def validate_image_file(file: UploadFile) -> tuple[bool, str]:
     size = file.file.tell()
     file.file.seek(0)
     if size > MAX_FILE_SIZE:
-        return False, f"File too large. Maximum size: 5MB"
+        return False, "File too large. Maximum size: 5MB"
     
     return True, ""
 
