@@ -1522,17 +1522,34 @@ const ProfileForm = () => {
 
                       <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Description (max 200 chars)
+                          Description (max 500 chars)
                         </label>
                         <textarea
                           value={event.description}
                           onChange={(e) => updateEvent(event.event_id, 'description', e.target.value)}
-                          maxLength={200}
+                          maxLength={500}
                           rows={2}
                           placeholder="Optional description of the event"
                           className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                         />
-                        <p className="text-xs text-gray-500 mt-1">{event.description?.length || 0}/200</p>
+                        <p className="text-xs text-gray-500 mt-1">{event.description?.length || 0}/500</p>
+                      </div>
+                      
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Design Theme (Optional)
+                        </label>
+                        <select
+                          value={event.design_preset_id || ''}
+                          onChange={(e) => updateEvent(event.event_id, 'design_preset_id', e.target.value || null)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                        >
+                          <option value="">Use Profile Default Design</option>
+                          {DESIGN_THEMES.map(theme => (
+                            <option key={theme.id} value={theme.id}>{theme.name}</option>
+                          ))}
+                        </select>
+                        <p className="text-xs text-gray-500 mt-1">Leave empty to use profile's default design theme</p>
                       </div>
                     </div>
                   </div>
