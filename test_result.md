@@ -102,6 +102,200 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
+
+user_problem_statement_phase12_part5: |
+  PHASE 12 - PART 5: AUDIT LOGS
+  Track all admin actions in the wedding invitation platform.
+  
+  Backend:
+  - Log admin actions: profile create, update, delete, duplicate, template save
+  - Store: action, admin_id, profile_id, profile_slug, details, timestamp
+  - Automatically maintain last 1000 logs (oldest deleted when exceeded)
+  - GET /api/admin/audit-logs endpoint to retrieve logs
+  
+  Admin Frontend:
+  - Read-only audit logs page at /admin/audit-logs
+  - Display logs in reverse chronological order (newest first)
+  - Show action type with color-coded icons
+  - Display profile names, admin ID, timestamp
+  - Navigation link from dashboard
+
+backend_phase12_part5:
+  - task: "AuditLog Model"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created AuditLog and AuditLogResponse models with fields: id, action, admin_id, profile_id, profile_slug, details, timestamp. Supports tracking profile_create, profile_update, profile_delete, profile_duplicate, template_save actions."
+  
+  - task: "Audit Logging Helper Function"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created log_audit_action() async function that logs admin actions to database. Automatically maintains last 1000 logs by deleting older entries when count exceeds 1000. Includes error handling to prevent audit failures from breaking main operations."
+  
+  - task: "Profile Create Audit Logging"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added audit logging to POST /api/admin/profiles endpoint. Logs profile_create action with groom_name, bride_name, event_type in details."
+  
+  - task: "Profile Update Audit Logging"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added audit logging to PUT /api/admin/profiles/:id endpoint. Logs profile_update action with updated_fields list and profile names in details."
+  
+  - task: "Profile Delete Audit Logging"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added audit logging to DELETE /api/admin/profiles/:id endpoint. Logs profile_delete action with profile names. Fetches profile before deletion to capture details."
+  
+  - task: "Profile Duplicate Audit Logging"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added audit logging to POST /api/admin/profiles/:id/duplicate endpoint. Logs profile_duplicate action with original_profile_id, original_slug, and new profile names."
+  
+  - task: "Template Save Audit Logging"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added audit logging to POST /api/admin/profiles/:id/save-as-template endpoint. Logs template_save action with profile names."
+  
+  - task: "Get Audit Logs API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created GET /api/admin/audit-logs endpoint. Returns last 1000 audit logs sorted by timestamp descending (newest first). Requires admin authentication."
+
+frontend_phase12_part5:
+  - task: "Audit Logs Page"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/AuditLogsPage.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created comprehensive audit logs page with color-coded action cards. Displays action type, admin ID, profile slug, profile names, timestamp, and action-specific details. Icons for each action type (create, update, delete, duplicate, template). Shows last 1000 logs."
+  
+  - task: "Audit Logs Route"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added route /admin/audit-logs for AuditLogsPage component."
+  
+  - task: "Dashboard Navigation Link"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/AdminDashboard.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added 'Audit Logs' button in dashboard header next to Logout button. Blue-themed button navigates to /admin/audit-logs."
+
+metadata_phase12_part5:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 0
+  run_ui: false
+
+test_plan_phase12_part5:
+  current_focus:
+    - "AuditLog Model"
+    - "Audit Logging Helper Function"
+    - "Profile CRUD Audit Logging"
+    - "Get Audit Logs API"
+    - "Audit Logs Page"
+  stuck_tasks: []
+  test_all: true
+  test_priority: "high_first"
+
+agent_communication_phase12_part5:
+  - agent: "main"
+    message: |
+      ✅ PHASE 12 - PART 5: AUDIT LOGS IMPLEMENTATION COMPLETE
+      
+      BACKEND IMPLEMENTATION:
+      1. Created AuditLog and AuditLogResponse models in models.py
+      2. Implemented log_audit_action() helper function with auto-cleanup (maintains last 1000 logs)
+      3. Added audit logging to all required endpoints:
+         - POST /api/admin/profiles (profile_create)
+         - PUT /api/admin/profiles/:id (profile_update)
+         - DELETE /api/admin/profiles/:id (profile_delete)
+         - POST /api/admin/profiles/:id/duplicate (profile_duplicate)
+         - POST /api/admin/profiles/:id/save-as-template (template_save)
+      4. Created GET /api/admin/audit-logs endpoint (authenticated)
+      
+      FRONTEND IMPLEMENTATION:
+      1. Created AuditLogsPage.jsx with color-coded cards and icons
+      2. Added route /admin/audit-logs in App.js
+      3. Added "Audit Logs" button in AdminDashboard header
+      
+      Ready for backend testing.
+
+
+
 user_problem_statement: |
   Add multi-event system for Indian wedding invitations with the following features:
   - Admin can add up to 7 events (Mehendi, Sangeet, Wedding, Reception, etc.)
