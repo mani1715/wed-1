@@ -40,7 +40,7 @@ from models import (
     RSVP, RSVPCreate, RSVPResponse, RSVPStats,
     Analytics, ViewSession, DailyView, ViewTrackingRequest, InteractionTrackingRequest, 
     LanguageTrackingRequest, AnalyticsResponse, AnalyticsSummary,
-    RateLimit
+    RateLimit, AuditLog, AuditLogResponse
 )
 from auth import (
     get_password_hash, verify_password, 
