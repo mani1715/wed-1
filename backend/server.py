@@ -130,6 +130,72 @@ async def check_profile_active(profile: dict) -> bool:
     return True
 
 
+def get_client_ip(request: Request) -> str:
+    """Get client IP address from request"""
+    # Check for X-Forwarded-For header (from proxy/load balancer)
+    forwarded = request.headers.get("X-Forwarded-For")
+    if forwarded:
+        # Get first IP if multiple are present
+        return forwarded.split(",")[0].strip()
+    
+    # Fall back to direct client host
+    return request.client.host if request.client else "unknown"
+
+
+async def check_rate_limit(ip_address: str, endpoint: str, max_count: int) -> bool:
+    """
+    Check if IP has exceeded rate limit for endpoint
+    Returns True if allowed, False if limit exceeded
+    
+    Args:
+        ip_address: Client IP address
+        endpoint: "rsvp" or "wishes"
+        max_count: Maximum allowed submissions per day
+    """
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    
+    # Find or create rate limit record
+    rate_record = await db.rate_limits.find_one({
+        "ip_address": ip_address,
+        "endpoint": endpoint,
+        "date": today
+    }, {"_id": 0})
+    
+    if not rate_record:
+        # Create new record
+        new_record = RateLimit(
+            ip_address=ip_address,
+            endpoint=endpoint,
+            date=today,
+            count=1
+        )
+        doc = new_record.model_dump()
+        doc['created_at'] = doc['created_at'].isoformat()
+        doc['updated_at'] = doc['updated_at'].isoformat()
+        await db.rate_limits.insert_one(doc)
+        return True
+    
+    # Check if limit exceeded
+    if rate_record['count'] >= max_count:
+        return False
+    
+    # Increment count
+    await db.rate_limits.update_one(
+        {
+            "ip_address": ip_address,
+            "endpoint": endpoint,
+            "date": today
+        },
+        {
+            "$inc": {"count": 1},
+            "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+        }
+    )
+    
+    return True
+
+
+
 
 # HTML Sanitization
 ALLOWED_TAGS = ['p', 'br', 'strong', 'em', 'u', 'ul', 'ol', 'li', 'a', 'h3', 'h4']
