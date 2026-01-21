@@ -327,6 +327,7 @@ const ProfileForm = () => {
 
     const newEvent = {
       event_id: generateEventId(),
+      event_type: 'marriage',  // PHASE 13: Default event type
       name: '',
       date: '',
       start_time: '',
@@ -335,6 +336,7 @@ const ProfileForm = () => {
       venue_address: '',
       map_link: '',
       description: '',
+      design_preset_id: null,  // PHASE 13: Event-specific design
       visible: true,
       order: formData.events.length
     };
