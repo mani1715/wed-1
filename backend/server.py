@@ -510,6 +510,9 @@ async def get_profile(profile_id: str, admin_id: str = Depends(get_current_admin
     
     profile['invitation_link'] = f"/invite/{profile['slug']}"
     
+    # PHASE 13: Generate event-specific links
+    profile['event_links'] = generate_event_links(profile['slug'], profile.get('events', []))
+    
     return ProfileResponse(**profile)
 
 
