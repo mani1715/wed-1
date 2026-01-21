@@ -1,29 +1,50 @@
 from pydantic import BaseModel, Field, ConfigDict, field_validator
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Literal
 from datetime import datetime, timezone, time
+from enum import Enum
 import uuid
 import re
 
 
+class EventType(str, Enum):
+    """PHASE 13: Marriage-specific event types only"""
+    ENGAGEMENT = "engagement"
+    HALDI = "haldi"
+    MEHENDI = "mehendi"
+    MARRIAGE = "marriage"
+    RECEPTION = "reception"
+
+
 class WeddingEvent(BaseModel):
-    """Model for individual wedding event"""
+    """Model for individual wedding event - PHASE 13: Marriage-focused events"""
     event_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    name: str
+    event_type: EventType  # PHASE 13: Restricted to marriage events only
+    name: str  # Display name (can be custom)
     date: str  # yyyy-mm-dd format
     start_time: str  # hh:mm format
     end_time: Optional[str] = None  # hh:mm format
     venue_name: str
     venue_address: str
     map_link: str
-    description: Optional[str] = Field(None, max_length=200)
+    description: Optional[str] = Field(None, max_length=500)  # PHASE 13: custom_message
+    design_preset_id: Optional[str] = None  # PHASE 13: Event-specific design
     visible: bool = True
     order: int = 0
     
     @field_validator('description')
     def validate_description(cls, v):
         """Validate description max length"""
-        if v and len(v) > 200:
-            raise ValueError('Description must be 200 characters or less')
+        if v and len(v) > 500:
+            raise ValueError('Description must be 500 characters or less')
+        return v
+    
+    @field_validator('event_type', mode='before')
+    def validate_event_type(cls, v):
+        """Ensure event_type is valid"""
+        if isinstance(v, str):
+            v = v.lower()
+            if v not in ['engagement', 'haldi', 'mehendi', 'marriage', 'reception']:
+                raise ValueError(f'Event type must be one of: engagement, haldi, mehendi, marriage, reception')
         return v
 
 
