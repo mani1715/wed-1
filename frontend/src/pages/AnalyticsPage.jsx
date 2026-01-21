@@ -16,10 +16,6 @@ const AnalyticsPage = () => {
   const [dateRange, setDateRange] = useState('7d');
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchAnalytics();
-  }, [profileId, dateRange]);
-
   const fetchAnalytics = async () => {
     try {
       const token = localStorage.getItem('token');
