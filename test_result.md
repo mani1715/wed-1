@@ -698,6 +698,20 @@ test_plan:
   phase_8_pdf_generation_implemented: true
   phase_9_enhanced_analytics_implemented: true
   phase_10_admin_cms_implemented: true
+  phase_12_part_4_rate_limiting_implemented: true
+
+backend:
+  - task: "PHASE 12 - PART 4: Rate Limiting Backend"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/models.py, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "✅ PHASE 12 - PART 4 RATE LIMITING IMPLEMENTED: Added RateLimit model to track submissions by IP + date. Created helper functions: get_client_ip() to extract IP from request headers (X-Forwarded-For or client.host), check_rate_limit() to validate and increment daily submission counts. Updated POST /api/rsvp endpoint with 5 submissions per IP per day limit. Updated POST /api/invite/{slug}/greetings endpoint with 3 submissions per IP per day limit. Both endpoints return 429 status with clear error message when limit exceeded. Uses database-only tracking (no Redis). Rate limits reset daily."
 
 backend:
   - task: "Profile Duplication Feature"
