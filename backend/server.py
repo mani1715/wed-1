@@ -197,21 +197,6 @@ def generate_event_links(slug: str, events: List[dict]) -> Dict[str, str]:
         if event_type and event.get('visible', True):
             event_links[event_type] = f"/invite/{slug}/{event_type}"
     return event_links
-    
-    # Increment count
-    await db.rate_limits.update_one(
-        {
-            "ip_address": ip_address,
-            "endpoint": endpoint,
-            "date": today
-        },
-        {
-            "$inc": {"count": 1},
-            "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
-        }
-    )
-    
-    return True
 
 
 async def log_audit_action(
