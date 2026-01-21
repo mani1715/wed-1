@@ -683,6 +683,20 @@ async def duplicate_profile(profile_id: str, admin_id: str = Depends(get_current
     # Insert the duplicated profile
     await db.profiles.insert_one(new_profile_data)
     
+    # PHASE 12 - PART 5: Audit log
+    await log_audit_action(
+        action="profile_duplicate",
+        admin_id=admin_id,
+        profile_id=new_profile_data['id'],
+        profile_slug=new_profile_data['slug'],
+        details={
+            "original_profile_id": profile_id,
+            "original_slug": original_profile['slug'],
+            "groom_name": new_profile_data['groom_name'],
+            "bride_name": new_profile_data['bride_name']
+        }
+    )
+    
     # Prepare response with datetime objects
     response_data = new_profile_data.copy()
     response_data['event_date'] = datetime.fromisoformat(response_data['event_date'])
