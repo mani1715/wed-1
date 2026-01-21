@@ -847,15 +847,18 @@ test_plan:
 backend:
   - task: "Template System Backend"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/models.py, /app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "✅ TEMPLATE SYSTEM BACKEND IMPLEMENTED: Added is_template boolean field to Profile, ProfileResponse models (default: false). Created 3 new endpoints: POST /api/admin/profiles/{id}/save-as-template (converts profile to template), GET /api/admin/templates (lists all templates with is_template=true), POST /api/admin/profiles/from-template/{template_id} (creates new profile from template with new ID, slug, is_template=false). Updated GET /api/admin/profiles to exclude templates (filter is_template != true). Templates stored in same profiles collection. All template operations require admin authentication."
+      - working: true
+        agent: "testing"
+        comment: "🎉 TEMPLATE SYSTEM BACKEND TESTING COMPLETE - ALL TESTS PASSED (7/7)! ✅ BACKEND MODEL VERIFICATION: is_template boolean field exists in Profile and ProfileResponse models, defaults to false correctly ✅ SAVE PROFILE AS TEMPLATE: POST /api/admin/profiles/{id}/save-as-template working perfectly - sets is_template=true, profile data remains unchanged, requires admin auth ✅ LIST TEMPLATES: GET /api/admin/templates returns only profiles with is_template=true, sorted by created_at (newest first), all template fields present ✅ CREATE PROFILE FROM TEMPLATE: POST /api/admin/profiles/from-template/{template_id} creates new profile with unique ID and slug, is_template=false, all fields copied correctly (design, deity, languages, events, sections, contact info), fresh timestamps, recalculated expiry dates ✅ REGULAR PROFILES EXCLUDE TEMPLATES: GET /api/admin/profiles properly excludes templates (is_template=true), only returns regular profiles ✅ EDGE CASES: Invalid profile ID returns 404, invalid template ID returns 404, non-template profile ID returns 404, all endpoints require authentication (403 without auth) ✅ TEMPLATE INTEGRITY: Original template remains unchanged after creating profiles from it. Created comprehensive test with realistic Indian wedding data (Arjun Sharma & Priya Patel). All 3 template endpoints working correctly with proper authentication. Template system is production-ready!"
 
 frontend:
   - task: "Template System UI"
