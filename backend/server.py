@@ -606,6 +606,9 @@ async def update_profile(
     
     updated_profile['invitation_link'] = f"/invite/{updated_profile['slug']}"
     
+    # PHASE 13: Generate event-specific links
+    updated_profile['event_links'] = generate_event_links(updated_profile['slug'], updated_profile.get('events', []))
+    
     return ProfileResponse(**updated_profile)
 
 
