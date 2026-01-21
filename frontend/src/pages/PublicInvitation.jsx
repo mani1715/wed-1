@@ -113,7 +113,7 @@ const PublicInvitation = () => {
 
   useEffect(() => {
     fetchInvitation();
-  }, [slug]);
+  }, [slug, eventType]);
 
   // Apply theme and set default language when invitation loads
   useEffect(() => {
@@ -157,7 +157,12 @@ const PublicInvitation = () => {
 
   const fetchInvitation = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/invite/${slug}`);
+      // PHASE 13: Use event-specific endpoint if eventType is present
+      const url = eventType 
+        ? `${API_URL}/api/invite/${slug}/${eventType}`
+        : `${API_URL}/api/invite/${slug}`;
+      
+      const response = await axios.get(url);
       setInvitation(response.data);
       
       // PHASE 7: Track view after content is fetched (privacy-first)
@@ -168,6 +173,8 @@ const PublicInvitation = () => {
         setError('This invitation link has expired.');
       } else if (error.response?.status === 404) {
         setError('Invitation not found.');
+      } else if (error.response?.status === 400) {
+        setError(error.response?.data?.detail || 'Invalid event type.');
       } else {
         setError('Failed to load invitation.');
       }
