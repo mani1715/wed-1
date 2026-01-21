@@ -2014,10 +2014,6 @@ async def generate_qr_code(slug: str):
     if not profile:
         raise HTTPException(status_code=404, detail="Invitation not found")
     
-    # Generate QR code using qrcode library
-    import qrcode
-    from io import BytesIO
-    
     # Build invitation URL
     invitation_url = f"https://nuptial-hub-20.preview.emergentagent.com/invite/{slug}"
     
