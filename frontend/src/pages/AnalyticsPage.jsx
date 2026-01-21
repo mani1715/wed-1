@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { ArrowLeft, Eye, Users, Globe, Clock, Smartphone, Monitor, Tablet, MapPin, CheckCircle, Music, Play, Pause } from 'lucide-react';
@@ -16,7 +16,7 @@ const AnalyticsPage = () => {
   const [dateRange, setDateRange] = useState('7d');
   const [error, setError] = useState('');
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       
