@@ -239,8 +239,9 @@ async def get_current_admin_info(admin_id: str = Depends(get_current_admin)):
 
 @api_router.get("/admin/profiles", response_model=List[ProfileResponse])
 async def get_all_profiles(admin_id: str = Depends(get_current_admin)):
-    """Get all profiles"""
-    profiles = await db.profiles.find({}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    """Get all profiles (excluding templates)"""
+    # Only get non-template profiles
+    profiles = await db.profiles.find({"is_template": {"$ne": True}}, {"_id": 0}).sort("created_at", -1).to_list(1000)
     
     # Convert date strings back to datetime
     for profile in profiles:
