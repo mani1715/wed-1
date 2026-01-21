@@ -51,11 +51,11 @@ function GreetingsManagement() {
       console.error('Error fetching greetings:', error);
       setLoading(false);
     }
-  };
+  }, [profileId, statusFilter]);
 
   useEffect(() => {
     fetchProfileAndGreetings();
-  }, [profileId, statusFilter, fetchProfileAndGreetings]);
+  }, [fetchProfileAndGreetings]);
 
   const handleApprove = async (greetingId) => {
     try {
