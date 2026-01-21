@@ -551,6 +551,19 @@ async def update_profile(
     # Get updated profile
     updated_profile = await db.profiles.find_one({"id": profile_id}, {"_id": 0})
     
+    # PHASE 12 - PART 5: Audit log
+    await log_audit_action(
+        action="profile_update",
+        admin_id=admin_id,
+        profile_id=profile_id,
+        profile_slug=updated_profile.get('slug'),
+        details={
+            "updated_fields": list(update_data.model_dump(exclude_unset=True).keys()),
+            "groom_name": updated_profile.get('groom_name'),
+            "bride_name": updated_profile.get('bride_name')
+        }
+    )
+    
     # Convert dates back
     if isinstance(updated_profile.get('event_date'), str):
         updated_profile['event_date'] = datetime.fromisoformat(updated_profile['event_date'])
