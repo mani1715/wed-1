@@ -743,3 +743,27 @@ class RateLimit(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+
+class AuditLog(BaseModel):
+    """Audit log for tracking admin actions"""
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    action: str  # "profile_create", "profile_update", "profile_delete", "profile_duplicate", "template_save"
+    admin_id: str
+    profile_id: Optional[str] = None
+    profile_slug: Optional[str] = None
+    details: Optional[Dict] = None  # Additional context like profile names
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class AuditLogResponse(BaseModel):
+    """Response model for audit logs"""
+    id: str
+    action: str
+    admin_id: str
+    profile_id: Optional[str] = None
+    profile_slug: Optional[str] = None
+    details: Optional[Dict] = None
+    timestamp: datetime
+
