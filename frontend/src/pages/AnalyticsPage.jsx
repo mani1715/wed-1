@@ -44,11 +44,11 @@ const AnalyticsPage = () => {
       setError('Failed to load analytics data');
       setLoading(false);
     }
-  };
+  }, [profileId, dateRange]);
 
   useEffect(() => {
     fetchAnalytics();
-  }, [profileId, dateRange, fetchAnalytics]);
+  }, [fetchAnalytics]);
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Never';
