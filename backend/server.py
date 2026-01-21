@@ -1031,8 +1031,16 @@ async def get_invitation(slug: str):
 
 
 @api_router.post("/invite/{slug}/greetings", response_model=GreetingResponse)
-async def submit_greeting(slug: str, greeting_data: GreetingCreate):
+async def submit_greeting(slug: str, greeting_data: GreetingCreate, request: Request):
     """Submit greeting for invitation - PHASE 11: Default status is 'pending' for moderation"""
+    # PHASE 12 - PART 4: Rate limiting - 3 wishes per IP per day
+    client_ip = get_client_ip(request)
+    if not await check_rate_limit(client_ip, "wishes", 3):
+        raise HTTPException(
+            status_code=429,
+            detail="You have exceeded the maximum number of wishes submissions for today. Please try again tomorrow."
+        )
+    
     profile = await db.profiles.find_one({"slug": slug}, {"_id": 0})
     
     if not profile:
