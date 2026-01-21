@@ -1641,7 +1641,6 @@ async def generate_invitation_pdf(profile: dict, language: str = 'english'):
     primary_color = rgb_to_reportlab_color(theme['primary'])
     secondary_color = rgb_to_reportlab_color(theme['secondary'])
     text_color = rgb_to_reportlab_color(theme['text'])
-    bg_color = rgb_to_reportlab_color(theme['bg'])
     
     # Get deity background path if present
     deity_id = profile.get('deity_id')
