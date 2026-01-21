@@ -713,6 +713,19 @@ backend:
         agent: "main"
         comment: "✅ PHASE 12 - PART 4 RATE LIMITING IMPLEMENTED: Added RateLimit model to track submissions by IP + date. Created helper functions: get_client_ip() to extract IP from request headers (X-Forwarded-For or client.host), check_rate_limit() to validate and increment daily submission counts. Updated POST /api/rsvp endpoint with 5 submissions per IP per day limit. Updated POST /api/invite/{slug}/greetings endpoint with 3 submissions per IP per day limit. Both endpoints return 429 status with clear error message when limit exceeded. Uses database-only tracking (no Redis). Rate limits reset daily."
 
+frontend:
+  - task: "PHASE 12 - PART 4: Rate Limiting Frontend"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/PublicInvitation.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "✅ PHASE 12 - PART 4 FRONTEND ERROR HANDLING: Updated handleSubmitRSVP() to handle 429 status code with user-friendly error message 'Too many RSVP attempts. Please try again tomorrow.' Updated handleSubmitGreeting() to handle 429 status code with clear error message 'Too many wishes submitted. You can only submit 3 wishes per day. Please try again tomorrow.' Both handlers also properly handle 410 (expired link) and 403 (invitation expired) errors. Error messages displayed to users via alert() for greetings and setRsvpError() for RSVP."
+
 backend:
   - task: "Profile Duplication Feature"
     implemented: true
