@@ -449,6 +449,19 @@ async def create_profile(profile_data: ProfileCreate, admin_id: str = Depends(ge
     
     await db.profiles.insert_one(doc)
     
+    # PHASE 12 - PART 5: Audit log
+    await log_audit_action(
+        action="profile_create",
+        admin_id=admin_id,
+        profile_id=profile.id,
+        profile_slug=profile.slug,
+        details={
+            "groom_name": profile_data.groom_name,
+            "bride_name": profile_data.bride_name,
+            "event_type": profile_data.event_type
+        }
+    )
+    
     # Prepare response
     response_data = profile.model_dump()
     response_data['invitation_link'] = f"/invite/{profile.slug}"
