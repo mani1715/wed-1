@@ -615,6 +615,11 @@ const ProfileForm = () => {
 
       setSavedProfile(response.data);
       
+      // PHASE 13: Update event links from response
+      if (response.data.event_links) {
+        setEventLinks(response.data.event_links);
+      }
+      
       // Don't navigate immediately, show the generated link
       if (!isEdit) {
         alert('Profile created successfully! You can now preview the invitation or copy the link.');
