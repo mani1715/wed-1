@@ -865,8 +865,8 @@ frontend:
 
 test_plan:
   current_focus:
-    - "Template System Backend"
-    - "Template System UI"
+    - "PHASE 12 - PART 4: Rate Limiting Backend"
+    - "PHASE 12 - PART 4: Rate Limiting Frontend"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -908,8 +908,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Template System Backend"
-    - "Template System UI"
+    - "PHASE 12 - PART 4: Rate Limiting Backend"
+    - "PHASE 12 - PART 4: Rate Limiting Frontend"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
