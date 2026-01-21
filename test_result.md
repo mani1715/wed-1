@@ -103,6 +103,154 @@
 #====================================================================================================
 
 
+user_problem_statement_phase13_part1: |
+  PHASE 13 – PART 1: MARRIAGE EVENT SYSTEM CORE
+  
+  Context:
+  Continue existing wedding invitation project.
+  Do not break current profiles.
+  
+  Goal:
+  Convert events into marriage-specific invitations.
+  
+  Backend:
+  - Restrict events to: Engagement, Haldi, Mehendi, Marriage, Reception
+  - Each event generates its own public link: /invite/{profile_slug}/{event_type}
+  - Store events inside same profile
+  - Each event has: event_type, date_time, venue, custom_message, design_preset_id
+  
+  Admin:
+  - Allow adding multiple events in same profile
+  - Show list of events with generated links
+  
+  Public:
+  - Render invitation based on event_type
+  
+  Rules:
+  - No generic events
+  - Marriage-focused only
+  - Minimal refactor
+
+backend_phase13_part1:
+  - task: "WeddingEvent Model with EventType Enum"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "EventType enum already exists with 5 marriage-specific event types: ENGAGEMENT, HALDI, MEHENDI, MARRIAGE, RECEPTION. WeddingEvent model includes all required fields: event_type, date, start_time, end_time, venue_name, venue_address, description (custom_message), design_preset_id."
+  
+  - task: "Event-Specific API Route"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "GET /api/invite/{slug}/{event_type} endpoint already implemented (lines 1188-1292). Route validates event_type, finds specific event in profile, returns InvitationPublicView with filtered events array containing only the requested event. Event's design_preset_id is used if present, otherwise falls back to profile's design_id."
+
+frontend_phase13_part1:
+  - task: "Event-Specific Route in App.js"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added route /invite/:slug/:eventType before existing /invite/:slug route. Both routes use PublicInvitation component."
+  
+  - task: "PublicInvitation Event-Specific Handling"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/PublicInvitation.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Updated PublicInvitation to extract eventType from URL params. Modified fetchInvitation to use event-specific endpoint when eventType is present: /api/invite/{slug}/{event_type}. Added error handling for invalid event types (400 status). Component now renders event-specific invitation when eventType is in URL."
+  
+  - task: "Admin Dashboard Event Links Display"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/AdminDashboard.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added event-specific links section in profile cards. Section displays when profile has events (profile.events.length > 0). Shows visible events sorted by order. Each event has View and Copy buttons. View button opens /invite/{slug}/{event_type} in new tab. Copy button copies full URL to clipboard. Added copyEventLink() helper function. Event links section has pink-purple gradient background for visual distinction."
+
+metadata_phase13_part1:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 0
+  run_ui: false
+
+test_plan_phase13_part1:
+  current_focus:
+    - "Event-Specific API Route"
+    - "PublicInvitation Event-Specific Handling"
+    - "Admin Dashboard Event Links Display"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication_phase13_part1:
+  - agent: "main"
+    message: |
+      ✅ PHASE 13 - PART 1: MARRIAGE EVENT SYSTEM CORE IMPLEMENTATION COMPLETE
+      
+      STATUS SUMMARY:
+      - WeddingEvent model with EventType enum: ✅ Already existed (from previous phase)
+      - Event-specific API route: ✅ Already existed (from previous phase)
+      - Frontend route configuration: ✅ NEWLY ADDED
+      - PublicInvitation event handling: ✅ NEWLY ADDED
+      - Admin dashboard event links: ✅ NEWLY ADDED
+      
+      IMPLEMENTATION DETAILS:
+      
+      Backend (Already Complete):
+      1. EventType enum restricts to 5 marriage events: engagement, haldi, mehendi, marriage, reception
+      2. GET /api/invite/{slug}/{event_type} endpoint implemented
+      3. Endpoint validates event_type, returns filtered invitation with only requested event
+      4. Event's design_preset_id used if present, falls back to profile design_id
+      
+      Frontend (Newly Implemented):
+      1. Added /invite/:slug/:eventType route in App.js
+      2. Updated PublicInvitation component:
+         - Extracts eventType from URL params
+         - Calls event-specific API when eventType present
+         - Handles invalid event type errors (400 status)
+      3. Updated AdminDashboard:
+         - Added event links section for each profile
+         - Displays all visible events with View and Copy buttons
+         - copyEventLink() function copies event-specific URLs
+         - Visual distinction with gradient background
+      
+      TESTING NEEDED:
+      1. Test event-specific routes work correctly (backend and frontend)
+      2. Verify only requested event displays on event-specific invitation page
+      3. Verify event's design_preset_id is applied correctly
+      4. Test admin dashboard event links display and copy functionality
+      5. Test with profile containing multiple events
+      6. Test with profile containing no events (section should not display)
+      
+      Services are running. Ready for backend testing.
+
+
 user_problem_statement_phase12_part5: |
   PHASE 12 - PART 5: AUDIT LOGS
   Track all admin actions in the wedding invitation platform.
