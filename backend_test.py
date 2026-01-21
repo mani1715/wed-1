@@ -1,709 +1,547 @@
 #!/usr/bin/env python3
 """
-Comprehensive Backend Testing for Events System
-Tests all Events System functionality including:
-- Profile Creation with Events
-- Events Validation (max 7, at least 1 visible)
-- Map Settings
-- Public Invitation API with events
-- Event Sorting
-- Backward Compatibility
+Backend Testing Suite for Template System (PHASE 12 - PART 3)
+Tests all template system functionality including model verification, 
+save-as-template, list templates, create from template, and edge cases.
 """
 
 import requests
 import json
-from datetime import datetime, timedelta
-import sys
-import traceback
+from datetime import datetime, timezone, timedelta
+import uuid
 
 # Configuration
-BASE_URL = "https://nuptial-dashboard-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://nuptial-dashboard-1.preview.emergentagent.com/api"
 ADMIN_EMAIL = "admin@wedding.com"
 ADMIN_PASSWORD = "admin123"
 
-class EventsSystemTester:
+class TemplateSystemTester:
     def __init__(self):
-        self.token = None
-        self.test_profiles = []
-        self.passed_tests = 0
-        self.total_tests = 0
+        self.session = requests.Session()
+        self.admin_token = None
+        self.test_profile_id = None
+        self.template_id = None
+        self.new_profile_from_template_id = None
         
-    def authenticate(self):
-        """Authenticate as admin"""
-        print("🔐 Authenticating as admin...")
+    def authenticate_admin(self):
+        """Authenticate as admin and get token"""
+        print("🔐 Authenticating admin...")
         
-        response = requests.post(f"{BASE_URL}/auth/login", json={
+        response = self.session.post(f"{BACKEND_URL}/auth/login", json={
             "email": ADMIN_EMAIL,
             "password": ADMIN_PASSWORD
         })
         
         if response.status_code == 200:
             data = response.json()
-            self.token = data["access_token"]
-            print(f"✅ Authentication successful")
+            self.admin_token = data["access_token"]
+            self.session.headers.update({"Authorization": f"Bearer {self.admin_token}"})
+            print(f"✅ Admin authenticated successfully")
             return True
         else:
-            print(f"❌ Authentication failed: {response.status_code} - {response.text}")
+            print(f"❌ Admin authentication failed: {response.status_code} - {response.text}")
             return False
     
-    def get_headers(self):
-        """Get authorization headers"""
-        return {"Authorization": f"Bearer {self.token}"}
-    
-    def run_test(self, test_name, test_func):
-        """Run a single test with error handling"""
-        self.total_tests += 1
-        print(f"\n🧪 TEST {self.total_tests}: {test_name}")
+    def create_test_profile(self):
+        """Create a test profile for template testing"""
+        print("\n📝 Creating test profile for template testing...")
         
-        try:
-            result = test_func()
-            if result:
-                self.passed_tests += 1
-                print(f"✅ PASSED: {test_name}")
-            else:
-                print(f"❌ FAILED: {test_name}")
-            return result
-        except Exception as e:
-            print(f"❌ ERROR in {test_name}: {str(e)}")
-            traceback.print_exc()
-            return False
-    
-    def test_profile_creation_with_events(self):
-        """Test 1: Profile Creation with 3 Events (Mehendi, Sangeet, Wedding)"""
-        
-        # Create events data
-        events = [
-            {
-                "name": "Mehendi Ceremony",
-                "date": "2024-02-15",
-                "start_time": "16:00",
-                "end_time": "20:00",
-                "venue_name": "Bride's Home",
-                "venue_address": "123 Garden Street, Mumbai, Maharashtra 400001",
-                "map_link": "https://maps.google.com/?q=123+Garden+Street+Mumbai",
-                "description": "Traditional henna ceremony with music and dance",
-                "visible": True,
-                "order": 1
-            },
-            {
-                "name": "Sangeet Night",
-                "date": "2024-02-16",
-                "start_time": "19:00",
-                "end_time": "23:00",
-                "venue_name": "Grand Ballroom",
-                "venue_address": "456 Palace Road, Mumbai, Maharashtra 400002",
-                "map_link": "https://maps.google.com/?q=456+Palace+Road+Mumbai",
-                "description": "Musical evening with family performances",
-                "visible": True,
-                "order": 2
-            },
-            {
-                "name": "Wedding Ceremony",
-                "date": "2024-02-17",
-                "start_time": "10:00",
-                "end_time": "14:00",
-                "venue_name": "Sacred Temple Hall",
-                "venue_address": "789 Temple Street, Mumbai, Maharashtra 400003",
-                "map_link": "https://maps.google.com/?q=789+Temple+Street+Mumbai",
-                "description": "Sacred wedding rituals and celebrations",
-                "visible": True,
-                "order": 3
-            }
-        ]
-        
+        # Create realistic Indian wedding profile data
         profile_data = {
             "groom_name": "Arjun Sharma",
-            "bride_name": "Priya Patel",
-            "event_type": "marriage",
-            "event_date": "2024-02-17T10:00:00",
-            "venue": "Sacred Temple Hall",
+            "bride_name": "Priya Patel", 
+            "event_type": "Wedding",
+            "event_date": (datetime.now(timezone.utc) + timedelta(days=60)).isoformat(),
+            "venue": "Grand Palace Banquet Hall",
+            "city": "Mumbai",
+            "invitation_message": "Join us as we celebrate our union in the presence of family and friends",
             "language": ["english", "telugu"],
             "design_id": "royal_classic",
             "deity_id": "ganesha",
             "whatsapp_groom": "+919876543210",
             "whatsapp_bride": "+919876543211",
             "enabled_languages": ["english", "telugu"],
+            "custom_text": {
+                "english": {
+                    "opening": "With great joy, we invite you to our wedding celebration"
+                }
+            },
+            "about_couple": "<p>Arjun and Priya met during their college years and have been together for 5 years.</p>",
+            "family_details": "<p>Son of Mr. & Mrs. Sharma, Daughter of Mr. & Mrs. Patel</p>",
+            "love_story": "<p>Our love story began in the library and blossomed over shared dreams.</p>",
             "sections_enabled": {
                 "opening": True,
                 "welcome": True,
                 "couple": True,
+                "about": True,
+                "family": True,
+                "love_story": True,
                 "photos": True,
                 "video": False,
                 "events": True,
+                "rsvp": True,
                 "greetings": True,
-                "footer": True
+                "footer": True,
+                "contact": True,
+                "calendar": True,
+                "countdown": True,
+                "qr": True
+            },
+            "background_music": {
+                "enabled": True,
+                "file_url": "https://example.com/wedding-music.mp3"
             },
             "map_settings": {
                 "embed_enabled": True
             },
-            "events": events,
+            "contact_info": {
+                "groom_phone": "+919876543210",
+                "bride_phone": "+919876543211",
+                "emergency_phone": "+919876543212",
+                "email": "arjun.priya@wedding.com"
+            },
+            "events": [
+                {
+                    "name": "Mehendi Ceremony",
+                    "date": (datetime.now(timezone.utc) + timedelta(days=58)).strftime("%Y-%m-%d"),
+                    "start_time": "16:00",
+                    "end_time": "20:00",
+                    "venue_name": "Sharma Residence",
+                    "venue_address": "123 Wedding Street, Mumbai",
+                    "map_link": "https://maps.google.com/mehendi",
+                    "description": "Traditional henna ceremony",
+                    "visible": True,
+                    "order": 0
+                },
+                {
+                    "name": "Wedding Ceremony",
+                    "date": (datetime.now(timezone.utc) + timedelta(days=60)).strftime("%Y-%m-%d"),
+                    "start_time": "10:00",
+                    "end_time": "14:00",
+                    "venue_name": "Grand Palace Banquet Hall",
+                    "venue_address": "456 Celebration Avenue, Mumbai",
+                    "map_link": "https://maps.google.com/wedding",
+                    "description": "Main wedding ceremony",
+                    "visible": True,
+                    "order": 1
+                }
+            ],
             "link_expiry_type": "days",
             "link_expiry_value": 30
         }
         
-        response = requests.post(
-            f"{BASE_URL}/admin/profiles",
-            json=profile_data,
-            headers=self.get_headers()
-        )
+        response = self.session.post(f"{BACKEND_URL}/admin/profiles", json=profile_data)
         
         if response.status_code == 200:
-            profile = response.json()
-            self.test_profiles.append(profile["id"])
-            
-            # Verify events are stored correctly
-            if len(profile["events"]) == 3:
-                print(f"   ✓ Created profile with 3 events")
-                print(f"   ✓ Profile ID: {profile['id']}")
-                print(f"   ✓ Slug: {profile['slug']}")
-                print(f"   ✓ Map settings embed_enabled: {profile['map_settings']['embed_enabled']}")
-                
-                # Verify each event has all required fields
-                for i, event in enumerate(profile["events"]):
-                    expected_name = events[i]["name"]
-                    if event["name"] == expected_name:
-                        print(f"   ✓ Event {i+1}: {event['name']} - All fields present")
-                    else:
-                        print(f"   ❌ Event {i+1}: Name mismatch")
-                        return False
-                
-                return True
-            else:
-                print(f"   ❌ Expected 3 events, got {len(profile['events'])}")
-                return False
-        else:
-            print(f"   ❌ Profile creation failed: {response.status_code} - {response.text}")
-            return False
-    
-    def test_max_events_validation(self):
-        """Test 2: Events Validation - Max 7 Events Limit"""
-        
-        # Create 8 events (should fail)
-        events = []
-        for i in range(8):
-            events.append({
-                "name": f"Event {i+1}",
-                "date": f"2024-02-{15+i:02d}",
-                "start_time": "10:00",
-                "end_time": "12:00",
-                "venue_name": f"Venue {i+1}",
-                "venue_address": f"Address {i+1}",
-                "map_link": f"https://maps.google.com/?q=venue{i+1}",
-                "description": f"Description for event {i+1}",
-                "visible": True,
-                "order": i+1
-            })
-        
-        profile_data = {
-            "groom_name": "Test Groom",
-            "bride_name": "Test Bride",
-            "event_type": "marriage",
-            "event_date": "2024-02-17T10:00:00",
-            "venue": "Test Venue",
-            "language": ["english"],
-            "enabled_languages": ["english"],
-            "events": events
-        }
-        
-        response = requests.post(
-            f"{BASE_URL}/admin/profiles",
-            json=profile_data,
-            headers=self.get_headers()
-        )
-        
-        if response.status_code == 422:
-            error_detail = response.json().get("detail", [])
-            if any("Maximum 7 events allowed" in str(error) for error in error_detail):
-                print(f"   ✓ Correctly rejected 8 events with validation error")
-                return True
-            else:
-                print(f"   ❌ Wrong validation error: {error_detail}")
-                return False
-        else:
-            print(f"   ❌ Expected 422 validation error, got {response.status_code}")
-            return False
-    
-    def test_visible_events_validation(self):
-        """Test 3: Events Validation - At Least 1 Visible Event Required"""
-        
-        # Create events with all visible=false (should fail)
-        events = [
-            {
-                "name": "Hidden Event 1",
-                "date": "2024-02-15",
-                "start_time": "10:00",
-                "end_time": "12:00",
-                "venue_name": "Venue 1",
-                "venue_address": "Address 1",
-                "map_link": "https://maps.google.com/?q=venue1",
-                "description": "Hidden event",
-                "visible": False,
-                "order": 1
-            },
-            {
-                "name": "Hidden Event 2",
-                "date": "2024-02-16",
-                "start_time": "10:00",
-                "end_time": "12:00",
-                "venue_name": "Venue 2",
-                "venue_address": "Address 2",
-                "map_link": "https://maps.google.com/?q=venue2",
-                "description": "Another hidden event",
-                "visible": False,
-                "order": 2
-            }
-        ]
-        
-        profile_data = {
-            "groom_name": "Test Groom 2",
-            "bride_name": "Test Bride 2",
-            "event_type": "marriage",
-            "event_date": "2024-02-17T10:00:00",
-            "venue": "Test Venue",
-            "language": ["english"],
-            "enabled_languages": ["english"],
-            "events": events
-        }
-        
-        response = requests.post(
-            f"{BASE_URL}/admin/profiles",
-            json=profile_data,
-            headers=self.get_headers()
-        )
-        
-        if response.status_code == 422:
-            error_detail = response.json().get("detail", [])
-            if any("At least one event must be visible" in str(error) for error in error_detail):
-                print(f"   ✓ Correctly rejected all hidden events with validation error")
-                return True
-            else:
-                print(f"   ❌ Wrong validation error: {error_detail}")
-                return False
-        else:
-            print(f"   ❌ Expected 422 validation error, got {response.status_code}")
-            return False
-    
-    def test_map_settings_variations(self):
-        """Test 4: Map Settings - embed_enabled true/false and updates"""
-        
-        # Test 1: Create profile with embed_enabled = false
-        profile_data_false = {
-            "groom_name": "Map Test Groom 1",
-            "bride_name": "Map Test Bride 1",
-            "event_type": "marriage",
-            "event_date": "2024-02-17T10:00:00",
-            "venue": "Test Venue",
-            "language": ["english"],
-            "enabled_languages": ["english"],
-            "map_settings": {
-                "embed_enabled": False
-            },
-            "events": [{
-                "name": "Test Event",
-                "date": "2024-02-17",
-                "start_time": "10:00",
-                "venue_name": "Test Venue",
-                "venue_address": "Test Address",
-                "map_link": "https://maps.google.com/?q=test",
-                "visible": True,
-                "order": 1
-            }]
-        }
-        
-        response1 = requests.post(
-            f"{BASE_URL}/admin/profiles",
-            json=profile_data_false,
-            headers=self.get_headers()
-        )
-        
-        if response1.status_code != 200:
-            print(f"   ❌ Failed to create profile with embed_enabled=false: {response1.text}")
-            return False
-        
-        profile1 = response1.json()
-        self.test_profiles.append(profile1["id"])
-        
-        if not profile1["map_settings"]["embed_enabled"]:
-            print(f"   ✓ Created profile with embed_enabled=false")
-        else:
-            print(f"   ❌ embed_enabled should be false")
-            return False
-        
-        # Test 2: Create profile with embed_enabled = true
-        profile_data_true = {
-            "groom_name": "Map Test Groom 2",
-            "bride_name": "Map Test Bride 2",
-            "event_type": "marriage",
-            "event_date": "2024-02-17T10:00:00",
-            "venue": "Test Venue",
-            "language": ["english"],
-            "enabled_languages": ["english"],
-            "map_settings": {
-                "embed_enabled": True
-            },
-            "events": [{
-                "name": "Test Event",
-                "date": "2024-02-17",
-                "start_time": "10:00",
-                "venue_name": "Test Venue",
-                "venue_address": "Test Address",
-                "map_link": "https://maps.google.com/?q=test",
-                "visible": True,
-                "order": 1
-            }]
-        }
-        
-        response2 = requests.post(
-            f"{BASE_URL}/admin/profiles",
-            json=profile_data_true,
-            headers=self.get_headers()
-        )
-        
-        if response2.status_code != 200:
-            print(f"   ❌ Failed to create profile with embed_enabled=true: {response2.text}")
-            return False
-        
-        profile2 = response2.json()
-        self.test_profiles.append(profile2["id"])
-        
-        if profile2["map_settings"]["embed_enabled"]:
-            print(f"   ✓ Created profile with embed_enabled=true")
-        else:
-            print(f"   ❌ embed_enabled should be true")
-            return False
-        
-        # Test 3: Update existing profile to toggle embed_enabled
-        update_data = {
-            "map_settings": {
-                "embed_enabled": False
-            }
-        }
-        
-        response3 = requests.put(
-            f"{BASE_URL}/admin/profiles/{profile2['id']}",
-            json=update_data,
-            headers=self.get_headers()
-        )
-        
-        if response3.status_code != 200:
-            print(f"   ❌ Failed to update map_settings: {response3.text}")
-            return False
-        
-        updated_profile = response3.json()
-        
-        if not updated_profile["map_settings"]["embed_enabled"]:
-            print(f"   ✓ Successfully updated embed_enabled from true to false")
+            data = response.json()
+            self.test_profile_id = data["id"]
+            print(f"✅ Test profile created successfully: {self.test_profile_id}")
+            print(f"   Profile: {data['groom_name']} & {data['bride_name']}")
+            print(f"   Slug: {data['slug']}")
+            print(f"   is_template: {data.get('is_template', False)}")
             return True
         else:
-            print(f"   ❌ embed_enabled should be false after update")
+            print(f"❌ Failed to create test profile: {response.status_code} - {response.text}")
             return False
     
-    def test_public_invitation_api_with_events(self):
-        """Test 5: Public Invitation API - Events and Map Settings in Response"""
+    def test_backend_model_verification(self):
+        """Test 1: Verify is_template field exists in Profile models"""
+        print("\n🔍 TEST 1: Backend Model Verification")
         
-        if not self.test_profiles:
-            print(f"   ❌ No test profiles available")
-            return False
+        # Get the created profile to verify is_template field exists
+        response = self.session.get(f"{BACKEND_URL}/admin/profiles/{self.test_profile_id}")
         
-        # Get the first profile (should have 3 events)
-        profile_id = self.test_profiles[0]
-        
-        # First get the profile to get the slug
-        response = requests.get(
-            f"{BASE_URL}/admin/profiles/{profile_id}",
-            headers=self.get_headers()
-        )
-        
-        if response.status_code != 200:
-            print(f"   ❌ Failed to get profile: {response.text}")
-            return False
-        
-        profile = response.json()
-        slug = profile["slug"]
-        
-        # Test public invitation API
-        public_response = requests.get(f"{BASE_URL}/invite/{slug}")
-        
-        if public_response.status_code != 200:
-            print(f"   ❌ Public invitation API failed: {public_response.text}")
-            return False
-        
-        public_data = public_response.json()
-        
-        # Verify events array is returned
-        if "events" not in public_data:
-            print(f"   ❌ Events array missing from public API response")
-            return False
-        
-        if len(public_data["events"]) != 3:
-            print(f"   ❌ Expected 3 events, got {len(public_data['events'])}")
-            return False
-        
-        print(f"   ✓ Public API returns events array with {len(public_data['events'])} events")
-        
-        # Verify map_settings is included
-        if "map_settings" not in public_data:
-            print(f"   ❌ map_settings missing from public API response")
-            return False
-        
-        if "embed_enabled" not in public_data["map_settings"]:
-            print(f"   ❌ embed_enabled missing from map_settings")
-            return False
-        
-        print(f"   ✓ Public API includes map_settings with embed_enabled: {public_data['map_settings']['embed_enabled']}")
-        
-        # Verify all event fields are present
-        required_fields = ["event_id", "name", "date", "start_time", "venue_name", "venue_address", "map_link", "visible", "order"]
-        
-        for i, event in enumerate(public_data["events"]):
-            for field in required_fields:
-                if field not in event:
-                    print(f"   ❌ Event {i+1} missing field: {field}")
-                    return False
-        
-        print(f"   ✓ All events have required fields")
-        
-        # Verify only visible events are considered for display
-        visible_events = [e for e in public_data["events"] if e["visible"]]
-        if len(visible_events) != 3:  # All our test events are visible
-            print(f"   ❌ Expected 3 visible events, got {len(visible_events)}")
-            return False
-        
-        print(f"   ✓ Visible events filter working correctly")
-        
-        return True
-    
-    def test_event_sorting(self):
-        """Test 6: Event Sorting by Date and Start Time"""
-        
-        # Create profile with events in random order
-        events = [
-            {
-                "name": "Evening Reception",
-                "date": "2024-02-17",  # Same day, later time
-                "start_time": "18:00",
-                "end_time": "22:00",
-                "venue_name": "Reception Hall",
-                "venue_address": "Reception Address",
-                "map_link": "https://maps.google.com/?q=reception",
-                "description": "Evening reception",
-                "visible": True,
-                "order": 3
-            },
-            {
-                "name": "Morning Wedding",
-                "date": "2024-02-17",  # Same day, earlier time
-                "start_time": "10:00",
-                "end_time": "14:00",
-                "venue_name": "Temple",
-                "venue_address": "Temple Address",
-                "map_link": "https://maps.google.com/?q=temple",
-                "description": "Wedding ceremony",
-                "visible": True,
-                "order": 2
-            },
-            {
-                "name": "Pre-Wedding Mehendi",
-                "date": "2024-02-16",  # Earlier day
-                "start_time": "16:00",
-                "end_time": "20:00",
-                "venue_name": "Home",
-                "venue_address": "Home Address",
-                "map_link": "https://maps.google.com/?q=home",
-                "description": "Mehendi ceremony",
-                "visible": True,
-                "order": 1
-            }
-        ]
-        
-        profile_data = {
-            "groom_name": "Sorting Test Groom",
-            "bride_name": "Sorting Test Bride",
-            "event_type": "marriage",
-            "event_date": "2024-02-17T10:00:00",
-            "venue": "Test Venue",
-            "language": ["english"],
-            "enabled_languages": ["english"],
-            "events": events
-        }
-        
-        response = requests.post(
-            f"{BASE_URL}/admin/profiles",
-            json=profile_data,
-            headers=self.get_headers()
-        )
-        
-        if response.status_code != 200:
-            print(f"   ❌ Failed to create profile for sorting test: {response.text}")
-            return False
-        
-        profile = response.json()
-        self.test_profiles.append(profile["id"])
-        
-        # Test public API to verify sorting
-        public_response = requests.get(f"{BASE_URL}/invite/{profile['slug']}")
-        
-        if public_response.status_code != 200:
-            print(f"   ❌ Public API failed: {public_response.text}")
-            return False
-        
-        public_data = public_response.json()
-        events_returned = public_data["events"]
-        
-        # Verify chronological order
-        expected_order = [
-            ("2024-02-16", "16:00", "Pre-Wedding Mehendi"),
-            ("2024-02-17", "10:00", "Morning Wedding"),
-            ("2024-02-17", "18:00", "Evening Reception")
-        ]
-        
-        for i, (expected_date, expected_time, expected_name) in enumerate(expected_order):
-            if i >= len(events_returned):
-                print(f"   ❌ Missing event at position {i}")
-                return False
+        if response.status_code == 200:
+            data = response.json()
             
-            event = events_returned[i]
-            if event["date"] != expected_date or event["start_time"] != expected_time:
-                print(f"   ❌ Event {i+1} not in chronological order")
-                print(f"       Expected: {expected_date} {expected_time}")
-                print(f"       Got: {event['date']} {event['start_time']}")
-                return False
-            
-            if event["name"] != expected_name:
-                print(f"   ❌ Event {i+1} name mismatch: expected {expected_name}, got {event['name']}")
-                return False
-        
-        print(f"   ✓ Events returned in correct chronological order")
-        print(f"   ✓ Order: {' → '.join([f'{e[2]} ({e[0]} {e[1]})' for e in expected_order])}")
-        
-        return True
-    
-    def test_backward_compatibility(self):
-        """Test 7: Backward Compatibility - Profile without Events"""
-        
-        # Create profile without events array (empty)
-        profile_data = {
-            "groom_name": "Legacy Groom",
-            "bride_name": "Legacy Bride",
-            "event_type": "marriage",
-            "event_date": "2024-02-17T10:00:00",
-            "venue": "Legacy Venue",
-            "language": ["english"],
-            "enabled_languages": ["english"],
-            "events": []  # Empty events array
-        }
-        
-        response = requests.post(
-            f"{BASE_URL}/admin/profiles",
-            json=profile_data,
-            headers=self.get_headers()
-        )
-        
-        if response.status_code != 200:
-            print(f"   ❌ Failed to create profile without events: {response.text}")
-            return False
-        
-        profile = response.json()
-        self.test_profiles.append(profile["id"])
-        
-        # Verify profile was created successfully
-        if len(profile["events"]) != 0:
-            print(f"   ❌ Expected empty events array, got {len(profile['events'])} events")
-            return False
-        
-        print(f"   ✓ Profile created successfully with empty events array")
-        
-        # Test public API with empty events
-        public_response = requests.get(f"{BASE_URL}/invite/{profile['slug']}")
-        
-        if public_response.status_code != 200:
-            print(f"   ❌ Public API failed for profile without events: {public_response.text}")
-            return False
-        
-        public_data = public_response.json()
-        
-        # Verify events field exists and is empty
-        if "events" not in public_data:
-            print(f"   ❌ Events field missing from public API")
-            return False
-        
-        if len(public_data["events"]) != 0:
-            print(f"   ❌ Expected empty events array in public API, got {len(public_data['events'])}")
-            return False
-        
-        print(f"   ✓ Public API works correctly with empty events array")
-        print(f"   ✓ Backward compatibility maintained")
-        
-        return True
-    
-    def cleanup_test_profiles(self):
-        """Clean up test profiles"""
-        print(f"\n🧹 Cleaning up {len(self.test_profiles)} test profiles...")
-        
-        for profile_id in self.test_profiles:
-            try:
-                response = requests.delete(
-                    f"{BASE_URL}/admin/profiles/{profile_id}",
-                    headers=self.get_headers()
-                )
-                if response.status_code == 200:
-                    print(f"   ✓ Deleted profile {profile_id}")
+            # Check if is_template field exists and defaults to false
+            if "is_template" in data:
+                if data["is_template"] == False:
+                    print("✅ is_template field exists in ProfileResponse model and defaults to false")
+                    return True
                 else:
-                    print(f"   ⚠️ Failed to delete profile {profile_id}: {response.status_code}")
-            except Exception as e:
-                print(f"   ⚠️ Error deleting profile {profile_id}: {str(e)}")
+                    print(f"❌ is_template field exists but has wrong default value: {data['is_template']}")
+                    return False
+            else:
+                print("❌ is_template field missing from ProfileResponse model")
+                return False
+        else:
+            print(f"❌ Failed to get profile for model verification: {response.status_code}")
+            return False
+    
+    def test_save_profile_as_template(self):
+        """Test 2: Save Profile as Template (POST /api/admin/profiles/{id}/save-as-template)"""
+        print("\n📋 TEST 2: Save Profile as Template")
+        
+        # Call save-as-template endpoint
+        response = self.session.post(f"{BACKEND_URL}/admin/profiles/{self.test_profile_id}/save-as-template")
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            # Verify the profile's is_template field is set to true
+            if data.get("is_template") == True:
+                print("✅ Profile successfully saved as template")
+                print(f"   Profile ID: {data['id']}")
+                print(f"   is_template: {data['is_template']}")
+                print(f"   Profile unchanged: {data['groom_name']} & {data['bride_name']}")
+                
+                # Store template ID for later tests
+                self.template_id = data["id"]
+                
+                # Verify profile is still accessible and unchanged
+                if (data["groom_name"] == "Arjun Sharma" and 
+                    data["bride_name"] == "Priya Patel" and
+                    data["venue"] == "Grand Palace Banquet Hall"):
+                    print("✅ Profile data remains unchanged after template conversion")
+                    return True
+                else:
+                    print("❌ Profile data was modified during template conversion")
+                    return False
+            else:
+                print(f"❌ is_template field not set correctly: {data.get('is_template')}")
+                return False
+        else:
+            print(f"❌ Failed to save profile as template: {response.status_code} - {response.text}")
+            return False
+    
+    def test_list_templates(self):
+        """Test 3: List Templates (GET /api/admin/templates)"""
+        print("\n📋 TEST 3: List Templates")
+        
+        # Call templates endpoint
+        response = self.session.get(f"{BACKEND_URL}/admin/templates")
+        
+        if response.status_code == 200:
+            templates = response.json()
+            
+            # Verify only profiles with is_template=true are returned
+            if isinstance(templates, list):
+                print(f"✅ Templates endpoint returned {len(templates)} templates")
+                
+                # Find our template in the list
+                our_template = None
+                for template in templates:
+                    if template["id"] == self.template_id:
+                        our_template = template
+                        break
+                
+                if our_template:
+                    print("✅ Our template found in templates list")
+                    print(f"   Template: {our_template['groom_name']} & {our_template['bride_name']}")
+                    print(f"   is_template: {our_template.get('is_template')}")
+                    
+                    # Verify all required fields are present
+                    required_fields = ["id", "slug", "groom_name", "bride_name", "design_id", 
+                                     "deity_id", "events", "sections_enabled", "created_at"]
+                    missing_fields = [field for field in required_fields if field not in our_template]
+                    
+                    if not missing_fields:
+                        print("✅ All template fields present in response")
+                        
+                        # Verify templates are sorted by created_at (newest first)
+                        if len(templates) > 1:
+                            dates = [datetime.fromisoformat(t["created_at"].replace('Z', '+00:00')) for t in templates]
+                            if dates == sorted(dates, reverse=True):
+                                print("✅ Templates sorted by created_at (newest first)")
+                            else:
+                                print("⚠️ Templates may not be sorted correctly by created_at")
+                        
+                        return True
+                    else:
+                        print(f"❌ Missing template fields: {missing_fields}")
+                        return False
+                else:
+                    print("❌ Our template not found in templates list")
+                    return False
+            else:
+                print(f"❌ Templates endpoint returned invalid format: {type(templates)}")
+                return False
+        else:
+            print(f"❌ Failed to get templates: {response.status_code} - {response.text}")
+            return False
+    
+    def test_create_profile_from_template(self):
+        """Test 4: Create Profile from Template (POST /api/admin/profiles/from-template/{template_id})"""
+        print("\n🏗️ TEST 4: Create Profile from Template")
+        
+        # Call create-from-template endpoint
+        response = self.session.post(f"{BACKEND_URL}/admin/profiles/from-template/{self.template_id}")
+        
+        if response.status_code == 200:
+            new_profile = response.json()
+            self.new_profile_from_template_id = new_profile["id"]
+            
+            print("✅ New profile created from template successfully")
+            print(f"   New Profile ID: {new_profile['id']}")
+            print(f"   New Slug: {new_profile['slug']}")
+            
+            # Verify new profile has new unique ID (different from template)
+            if new_profile["id"] != self.template_id:
+                print("✅ New profile has unique ID (different from template)")
+            else:
+                print("❌ New profile has same ID as template")
+                return False
+            
+            # Verify new unique slug (different from template)
+            # Get template to compare slug
+            template_response = self.session.get(f"{BACKEND_URL}/admin/profiles/{self.template_id}")
+            if template_response.status_code == 200:
+                template_data = template_response.json()
+                if new_profile["slug"] != template_data["slug"]:
+                    print("✅ New profile has unique slug (different from template)")
+                else:
+                    print("❌ New profile has same slug as template")
+                    return False
+            
+            # Verify is_template is set to false
+            if new_profile.get("is_template") == False:
+                print("✅ New profile has is_template set to false")
+            else:
+                print(f"❌ New profile is_template not set correctly: {new_profile.get('is_template')}")
+                return False
+            
+            # Verify all other fields copied from template
+            template_response = self.session.get(f"{BACKEND_URL}/admin/profiles/{self.template_id}")
+            if template_response.status_code == 200:
+                template_data = template_response.json()
+                
+                # Check key fields are copied
+                fields_to_check = ["groom_name", "bride_name", "design_id", "deity_id", 
+                                 "venue", "city", "invitation_message", "enabled_languages",
+                                 "about_couple", "family_details", "love_story"]
+                
+                all_copied = True
+                for field in fields_to_check:
+                    if new_profile.get(field) != template_data.get(field):
+                        print(f"❌ Field {field} not copied correctly")
+                        print(f"   Template: {template_data.get(field)}")
+                        print(f"   New Profile: {new_profile.get(field)}")
+                        all_copied = False
+                
+                if all_copied:
+                    print("✅ All key fields copied from template correctly")
+                
+                # Verify events are copied
+                if len(new_profile.get("events", [])) == len(template_data.get("events", [])):
+                    print("✅ Events copied from template")
+                else:
+                    print("❌ Events not copied correctly from template")
+                    return False
+                
+                # Verify sections_enabled copied
+                if new_profile.get("sections_enabled") == template_data.get("sections_enabled"):
+                    print("✅ Sections enabled settings copied from template")
+                else:
+                    print("❌ Sections enabled settings not copied correctly")
+                    return False
+                
+                # Verify fresh timestamps (created_at, updated_at)
+                template_created = datetime.fromisoformat(template_data["created_at"].replace('Z', '+00:00'))
+                new_created = datetime.fromisoformat(new_profile["created_at"].replace('Z', '+00:00'))
+                
+                if new_created > template_created:
+                    print("✅ New profile has fresh timestamps")
+                else:
+                    print("❌ New profile timestamps not updated")
+                    return False
+                
+                return all_copied
+            else:
+                print("❌ Failed to get template data for comparison")
+                return False
+        else:
+            print(f"❌ Failed to create profile from template: {response.status_code} - {response.text}")
+            return False
+    
+    def test_regular_profiles_exclude_templates(self):
+        """Test 5: Regular Profile List Excludes Templates (GET /api/admin/profiles)"""
+        print("\n📋 TEST 5: Regular Profile List Excludes Templates")
+        
+        # Get regular profiles list
+        response = self.session.get(f"{BACKEND_URL}/admin/profiles")
+        
+        if response.status_code == 200:
+            profiles = response.json()
+            
+            print(f"✅ Regular profiles endpoint returned {len(profiles)} profiles")
+            
+            # Verify templates (is_template=true) are NOT included
+            template_found = False
+            regular_profile_found = False
+            
+            for profile in profiles:
+                if profile.get("is_template") == True:
+                    template_found = True
+                    print(f"❌ Template found in regular profiles list: {profile['id']}")
+                elif profile["id"] == self.new_profile_from_template_id:
+                    regular_profile_found = True
+                    print(f"✅ New profile from template found in regular profiles list")
+            
+            if not template_found:
+                print("✅ No templates found in regular profiles list")
+            
+            if regular_profile_found:
+                print("✅ Profile created from template appears in regular profiles")
+                return not template_found
+            else:
+                print("⚠️ Profile created from template not found in regular profiles")
+                return not template_found
+        else:
+            print(f"❌ Failed to get regular profiles: {response.status_code} - {response.text}")
+            return False
+    
+    def test_edge_cases(self):
+        """Test 6: Edge Cases"""
+        print("\n🧪 TEST 6: Edge Cases")
+        
+        success_count = 0
+        total_tests = 4
+        
+        # Test save-as-template with invalid profile ID
+        print("\n   6.1: Save-as-template with invalid profile ID")
+        invalid_id = str(uuid.uuid4())
+        response = self.session.post(f"{BACKEND_URL}/admin/profiles/{invalid_id}/save-as-template")
+        if response.status_code == 404:
+            print("   ✅ Invalid profile ID returns 404")
+            success_count += 1
+        else:
+            print(f"   ❌ Invalid profile ID returned {response.status_code}, expected 404")
+        
+        # Test create-from-template with invalid template ID
+        print("\n   6.2: Create-from-template with invalid template ID")
+        invalid_id = str(uuid.uuid4())
+        response = self.session.post(f"{BACKEND_URL}/admin/profiles/from-template/{invalid_id}")
+        if response.status_code == 404:
+            print("   ✅ Invalid template ID returns 404")
+            success_count += 1
+        else:
+            print(f"   ❌ Invalid template ID returned {response.status_code}, expected 404")
+        
+        # Test create-from-template with non-template profile ID
+        print("\n   6.3: Create-from-template with non-template profile ID")
+        if self.new_profile_from_template_id:
+            response = self.session.post(f"{BACKEND_URL}/admin/profiles/from-template/{self.new_profile_from_template_id}")
+            if response.status_code == 404:
+                print("   ✅ Non-template profile ID returns 404")
+                success_count += 1
+            else:
+                print(f"   ❌ Non-template profile ID returned {response.status_code}, expected 404")
+        else:
+            print("   ⚠️ No regular profile available for testing")
+        
+        # Test endpoints without authentication
+        print("\n   6.4: Endpoints without authentication")
+        # Create session without auth token
+        no_auth_session = requests.Session()
+        
+        # Test save-as-template without auth
+        response = no_auth_session.post(f"{BACKEND_URL}/admin/profiles/{self.test_profile_id}/save-as-template")
+        if response.status_code == 403:
+            print("   ✅ Save-as-template without auth returns 403")
+            success_count += 1
+        else:
+            print(f"   ❌ Save-as-template without auth returned {response.status_code}, expected 403")
+        
+        print(f"\n   Edge cases passed: {success_count}/{total_tests}")
+        return success_count == total_tests
+    
+    def verify_template_remains_unchanged(self):
+        """Verify that the original template remains unchanged after creating profile from it"""
+        print("\n🔍 VERIFICATION: Template Remains Unchanged")
+        
+        # Get template data
+        response = self.session.get(f"{BACKEND_URL}/admin/profiles/{self.template_id}")
+        
+        if response.status_code == 200:
+            template_data = response.json()
+            
+            # Verify it's still a template
+            if template_data.get("is_template") == True:
+                print("✅ Original profile is still marked as template")
+            else:
+                print("❌ Original profile is no longer marked as template")
+                return False
+            
+            # Verify key data unchanged
+            if (template_data["groom_name"] == "Arjun Sharma" and
+                template_data["bride_name"] == "Priya Patel" and
+                template_data["venue"] == "Grand Palace Banquet Hall"):
+                print("✅ Template data remains unchanged")
+                return True
+            else:
+                print("❌ Template data was modified")
+                return False
+        else:
+            print(f"❌ Failed to verify template: {response.status_code}")
+            return False
     
     def run_all_tests(self):
-        """Run all Events System tests"""
-        print("🚀 Starting Events System Backend Testing")
+        """Run all template system tests"""
+        print("🚀 STARTING TEMPLATE SYSTEM BACKEND TESTING")
         print("=" * 60)
         
-        if not self.authenticate():
+        # Authenticate
+        if not self.authenticate_admin():
+            return False
+        
+        # Create test profile
+        if not self.create_test_profile():
             return False
         
         # Run all tests
-        tests = [
-            ("Profile Creation with 3 Events (Mehendi, Sangeet, Wedding)", self.test_profile_creation_with_events),
-            ("Events Validation - Max 7 Events Limit", self.test_max_events_validation),
-            ("Events Validation - At Least 1 Visible Event Required", self.test_visible_events_validation),
-            ("Map Settings - embed_enabled Variations and Updates", self.test_map_settings_variations),
-            ("Public Invitation API - Events and Map Settings Response", self.test_public_invitation_api_with_events),
-            ("Event Sorting - Chronological Order by Date and Time", self.test_event_sorting),
-            ("Backward Compatibility - Profile without Events", self.test_backward_compatibility)
-        ]
+        test_results = []
         
-        for test_name, test_func in tests:
-            self.run_test(test_name, test_func)
+        test_results.append(("Backend Model Verification", self.test_backend_model_verification()))
+        test_results.append(("Save Profile as Template", self.test_save_profile_as_template()))
+        test_results.append(("List Templates", self.test_list_templates()))
+        test_results.append(("Create Profile from Template", self.test_create_profile_from_template()))
+        test_results.append(("Regular Profiles Exclude Templates", self.test_regular_profiles_exclude_templates()))
+        test_results.append(("Edge Cases", self.test_edge_cases()))
+        test_results.append(("Template Remains Unchanged", self.verify_template_remains_unchanged()))
         
-        # Cleanup
-        self.cleanup_test_profiles()
-        
-        # Summary
+        # Print results summary
         print("\n" + "=" * 60)
-        print("📊 EVENTS SYSTEM TESTING SUMMARY")
+        print("📊 TEMPLATE SYSTEM TEST RESULTS SUMMARY")
         print("=" * 60)
-        print(f"✅ Passed: {self.passed_tests}/{self.total_tests} tests")
-        print(f"❌ Failed: {self.total_tests - self.passed_tests}/{self.total_tests} tests")
         
-        if self.passed_tests == self.total_tests:
-            print("🎉 ALL EVENTS SYSTEM TESTS PASSED!")
-            print("✅ Events System is production-ready")
+        passed = 0
+        total = len(test_results)
+        
+        for test_name, result in test_results:
+            status = "✅ PASS" if result else "❌ FAIL"
+            print(f"{status} - {test_name}")
+            if result:
+                passed += 1
+        
+        print(f"\n🎯 OVERALL RESULT: {passed}/{total} tests passed")
+        
+        if passed == total:
+            print("🎉 ALL TEMPLATE SYSTEM TESTS PASSED!")
+            print("\n✅ TEMPLATE SYSTEM FEATURES VERIFIED:")
+            print("   • is_template boolean field working correctly")
+            print("   • Save profile as template functionality")
+            print("   • List templates with proper filtering")
+            print("   • Create new profile from template with unique IDs")
+            print("   • Regular profiles exclude templates")
+            print("   • Proper authentication required")
+            print("   • Edge case handling")
             return True
         else:
-            print("⚠️ Some tests failed - Events System needs attention")
+            print(f"❌ {total - passed} tests failed. Template system needs fixes.")
             return False
 
 def main():
-    """Main function"""
-    tester = EventsSystemTester()
+    """Main test execution"""
+    tester = TemplateSystemTester()
     success = tester.run_all_tests()
     
     if success:
-        print("\n🎯 EVENTS SYSTEM BACKEND TESTING COMPLETE - ALL TESTS PASSED!")
-        sys.exit(0)
+        print("\n🎊 TEMPLATE SYSTEM BACKEND TESTING COMPLETED SUCCESSFULLY!")
     else:
-        print("\n❌ EVENTS SYSTEM BACKEND TESTING FAILED")
-        sys.exit(1)
+        print("\n💥 TEMPLATE SYSTEM BACKEND TESTING FAILED!")
+    
+    return success
 
 if __name__ == "__main__":
     main()
