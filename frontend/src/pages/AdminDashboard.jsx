@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import axios from 'axios';
-import { Plus, LogOut, ExternalLink, Copy, Edit, Trash2, Calendar, Clock, Palette, Church, Languages, Users, Eye, Smartphone, Monitor, Download, BarChart, MessageCircle, QrCode } from 'lucide-react';
+import { Plus, LogOut, ExternalLink, Copy, Edit, Trash2, Calendar, Clock, Palette, Church, Languages, Users, Eye, Smartphone, Monitor, Download, BarChart, MessageCircle, QrCode, Save, FileText } from 'lucide-react';
 import { DESIGN_THEMES } from '@/config/designThemes';
 import { DEITY_OPTIONS } from '@/config/religiousAssets';
 
@@ -14,6 +14,8 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const { admin, logout } = useAuth();
   const [profiles, setProfiles] = useState([]);
+  const [templates, setTemplates] = useState([]);
+  const [showTemplates, setShowTemplates] = useState(false);
   const [loading, setLoading] = useState(true);
   const [analytics, setAnalytics] = useState({});  // PHASE 7: Store analytics data
 
