@@ -112,6 +112,35 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleSaveAsTemplate = async (profileId) => {
+    if (!window.confirm('Save this profile as a template? It will be available for reuse when creating new profiles.')) {
+      return;
+    }
+
+    try {
+      await axios.post(`${API_URL}/api/admin/profiles/${profileId}/save-as-template`);
+      alert('Profile saved as template successfully!');
+      fetchTemplates();
+      fetchProfiles();
+    } catch (error) {
+      console.error('Failed to save as template:', error);
+      alert('Failed to save as template. Please try again.');
+    }
+  };
+
+  const handleCreateFromTemplate = async (templateId) => {
+    try {
+      const response = await axios.post(`${API_URL}/api/admin/profiles/from-template/${templateId}`);
+      const newProfile = response.data;
+      
+      // Redirect to edit page for the new profile
+      navigate(`/admin/profile/${newProfile.id}/edit`);
+    } catch (error) {
+      console.error('Failed to create from template:', error);
+      alert('Failed to create profile from template. Please try again.');
+    }
+  };
+
   const getEventTypeLabel = (type) => {
     const labels = {
       marriage: 'Marriage',
