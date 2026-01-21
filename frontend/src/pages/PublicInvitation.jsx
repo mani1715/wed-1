@@ -426,6 +426,8 @@ const PublicInvitation = () => {
         setRsvpError('Cannot edit RSVP after 48 hours of submission');
       } else if (error.response?.status === 410) {
         setRsvpError('This invitation link has expired');
+      } else if (error.response?.status === 429) {
+        setRsvpError('Too many RSVP attempts. Please try again tomorrow.');
       } else {
         setRsvpError('Failed to submit RSVP. Please try again.');
       }
