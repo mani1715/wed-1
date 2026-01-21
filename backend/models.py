@@ -395,6 +395,7 @@ class ProfileResponse(BaseModel):
     link_expiry_value: Optional[int]
     link_expiry_date: Optional[datetime]
     expires_at: Optional[datetime]  # PHASE 12: Invitation expiry date
+    is_template: bool  # Template flag
     is_active: bool
     created_at: datetime
     updated_at: datetime
