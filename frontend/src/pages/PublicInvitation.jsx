@@ -74,7 +74,7 @@ const DeityBackground = ({ deityId }) => {
 };
 
 const PublicInvitation = () => {
-  const { slug } = useParams();
+  const { slug, eventType } = useParams();
   const [invitation, setInvitation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
