@@ -132,6 +132,10 @@ const ProfileForm = () => {
         events: profile.events || [],
         slug: profile.slug
       });
+      
+      // PHASE 13: Store event-specific links
+      setEventLinks(profile.event_links || {});
+      setSavedProfile(profile);
 
       // Fetch photos for this profile
       await fetchPhotos(profileId);
