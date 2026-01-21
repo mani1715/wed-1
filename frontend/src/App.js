@@ -9,6 +9,7 @@ import PublicInvitation from './pages/PublicInvitation';
 import RSVPManagement from './pages/RSVPManagement';
 import AnalyticsPage from './pages/AnalyticsPage';
 import GreetingsManagement from './pages/GreetingsManagement';
+import AuditLogsPage from './pages/AuditLogsPage';
 import './App.css';
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
             <Route path="/admin/profile/:profileId/rsvps" element={<RSVPManagement />} />
             <Route path="/admin/profile/:profileId/analytics" element={<AnalyticsPage />} />
             <Route path="/admin/profile/:profileId/greetings" element={<GreetingsManagement />} />
+            <Route path="/admin/audit-logs" element={<AuditLogsPage />} />
             <Route path="/invite/:slug" element={<PublicInvitation />} />
           </Routes>
         </BrowserRouter>
