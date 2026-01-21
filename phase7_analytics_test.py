@@ -17,7 +17,7 @@ import sys
 import traceback
 
 # Configuration
-BASE_URL = "https://marriage-portal-8.preview.emergentagent.com/api"
+BASE_URL = "https://webmaker-71.preview.emergentagent.com/api"
 ADMIN_EMAIL = "admin@wedding.com"
 ADMIN_PASSWORD = "admin123"
 
