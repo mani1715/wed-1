@@ -83,6 +83,7 @@ const ProfileForm = () => {
   });
 
   const [savedProfile, setSavedProfile] = useState(null);
+  const [eventLinks, setEventLinks] = useState({});  // PHASE 13: Event-specific links
   const [photos, setPhotos] = useState([]);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
