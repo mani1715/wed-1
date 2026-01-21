@@ -39,7 +39,8 @@ from models import (
     WeddingEvent,
     RSVP, RSVPCreate, RSVPResponse, RSVPStats,
     Analytics, ViewSession, DailyView, ViewTrackingRequest, InteractionTrackingRequest, 
-    LanguageTrackingRequest, AnalyticsResponse, AnalyticsSummary
+    LanguageTrackingRequest, AnalyticsResponse, AnalyticsSummary,
+    RateLimit
 )
 from auth import (
     get_password_hash, verify_password, 
