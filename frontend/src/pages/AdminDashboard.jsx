@@ -229,14 +229,24 @@ const AdminDashboard = () => {
               <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
               <p className="text-sm text-gray-600">Welcome, {admin?.email}</p>
             </div>
-            <Button
-              variant="outline"
-              onClick={handleLogout}
-              className="border-rose-500 text-rose-500 hover:bg-rose-50"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => navigate('/admin/audit-logs')}
+                className="border-blue-500 text-blue-500 hover:bg-blue-50"
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Audit Logs
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="border-rose-500 text-rose-500 hover:bg-rose-50"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </div>
