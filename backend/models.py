@@ -421,6 +421,7 @@ class ProfileResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     invitation_link: str
+    event_links: Optional[Dict[str, str]] = None  # PHASE 13: Event-specific links
 
 
 class ProfileMedia(BaseModel):
