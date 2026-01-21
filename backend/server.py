@@ -178,6 +178,25 @@ async def check_rate_limit(ip_address: str, endpoint: str, max_count: int) -> bo
     # Check if limit exceeded
     if rate_record['count'] >= max_count:
         return False
+
+
+def generate_event_links(slug: str, events: List[dict]) -> Dict[str, str]:
+    """
+    PHASE 13: Generate event-specific invitation links
+    
+    Args:
+        slug: Profile slug
+        events: List of event dictionaries
+    
+    Returns:
+        Dictionary mapping event_type to full invitation link
+    """
+    event_links = {}
+    for event in events:
+        event_type = event.get('event_type', '').lower()
+        if event_type and event.get('visible', True):
+            event_links[event_type] = f"/invite/{slug}/{event_type}"
+    return event_links
     
     # Increment count
     await db.rate_limits.update_one(
