@@ -53,6 +53,10 @@ function GreetingsManagement() {
     }
   };
 
+  useEffect(() => {
+    fetchProfileAndGreetings();
+  }, [profileId, statusFilter, fetchProfileAndGreetings]);
+
   const handleApprove = async (greetingId) => {
     try {
       const token = localStorage.getItem('token');
