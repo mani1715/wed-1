@@ -729,6 +729,18 @@ async def save_profile_as_template(profile_id: str, admin_id: str = Depends(get_
         {"$set": {"is_template": True, "updated_at": datetime.now(timezone.utc).isoformat()}}
     )
     
+    # PHASE 12 - PART 5: Audit log
+    await log_audit_action(
+        action="template_save",
+        admin_id=admin_id,
+        profile_id=profile_id,
+        profile_slug=profile.get('slug'),
+        details={
+            "groom_name": profile.get('groom_name'),
+            "bride_name": profile.get('bride_name')
+        }
+    )
+    
     # Fetch updated profile
     updated_profile = await db.profiles.find_one({"id": profile_id}, {"_id": 0})
     
