@@ -24,6 +24,7 @@ const AdminDashboard = () => {
       navigate('/admin/login');
     } else {
       fetchProfiles();
+      fetchTemplates();
     }
   }, [admin]);
 
@@ -38,6 +39,15 @@ const AdminDashboard = () => {
       console.error('Failed to fetch profiles:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTemplates = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/admin/templates`);
+      setTemplates(response.data);
+    } catch (error) {
+      console.error('Failed to fetch templates:', error);
     }
   };
 
