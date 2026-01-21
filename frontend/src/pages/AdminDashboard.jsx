@@ -452,6 +452,45 @@ const AdminDashboard = () => {
                         Copy
                       </Button>
                     </div>
+                    
+                    {/* PHASE 13: Event-Specific Links */}
+                    {profile.events && profile.events.length > 0 && (
+                      <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg p-3 space-y-2">
+                        <div className="text-xs font-semibold text-gray-700 mb-2 flex items-center">
+                          <Calendar className="w-3 h-3 mr-1" />
+                          Event Links ({profile.events.length})
+                        </div>
+                        <div className="space-y-1.5">
+                          {profile.events
+                            .filter(evt => evt.visible)
+                            .sort((a, b) => a.order - b.order)
+                            .map((evt) => (
+                              <div key={evt.event_id} className="flex gap-1.5">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => window.open(`/invite/${profile.slug}/${evt.event_type}`, '_blank')}
+                                  className="flex-1 text-xs bg-white hover:bg-gray-50 h-8"
+                                  title={`View ${evt.name} invitation`}
+                                >
+                                  <ExternalLink className="w-3 h-3 mr-1" />
+                                  {evt.name}
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => copyEventLink(profile.slug, evt.event_type)}
+                                  className="px-2 bg-white hover:bg-gray-50 h-8"
+                                  title={`Copy ${evt.name} link`}
+                                >
+                                  <Copy className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="flex gap-2">
                       <Button
                         variant="outline"
