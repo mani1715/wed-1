@@ -536,6 +536,149 @@ async def duplicate_profile(profile_id: str, admin_id: str = Depends(get_current
     return ProfileResponse(**response_data)
 
 
+# ==================== ADMIN - TEMPLATE ROUTES ====================
+
+@api_router.post("/admin/profiles/{profile_id}/save-as-template", response_model=ProfileResponse)
+async def save_profile_as_template(profile_id: str, admin_id: str = Depends(get_current_admin)):
+    """Save an existing profile as a template"""
+    # Fetch the profile
+    profile = await db.profiles.find_one({"id": profile_id}, {"_id": 0})
+    
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    # Update the profile to mark it as a template
+    await db.profiles.update_one(
+        {"id": profile_id},
+        {"$set": {"is_template": True, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    # Fetch updated profile
+    updated_profile = await db.profiles.find_one({"id": profile_id}, {"_id": 0})
+    
+    # Convert date strings back to datetime
+    if isinstance(updated_profile.get('event_date'), str):
+        updated_profile['event_date'] = datetime.fromisoformat(updated_profile['event_date'])
+    if isinstance(updated_profile.get('created_at'), str):
+        updated_profile['created_at'] = datetime.fromisoformat(updated_profile['created_at'])
+    if isinstance(updated_profile.get('updated_at'), str):
+        updated_profile['updated_at'] = datetime.fromisoformat(updated_profile['updated_at'])
+    if updated_profile.get('link_expiry_date') and isinstance(updated_profile['link_expiry_date'], str):
+        updated_profile['link_expiry_date'] = datetime.fromisoformat(updated_profile['link_expiry_date'])
+    if updated_profile.get('expires_at') and isinstance(updated_profile['expires_at'], str):
+        updated_profile['expires_at'] = datetime.fromisoformat(updated_profile['expires_at'])
+    
+    updated_profile['invitation_link'] = f"/invite/{updated_profile['slug']}"
+    
+    return ProfileResponse(**updated_profile)
+
+
+@api_router.get("/admin/templates", response_model=List[ProfileResponse])
+async def get_all_templates(admin_id: str = Depends(get_current_admin)):
+    """Get all template profiles"""
+    templates = await db.profiles.find({"is_template": True}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    
+    # Convert date strings back to datetime
+    for template in templates:
+        if isinstance(template.get('event_date'), str):
+            template['event_date'] = datetime.fromisoformat(template['event_date'])
+        if isinstance(template.get('created_at'), str):
+            template['created_at'] = datetime.fromisoformat(template['created_at'])
+        if isinstance(template.get('updated_at'), str):
+            template['updated_at'] = datetime.fromisoformat(template['updated_at'])
+        if template.get('link_expiry_date') and isinstance(template['link_expiry_date'], str):
+            template['link_expiry_date'] = datetime.fromisoformat(template['link_expiry_date'])
+        if template.get('expires_at') and isinstance(template['expires_at'], str):
+            template['expires_at'] = datetime.fromisoformat(template['expires_at'])
+        
+        # Add invitation link
+        template['invitation_link'] = f"/invite/{template['slug']}"
+    
+    return templates
+
+
+@api_router.post("/admin/profiles/from-template/{template_id}", response_model=ProfileResponse)
+async def create_profile_from_template(template_id: str, admin_id: str = Depends(get_current_admin)):
+    """Create a new profile from a template"""
+    # Fetch the template
+    template = await db.profiles.find_one({"id": template_id, "is_template": True}, {"_id": 0})
+    
+    if not template:
+        raise HTTPException(status_code=404, detail="Template not found")
+    
+    # Convert date strings back to datetime objects
+    if isinstance(template.get('event_date'), str):
+        template['event_date'] = datetime.fromisoformat(template['event_date'])
+    if isinstance(template.get('created_at'), str):
+        template['created_at'] = datetime.fromisoformat(template['created_at'])
+    if isinstance(template.get('updated_at'), str):
+        template['updated_at'] = datetime.fromisoformat(template['updated_at'])
+    if template.get('link_expiry_date') and isinstance(template['link_expiry_date'], str):
+        template['link_expiry_date'] = datetime.fromisoformat(template['link_expiry_date'])
+    if template.get('expires_at') and isinstance(template['expires_at'], str):
+        template['expires_at'] = datetime.fromisoformat(template['expires_at'])
+    
+    # Create new profile data from template
+    new_profile_data = template.copy()
+    
+    # Generate new unique ID and slug
+    new_profile_data['id'] = str(uuid.uuid4())
+    
+    # Keep the template names but allow editing later
+    # Generate unique slug
+    slug = generate_slug(template['groom_name'], template['bride_name'])
+    while await db.profiles.find_one({"slug": slug}):
+        slug = generate_slug(template['groom_name'], template['bride_name'])
+    new_profile_data['slug'] = slug
+    
+    # Mark as NOT a template (this is a real profile created from template)
+    new_profile_data['is_template'] = False
+    
+    # Reset timestamps
+    now = datetime.now(timezone.utc)
+    new_profile_data['created_at'] = now
+    new_profile_data['updated_at'] = now
+    
+    # Recalculate expiry dates
+    expiry_date = calculate_expiry_date(
+        new_profile_data.get('link_expiry_type', 'days'),
+        new_profile_data.get('link_expiry_value', 30)
+    )
+    new_profile_data['link_expiry_date'] = expiry_date
+    
+    invitation_expires_at = calculate_invitation_expires_at(
+        new_profile_data['event_date'],
+        None  # Will use default: event_date + 7 days
+    )
+    new_profile_data['expires_at'] = invitation_expires_at
+    
+    # Serialize dates for MongoDB
+    new_profile_data['event_date'] = new_profile_data['event_date'].isoformat()
+    new_profile_data['created_at'] = new_profile_data['created_at'].isoformat()
+    new_profile_data['updated_at'] = new_profile_data['updated_at'].isoformat()
+    if new_profile_data['link_expiry_date']:
+        new_profile_data['link_expiry_date'] = new_profile_data['link_expiry_date'].isoformat()
+    if new_profile_data['expires_at']:
+        new_profile_data['expires_at'] = new_profile_data['expires_at'].isoformat()
+    
+    # Insert the new profile
+    await db.profiles.insert_one(new_profile_data)
+    
+    # Prepare response with datetime objects
+    response_data = new_profile_data.copy()
+    response_data['event_date'] = datetime.fromisoformat(response_data['event_date'])
+    response_data['created_at'] = datetime.fromisoformat(response_data['created_at'])
+    response_data['updated_at'] = datetime.fromisoformat(response_data['updated_at'])
+    if response_data['link_expiry_date']:
+        response_data['link_expiry_date'] = datetime.fromisoformat(response_data['link_expiry_date'])
+    if response_data['expires_at']:
+        response_data['expires_at'] = datetime.fromisoformat(response_data['expires_at'])
+    
+    response_data['invitation_link'] = f"/invite/{response_data['slug']}"
+    
+    return ProfileResponse(**response_data)
+
+
 # ==================== ADMIN - MEDIA ROUTES ====================
 
 @api_router.post("/admin/profiles/{profile_id}/media", response_model=ProfileMedia)
