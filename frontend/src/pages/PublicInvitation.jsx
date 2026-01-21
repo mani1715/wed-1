@@ -282,7 +282,15 @@ const PublicInvitation = () => {
       fetchInvitation();
     } catch (error) {
       console.error('Failed to submit greeting:', error);
-      alert('Failed to submit greeting. Please try again.');
+      if (error.response?.status === 429) {
+        alert('Too many wishes submitted. You can only submit 3 wishes per day. Please try again tomorrow.');
+      } else if (error.response?.status === 410) {
+        alert('This invitation link has expired.');
+      } else if (error.response?.status === 403) {
+        alert('This invitation has expired. Submitting wishes is no longer available.');
+      } else {
+        alert('Failed to submit greeting. Please try again.');
+      }
     } finally {
       setSubmitting(false);
     }
