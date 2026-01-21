@@ -1169,6 +1169,113 @@ async def get_invitation(slug: str):
     )
 
 
+@api_router.get("/invite/{slug}/{event_type}", response_model=InvitationPublicView)
+async def get_event_invitation(slug: str, event_type: str):
+    """PHASE 13: Get public invitation for specific event"""
+    # Validate event type
+    valid_event_types = ['engagement', 'haldi', 'mehendi', 'marriage', 'reception']
+    event_type_lower = event_type.lower()
+    if event_type_lower not in valid_event_types:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Invalid event type. Must be one of: {', '.join(valid_event_types)}"
+        )
+    
+    profile = await db.profiles.find_one({"slug": slug}, {"_id": 0})
+    
+    if not profile:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    
+    # Check if active and not expired (link expiry)
+    if not await check_profile_active(profile):
+        raise HTTPException(status_code=410, detail="This invitation link has expired")
+    
+    # Find the specific event in the profile
+    events = profile.get('events', [])
+    event_data = None
+    for evt in events:
+        if evt.get('event_type', '').lower() == event_type_lower:
+            event_data = evt
+            break
+    
+    if not event_data:
+        raise HTTPException(
+            status_code=404, 
+            detail=f"Event '{event_type}' not found in this invitation"
+        )
+    
+    # PHASE 12: Check invitation expiry (separate from link expiry)
+    is_expired = False
+    expires_at = profile.get('expires_at')
+    if expires_at:
+        if isinstance(expires_at, str):
+            expires_at = datetime.fromisoformat(expires_at)
+        
+        # Ensure timezone-aware
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        
+        if datetime.now(timezone.utc) > expires_at:
+            is_expired = True
+    
+    # Get media
+    media_list = await db.profile_media.find(
+        {"profile_id": profile['id']},
+        {"_id": 0}
+    ).sort("order", 1).to_list(1000)
+    
+    # Get greetings - Only return approved greetings for public view (last 20)
+    greetings_list = await db.greetings.find(
+        {"profile_id": profile['id'], "approval_status": "approved"},
+        {"_id": 0}
+    ).sort("created_at", -1).limit(20).to_list(20)
+    
+    # Convert date strings
+    if isinstance(profile.get('event_date'), str):
+        profile['event_date'] = datetime.fromisoformat(profile['event_date'])
+    
+    for media in media_list:
+        if isinstance(media.get('created_at'), str):
+            media['created_at'] = datetime.fromisoformat(media['created_at'])
+    
+    for greeting in greetings_list:
+        if isinstance(greeting.get('created_at'), str):
+            greeting['created_at'] = datetime.fromisoformat(greeting['created_at'])
+    
+    # Filter events to only show the requested event
+    filtered_event = [WeddingEvent(**event_data)]
+    
+    return InvitationPublicView(
+        slug=profile['slug'],
+        groom_name=profile['groom_name'],
+        bride_name=profile['bride_name'],
+        event_type=profile['event_type'],
+        event_date=profile['event_date'],
+        venue=profile['venue'],
+        city=profile.get('city'),
+        invitation_message=profile.get('invitation_message'),
+        language=profile['language'],
+        design_id=event_data.get('design_preset_id') or profile['design_id'],  # PHASE 13: Use event's design or profile default
+        deity_id=profile.get('deity_id'),
+        whatsapp_groom=profile.get('whatsapp_groom'),
+        whatsapp_bride=profile.get('whatsapp_bride'),
+        enabled_languages=profile.get('enabled_languages', ['english']),
+        custom_text=profile.get('custom_text', {}),
+        about_couple=profile.get('about_couple'),
+        family_details=profile.get('family_details'),
+        love_story=profile.get('love_story'),
+        cover_photo_id=profile.get('cover_photo_id'),
+        sections_enabled=SectionsEnabled(**profile['sections_enabled']),
+        background_music=BackgroundMusic(**profile.get('background_music', {'enabled': False, 'file_url': None})),
+        map_settings=MapSettings(**profile.get('map_settings', {'embed_enabled': False})),
+        contact_info=ContactInfo(**profile.get('contact_info', {})),
+        events=filtered_event,  # PHASE 13: Only the specific event
+        media=[ProfileMedia(**m) for m in media_list],
+        greetings=[GreetingResponse(**g) for g in greetings_list],
+        is_expired=is_expired
+    )
+
+
 @api_router.post("/invite/{slug}/greetings", response_model=GreetingResponse)
 async def submit_greeting(slug: str, greeting_data: GreetingCreate, request: Request):
     """Submit greeting for invitation - PHASE 11: Default status is 'pending' for moderation"""
