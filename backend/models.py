@@ -729,3 +729,17 @@ class AnalyticsSummary(BaseModel):
     most_viewed_language: Optional[str]
     peak_hour: Optional[int]  # Hour of day (0-23)
     device_breakdown: Dict[str, int]  # {"mobile": 10, "desktop": 5, "tablet": 2}
+
+
+class RateLimit(BaseModel):
+    """Rate limiting tracker for spam prevention"""
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    ip_address: str
+    endpoint: str  # "rsvp" or "wishes"
+    date: str  # yyyy-mm-dd format
+    count: int = 0
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
