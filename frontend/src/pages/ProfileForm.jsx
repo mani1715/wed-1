@@ -289,15 +289,17 @@ const ProfileForm = () => {
   };
 
   const addDefaultEvents = () => {
+    // PHASE 13: Marriage-specific events with event_type
     const defaultEvents = [
-      { name: 'Mehendi', visible: true },
-      { name: 'Sangeet', visible: true },
-      { name: 'Wedding', visible: true },
-      { name: 'Reception', visible: true }
+      { name: 'Haldi', event_type: 'haldi', visible: true },
+      { name: 'Mehendi', event_type: 'mehendi', visible: true },
+      { name: 'Marriage', event_type: 'marriage', visible: true },
+      { name: 'Reception', event_type: 'reception', visible: true }
     ];
 
     const newEvents = defaultEvents.map((evt, index) => ({
       event_id: generateEventId(),
+      event_type: evt.event_type,
       name: evt.name,
       date: '',
       start_time: '',
@@ -306,6 +308,7 @@ const ProfileForm = () => {
       venue_address: '',
       map_link: '',
       description: '',
+      design_preset_id: null,  // PHASE 13: Event-specific design
       visible: evt.visible,
       order: index
     }));
