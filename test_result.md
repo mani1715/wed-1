@@ -838,16 +838,121 @@ frontend:
 
 test_plan:
   current_focus:
-    - "Profile Duplication Feature - Backend API"
-    - "Profile Duplication UI - Admin Dashboard"
-    - "PHASE 10 - CMS Backend Models & Fields"
-    - "PHASE 10 - Photo Upload & Management APIs"
-    - "PHASE 10 - ProfileForm CMS UI"
-    - "PHASE 10 - PublicInvitation Content Sections"
-    - "PHASE 10 - RichTextEditor Component"
+    - "Template System Backend"
+    - "Template System UI"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
+
+backend:
+  - task: "Template System Backend"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/models.py, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "✅ TEMPLATE SYSTEM BACKEND IMPLEMENTED: Added is_template boolean field to Profile, ProfileResponse models (default: false). Created 3 new endpoints: POST /api/admin/profiles/{id}/save-as-template (converts profile to template), GET /api/admin/templates (lists all templates with is_template=true), POST /api/admin/profiles/from-template/{template_id} (creates new profile from template with new ID, slug, is_template=false). Updated GET /api/admin/profiles to exclude templates (filter is_template != true). Templates stored in same profiles collection. All template operations require admin authentication."
+
+frontend:
+  - task: "Template System UI"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/AdminDashboard.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "✅ TEMPLATE SYSTEM UI IMPLEMENTED: Added templates state and fetchTemplates() function. Added 'Save as Template' button for each profile (amber theme with Save icon). Added Templates section at top of dashboard with Show/Hide toggle. Template cards displayed with special styling (amber gradient background). Each template card shows: groom/bride names, design theme, deity, languages, and 'Use This Template' button. Implemented handleSaveAsTemplate() (saves profile as template with confirmation), handleCreateFromTemplate() (creates new profile from template and redirects to edit page). Templates collapsible section with count badge."
+
+metadata:
+  created_by: "main_agent"
+  version: "8.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Template System Backend"
+    - "Template System UI"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+    - agent: "main"
+      message: |
+        ✅ TEMPLATE SYSTEM FEATURE COMPLETED
+        
+        User requested basic template system for reusable invitation profiles. Implementation complete:
+        
+        **BACKEND IMPLEMENTATION:**
+        - Added `is_template` boolean field to Profile and ProfileResponse models (default: false)
+        - Created POST /api/admin/profiles/{id}/save-as-template endpoint:
+          * Marks existing profile as template (is_template = true)
+          * Returns updated profile
+          * Admin authentication required
+        
+        - Created GET /api/admin/templates endpoint:
+          * Returns all profiles with is_template = true
+          * Sorted by created_at (newest first)
+          * Admin authentication required
+        
+        - Created POST /api/admin/profiles/from-template/{template_id} endpoint:
+          * Clones template data (all fields except id, slug)
+          * Sets is_template = false for new profile
+          * Generates new unique slug
+          * Recalculates expiry dates
+          * Returns new profile
+          * Admin authentication required
+        
+        - Updated GET /api/admin/profiles:
+          * Now filters out templates (is_template != true)
+          * Keeps main dashboard clean - only shows actual profiles
+        
+        **FRONTEND IMPLEMENTATION:**
+        - AdminDashboard.jsx updated with template functionality:
+          * Added templates state and fetchTemplates() on mount
+          * Added Templates section at top of dashboard (collapsible)
+          * Show/Hide Templates button with FileText icon
+          * Templates displayed in special amber-styled cards
+          * Each template shows: names, design, deity, languages
+          * "Use This Template" button (green) creates new profile from template
+        
+        - Added "Save as Template" button for each profile:
+          * Positioned after Duplicate button
+          * Amber theme (text-amber-600, hover:bg-amber-50)
+          * Save icon from lucide-react
+          * Confirmation dialog before saving
+          * Success message after save
+        
+        - Template creation flow:
+          * Click "Use This Template" on any template card
+          * Backend creates new profile with template data
+          * Frontend redirects to edit page
+          * User can customize names, dates, etc.
+        
+        **KEY FEATURES:**
+        ✅ Templates stored in same profiles collection (no new tables)
+        ✅ No permissions system (all admins can use all templates)
+        ✅ Templates excluded from main profile list
+        ✅ Easy to save any profile as template
+        ✅ Quick profile creation from templates
+        ✅ All profile features preserved in templates
+        
+        **USAGE FLOW:**
+        1. Admin creates a well-designed profile
+        2. Clicks "Save as Template" button
+        3. Template appears in Templates section
+        4. When creating new invitation, click "Use This Template"
+        5. Edit the new profile with actual wedding details
+        
+        Ready for backend testing. Frontend requires user confirmation before testing.
 
 agent_communication:
     - agent: "main"
