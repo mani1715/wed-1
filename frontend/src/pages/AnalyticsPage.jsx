@@ -46,6 +46,10 @@ const AnalyticsPage = () => {
     }
   };
 
+  useEffect(() => {
+    fetchAnalytics();
+  }, [profileId, dateRange, fetchAnalytics]);
+
   const formatDate = (dateString) => {
     if (!dateString) return 'Never';
     const date = new Date(dateString);
