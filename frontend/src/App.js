@@ -27,6 +27,7 @@ function App() {
             <Route path="/admin/profile/:profileId/analytics" element={<AnalyticsPage />} />
             <Route path="/admin/profile/:profileId/greetings" element={<GreetingsManagement />} />
             <Route path="/admin/audit-logs" element={<AuditLogsPage />} />
+            <Route path="/invite/:slug/:eventType" element={<PublicInvitation />} />
             <Route path="/invite/:slug" element={<PublicInvitation />} />
           </Routes>
         </BrowserRouter>
