@@ -488,6 +488,9 @@ async def create_profile(profile_data: ProfileCreate, admin_id: str = Depends(ge
     response_data = profile.model_dump()
     response_data['invitation_link'] = f"/invite/{profile.slug}"
     
+    # PHASE 13: Generate event-specific links
+    response_data['event_links'] = generate_event_links(profile.slug, profile_data.events)
+    
     return ProfileResponse(**response_data)
 
 
