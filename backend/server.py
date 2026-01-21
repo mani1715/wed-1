@@ -867,6 +867,25 @@ async def create_profile_from_template(template_id: str, admin_id: str = Depends
     return ProfileResponse(**response_data)
 
 
+
+
+# ==================== ADMIN - AUDIT LOG ROUTES ====================
+
+@api_router.get("/admin/audit-logs", response_model=List[AuditLogResponse])
+async def get_audit_logs(admin_id: str = Depends(get_current_admin)):
+    """
+    Get audit logs for admin actions
+    Returns last 1000 logs in reverse chronological order (newest first)
+    """
+    logs = await db.audit_logs.find({}, {"_id": 0}).sort("timestamp", -1).limit(1000).to_list(1000)
+    
+    # Convert timestamp strings back to datetime
+    for log in logs:
+        if isinstance(log.get('timestamp'), str):
+            log['timestamp'] = datetime.fromisoformat(log['timestamp'])
+    
+    return [AuditLogResponse(**log) for log in logs]
+
 # ==================== ADMIN - MEDIA ROUTES ====================
 
 @api_router.post("/admin/profiles/{profile_id}/media", response_model=ProfileMedia)
