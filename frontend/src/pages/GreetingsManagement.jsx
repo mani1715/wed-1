@@ -14,10 +14,6 @@ function GreetingsManagement() {
   const [statusFilter, setStatusFilter] = useState('all'); // all, pending, approved, rejected
   const [stats, setStats] = useState({ pending: 0, approved: 0, rejected: 0, total: 0 });
 
-  useEffect(() => {
-    fetchProfileAndGreetings();
-  }, [profileId, statusFilter]);
-
   const fetchProfileAndGreetings = async () => {
     try {
       const token = localStorage.getItem('token');
