@@ -584,6 +584,12 @@ async def update_profile(
 @api_router.delete("/admin/profiles/{profile_id}")
 async def delete_profile(profile_id: str, admin_id: str = Depends(get_current_admin)):
     """Delete profile (soft delete)"""
+    # Get profile before deletion for audit log
+    profile = await db.profiles.find_one({"id": profile_id}, {"_id": 0})
+    
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
     result = await db.profiles.update_one(
         {"id": profile_id},
         {"$set": {"is_active": False}}
@@ -591,6 +597,18 @@ async def delete_profile(profile_id: str, admin_id: str = Depends(get_current_ad
     
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Profile not found")
+    
+    # PHASE 12 - PART 5: Audit log
+    await log_audit_action(
+        action="profile_delete",
+        admin_id=admin_id,
+        profile_id=profile_id,
+        profile_slug=profile.get('slug'),
+        details={
+            "groom_name": profile.get('groom_name'),
+            "bride_name": profile.get('bride_name')
+        }
+    )
     
     return {"message": "Profile deleted successfully"}
 
