@@ -195,6 +195,56 @@ async def check_rate_limit(ip_address: str, endpoint: str, max_count: int) -> bo
     return True
 
 
+async def log_audit_action(
+    action: str, 
+    admin_id: str, 
+    profile_id: Optional[str] = None,
+    profile_slug: Optional[str] = None,
+    details: Optional[dict] = None
+):
+    """
+    Log admin action to audit log
+    Automatically maintains last 1000 logs
+    
+    Args:
+        action: Action type (profile_create, profile_update, profile_delete, profile_duplicate, template_save)
+        admin_id: Admin user ID
+        profile_id: Profile ID if applicable
+        profile_slug: Profile slug if applicable
+        details: Additional context like profile names
+    """
+    try:
+        # Create audit log entry
+        audit_log = AuditLog(
+            action=action,
+            admin_id=admin_id,
+            profile_id=profile_id,
+            profile_slug=profile_slug,
+            details=details or {}
+        )
+        
+        doc = audit_log.model_dump()
+        doc['timestamp'] = doc['timestamp'].isoformat()
+        
+        # Insert log
+        await db.audit_logs.insert_one(doc)
+        
+        # Maintain only last 1000 logs
+        total_logs = await db.audit_logs.count_documents({})
+        if total_logs > 1000:
+            # Get the 1000th oldest log timestamp
+            logs_to_keep = await db.audit_logs.find({}, {"_id": 0, "timestamp": 1}).sort("timestamp", -1).skip(999).limit(1).to_list(1)
+            if logs_to_keep:
+                cutoff_timestamp = logs_to_keep[0]['timestamp']
+                # Delete all logs older than cutoff
+                await db.audit_logs.delete_many({"timestamp": {"$lt": cutoff_timestamp}})
+    
+    except Exception as e:
+        # Log error but don't fail the main operation
+        logging.error(f"Failed to create audit log: {e}")
+
+
+
 
 
 # HTML Sanitization
