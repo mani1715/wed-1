@@ -85,6 +85,13 @@ const AdminDashboard = () => {
     alert('Link copied to clipboard!');
   };
 
+  // PHASE 13: Copy event-specific link
+  const copyEventLink = (slug, eventType) => {
+    const link = `${window.location.origin}/invite/${slug}/${eventType}`;
+    navigator.clipboard.writeText(link);
+    alert(`${eventType.charAt(0).toUpperCase() + eventType.slice(1)} link copied to clipboard!`);
+  };
+
   const handleDelete = async (profileId) => {
     if (!window.confirm('Are you sure you want to delete this profile?')) {
       return;
