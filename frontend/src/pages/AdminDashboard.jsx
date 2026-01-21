@@ -243,6 +243,69 @@ const AdminDashboard = () => {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
+        {/* Templates Section */}
+        {templates.length > 0 && (
+          <div className="mb-8">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Templates ({templates.length})
+              </h2>
+              <Button
+                variant="outline"
+                onClick={() => setShowTemplates(!showTemplates)}
+                className="text-gray-600"
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                {showTemplates ? 'Hide Templates' : 'Show Templates'}
+              </Button>
+            </div>
+
+            {showTemplates && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {templates.map((template) => (
+                  <Card key={template.id} className="p-6 bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <span className="inline-block px-2 py-1 text-xs font-semibold text-amber-700 bg-amber-200 rounded">
+                          TEMPLATE
+                        </span>
+                      </div>
+                      <h3 className="text-lg font-bold text-gray-800">
+                        {template.groom_name} & {template.bride_name}
+                      </h3>
+                      <div className="space-y-1 text-sm text-gray-600">
+                        <div className="flex items-center text-xs">
+                          <Palette className="w-4 h-4 mr-2" />
+                          <span className="font-medium">{getDesignName(template.design_id)}</span>
+                        </div>
+                        <div className="flex items-center text-xs">
+                          <Church className="w-4 h-4 mr-2" />
+                          <span>{getDeityName(template.deity_id)}</span>
+                        </div>
+                        <div className="flex items-center text-xs">
+                          <Languages className="w-4 h-4 mr-2" />
+                          <span>
+                            {template.enabled_languages 
+                              ? `${template.enabled_languages.length} language${template.enabled_languages.length > 1 ? 's' : ''}` 
+                              : 'English'}
+                          </span>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => handleCreateFromTemplate(template.id)}
+                        className="w-full bg-amber-600 hover:bg-amber-700 text-white"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Use This Template
+                      </Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-xl font-semibold text-gray-800">
             Invitation Profiles ({profiles.length})
