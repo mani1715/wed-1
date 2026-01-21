@@ -124,6 +124,7 @@ class Profile(BaseModel):
     link_expiry_value: Optional[int] = None  # number of hours/days
     link_expiry_date: Optional[datetime] = None  # calculated expiry date
     expires_at: Optional[datetime] = None  # PHASE 12: Invitation expiry date (default: event_date + 7 days)
+    is_template: bool = False  # Template flag - indicates if this profile is a reusable template
     is_active: bool = True
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
