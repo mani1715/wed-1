@@ -2504,7 +2504,7 @@ async def generate_qr_code(slug: str):
         raise HTTPException(status_code=404, detail="Invitation not found")
     
     # Build invitation URL
-    invitation_url = f"https://webmaker-71.preview.emergentagent.com/invite/{slug}"
+    invitation_url = f"https://wed-planner-17.preview.emergentagent.com/invite/{slug}"
     
     # Create QR code
     qr = qrcode.QRCode(
