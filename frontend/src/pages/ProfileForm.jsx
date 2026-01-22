@@ -1562,6 +1562,15 @@ const ProfileForm = () => {
                         </select>
                         <p className="text-xs text-gray-500 mt-1">Leave empty to use profile's default design theme</p>
                       </div>
+                      
+                      {/* PHASE 13 PART 2: Event-Specific Background Selector */}
+                      <div className="md:col-span-2">
+                        <EventBackgroundSelector 
+                          eventType={event.event_type}
+                          backgroundConfig={event.background_config}
+                          onChange={(config) => updateEvent(event.event_id, 'background_config', config)}
+                        />
+                      </div>
                     </div>
                   </div>
                 ))}
