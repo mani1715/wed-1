@@ -74,8 +74,143 @@ const DeityBackground = ({ deityId }) => {
   );
 };
 
-// PHASE 13 PART 2: Event-Specific Background Component
-// Renders event-specific backgrounds based on event type and configuration
+// DUAL-LAYER BACKGROUND COMPONENT
+// Renders hero and scroll backgrounds with progressive loading
+const DualLayerBackground = ({ backgroundConfig }) => {
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const [heroLoaded, setHeroLoaded] = useState(false);
+  const [scrollLoaded, setScrollLoaded] = useState(false);
+  const [heroImage, setHeroImage] = useState(null);
+  const [scrollImage, setScrollImage] = useState(null);
+  
+  // Track scroll position for background transitions
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollPosition(window.scrollY);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+  
+  // Load hero background
+  useEffect(() => {
+    if (!backgroundConfig?.hero_background_id) return;
+    
+    const background = getBackgroundById(backgroundConfig.hero_background_id);
+    if (!background?.images) return;
+    
+    const thumbnail = new Image();
+    thumbnail.src = background.images.thumbnail;
+    thumbnail.onload = () => {
+      setHeroImage(background.images.thumbnail);
+      
+      const isMobile = window.innerWidth < 768;
+      const fullImage = new Image();
+      fullImage.src = isMobile ? background.images.mobile : background.images.desktop;
+      fullImage.onload = () => {
+        setHeroImage(isMobile ? background.images.mobile : background.images.desktop);
+        setHeroLoaded(true);
+      };
+    };
+  }, [backgroundConfig?.hero_background_id]);
+  
+  // Load scroll background
+  useEffect(() => {
+    if (!backgroundConfig?.scroll_background_id) return;
+    
+    const background = getBackgroundById(backgroundConfig.scroll_background_id);
+    if (!background?.images) return;
+    
+    const thumbnail = new Image();
+    thumbnail.src = background.images.thumbnail;
+    thumbnail.onload = () => {
+      setScrollImage(background.images.thumbnail);
+      
+      const isMobile = window.innerWidth < 768;
+      const fullImage = new Image();
+      fullImage.src = isMobile ? background.images.mobile : background.images.desktop;
+      fullImage.onload = () => {
+        setScrollImage(isMobile ? background.images.mobile : background.images.desktop);
+        setScrollLoaded(true);
+      };
+    };
+  }, [backgroundConfig?.scroll_background_id]);
+  
+  // Calculate opacity based on scroll position
+  const heroOpacity = Math.max(0, 0.2 - (scrollPosition / 1000));
+  const scrollOpacity = Math.min(0.2, (scrollPosition / 1000));
+  
+  return (
+    <>
+      {/* Hero Background Layer */}
+      {heroImage && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 0,
+            pointerEvents: 'none',
+            opacity: heroOpacity,
+            overflow: 'hidden',
+            transition: 'opacity 0.3s ease-out'
+          }}
+        >
+          <img
+            src={heroImage}
+            alt="Hero background"
+            loading="eager"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center top',
+              filter: heroLoaded ? 'none' : 'blur(10px)',
+              transition: 'filter 0.3s ease-in-out'
+            }}
+          />
+        </div>
+      )}
+      
+      {/* Scroll Background Layer */}
+      {scrollImage && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 0,
+            pointerEvents: 'none',
+            opacity: scrollOpacity,
+            overflow: 'hidden',
+            transition: 'opacity 0.3s ease-out'
+          }}
+        >
+          <img
+            src={scrollImage}
+            alt="Scroll background"
+            loading="lazy"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center',
+              filter: scrollLoaded ? 'none' : 'blur(10px)',
+              transition: 'filter 0.3s ease-in-out'
+            }}
+          />
+        </div>
+      )}
+    </>
+  );
+};
+
+// Legacy EventBackground component for backward compatibility
 const EventBackground = ({ backgroundConfig }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [currentImage, setCurrentImage] = useState(null);
