@@ -8,6 +8,7 @@ import { ArrowLeft, Save, Eye, ChevronDown, ChevronUp, Check, Upload, X, Star, C
 import { DESIGN_THEMES } from '@/config/designThemes';
 import { DEITY_OPTIONS } from '@/config/religiousAssets';
 import { LANGUAGES } from '@/utils/languageLoader';
+import { getEventBackgrounds, allowsLordBackgrounds, requiresBackgroundSelection } from '@/config/eventBackgrounds';
 import RichTextEditor from '@/components/RichTextEditor';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
