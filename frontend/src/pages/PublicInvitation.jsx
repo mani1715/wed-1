@@ -74,6 +74,70 @@ const DeityBackground = ({ deityId }) => {
   );
 };
 
+// PHASE 13 PART 2: Event-Specific Background Component
+// Renders event-specific backgrounds based on event type and configuration
+const EventBackground = ({ backgroundConfig }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [currentImage, setCurrentImage] = useState(null);
+  
+  useEffect(() => {
+    if (!backgroundConfig || !backgroundConfig.background_id) return;
+    
+    const background = getBackgroundById(backgroundConfig.background_id);
+    if (!background || !background.images) return;
+    
+    // Progressive loading: thumbnail first
+    const thumbnail = new Image();
+    thumbnail.src = background.images.thumbnail;
+    thumbnail.onload = () => {
+      setCurrentImage(background.images.thumbnail);
+      
+      // Then load appropriate size
+      const isMobile = window.innerWidth < 768;
+      const nextImage = new Image();
+      nextImage.src = isMobile ? background.images.mobile : background.images.desktop;
+      nextImage.onload = () => {
+        setCurrentImage(isMobile ? background.images.mobile : background.images.desktop);
+        setImageLoaded(true);
+      };
+    };
+  }, [backgroundConfig]);
+  
+  if (!backgroundConfig || !backgroundConfig.background_id || !currentImage) {
+    return null;
+  }
+  
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 0,
+        pointerEvents: 'none',
+        opacity: 0.2,
+        overflow: 'hidden'
+      }}
+    >
+      <img
+        src={currentImage}
+        alt="Event background"
+        loading="lazy"
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          objectPosition: 'center',
+          filter: imageLoaded ? 'none' : 'blur(10px)',
+          transition: 'filter 0.3s ease-in-out'
+        }}
+      />
+    </div>
+  );
+};
+
 const PublicInvitation = () => {
   const { slug, eventType } = useParams();
   const [invitation, setInvitation] = useState(null);
