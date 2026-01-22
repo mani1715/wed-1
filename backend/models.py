@@ -16,9 +16,11 @@ class EventType(str, Enum):
 
 
 class EventBackgroundConfig(BaseModel):
-    """PHASE 13 PART 2: Event-specific background configuration"""
-    background_type: Optional[str] = None  # lord, trendy, royal
-    background_id: Optional[str] = None  # Specific background identifier
+    """Event-specific background configuration with dual-layer support"""
+    hero_background_id: Optional[str] = None  # Hero/Top section background
+    scroll_background_id: Optional[str] = None  # Scroll/Body section background
+    background_type: Optional[str] = None  # lord, trendy, royal (legacy field)
+    background_id: Optional[str] = None  # Specific background identifier (legacy field)
     
     
 class WeddingEvent(BaseModel):
