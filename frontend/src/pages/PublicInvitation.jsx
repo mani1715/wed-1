@@ -601,10 +601,21 @@ const PublicInvitation = () => {
 
   return (
     <>
-      {/* Deity Background Layer - Optional, behind all content */}
-      <DeityBackground deityId={invitation.deity_id} />
+      {/* PHASE 13 PART 2: Background Layer - Event-specific or Profile Deity */}
+      {eventType && invitation.events && (() => {
+        // If viewing event-specific page, check for event background
+        const currentEvent = invitation.events.find(e => e.event_type === eventType);
+        if (currentEvent && currentEvent.background_config && currentEvent.background_config.background_id) {
+          return <EventBackground backgroundConfig={currentEvent.background_config} />;
+        }
+        // Fall back to profile deity background if no event background
+        return <DeityBackground deityId={invitation.deity_id} />;
+      })()}
       
-      {/* Main Content - Positioned above deity background */}
+      {/* If not event-specific page, show profile deity background */}
+      {!eventType && <DeityBackground deityId={invitation.deity_id} />}
+      
+      {/* Main Content - Positioned above background */}
       <div 
         className="min-h-screen" 
         style={{ 
