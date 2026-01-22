@@ -4,9 +4,10 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import axios from 'axios';
-import { Plus, LogOut, ExternalLink, Copy, Edit, Trash2, Calendar, Clock, Palette, Church, Languages, Users, Eye, Smartphone, Monitor, Download, BarChart, MessageCircle, QrCode, Save, FileText } from 'lucide-react';
+import { Plus, LogOut, ExternalLink, Copy, Edit, Trash2, Calendar, Clock, Palette, Church, Languages, Users, Eye, Smartphone, Monitor, Download, BarChart, MessageCircle, QrCode, Save, FileText, List } from 'lucide-react';
 import { DESIGN_THEMES } from '@/config/designThemes';
 import { DEITY_OPTIONS } from '@/config/religiousAssets';
+import EventInvitationManager from '@/components/EventInvitationManager';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
@@ -18,6 +19,7 @@ const AdminDashboard = () => {
   const [showTemplates, setShowTemplates] = useState(false);
   const [loading, setLoading] = useState(true);
   const [analytics, setAnalytics] = useState({});  // PHASE 7: Store analytics data
+  const [managingEventInvitations, setManagingEventInvitations] = useState(null);  // NEW: Track which profile is managing event invitations
 
   useEffect(() => {
     if (!admin) {
