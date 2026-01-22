@@ -208,6 +208,126 @@
 #====================================================================================================
 
 
+user_problem_statement_temple_opening: |
+  TEMPLE-STYLE OPENING SECTION FOR LORD-ENABLED EVENTS
+  
+  Goal:
+  Add a temple-style opening section for lord-enabled events.
+  
+  Applies To:
+  Engagement, Marriage, Reception (only if deity enabled)
+  
+  Opening Design:
+  - Top-left & top-right hanging GANTALU (temple bells) with visible ropes
+  - Soft DĪPĀLU (oil lamp) glow near bottom corners
+  - Center LORD image (hero position)
+  
+  Rules:
+  - Appears ONLY in the hero section
+  - No sound
+  - No heavy animation
+  - Opacity subtle
+  - Mobile-first design
+  
+  Implementation:
+  - TempleOpening.jsx component
+  - Used only when event allows lord backgrounds
+  
+  Strict:
+  - NO effects for Haldi/Mehendi
+  - NO autoplay audio
+
+frontend_temple_opening:
+  - task: "TempleOpening Component"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/TempleOpening.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created TempleOpening component with temple bells (gantalu) at top-left and top-right with visible ropes, oil lamps (dīpālu) with soft glow at bottom corners, and center deity image. Features gentle swinging animation for bells, flickering animation for lamp flames, subtle opacity, mobile-first responsive design. No sound, no heavy animations."
+  
+  - task: "PublicInvitation Temple Opening Integration"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/PublicInvitation.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Integrated TempleOpening component into PublicInvitation.jsx. Component displays only for event-specific pages (engagement, marriage, reception) when deity_id is present and not 'none'. Positioned in hero section with z-index 2, above background layer. Properly checks event type and deity configuration before rendering."
+
+metadata_temple_opening:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 0
+  run_ui: false
+
+test_plan_temple_opening:
+  current_focus:
+    - "TempleOpening Component"
+    - "PublicInvitation Temple Opening Integration"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication_temple_opening:
+  - agent: "main"
+    message: |
+      ✅ TEMPLE-STYLE OPENING SECTION IMPLEMENTATION COMPLETE
+      
+      IMPLEMENTATION DETAILS:
+      
+      Frontend Component:
+      1. ✅ Created TempleOpening.jsx component with all required elements:
+         - Two hanging temple bells (gantalu) at top-left and top-right
+         - Visible ropes connecting bells to top
+         - Two oil lamps (dīpālu) at bottom corners with soft glow effect
+         - Center deity image (hero position) with progressive loading
+         - Gradient background (amber-50 to yellow-50)
+      
+      2. ✅ Animations (subtle, no heavy effects):
+         - Gentle swinging for bells (4s ease-in-out)
+         - Opposite direction swing for left/right bells
+         - Flickering effect for lamp flames (2-2.5s ease-in-out)
+         - No sound, minimal performance impact
+      
+      3. ✅ Mobile-first responsive design:
+         - Responsive sizing for bells and lamps (smaller on mobile)
+         - Deity image auto-scales based on screen size
+         - Proper spacing adjustments for mobile devices
+         - Height: 60vh (min 400px, max 600px)
+      
+      4. ✅ Conditional rendering logic:
+         - Only shows for Engagement, Marriage, Reception events
+         - Only when deity_id is present and not 'none'
+         - Does NOT show for Haldi/Mehendi (trendy-only events)
+         - Properly integrated into event-specific invitation pages
+      
+      Integration:
+      1. ✅ Imported TempleOpening component into PublicInvitation.jsx
+      2. ✅ Added conditional rendering logic based on:
+         - eventType parameter from URL
+         - invitation.deity_id presence and value
+         - Event type validation (engagement/marriage/reception)
+      3. ✅ Positioned with z-index 2 (above background, below content)
+      
+      STRICT COMPLIANCE:
+      ✅ NO effects for Haldi/Mehendi events
+      ✅ NO autoplay audio
+      ✅ NO heavy animations (only gentle CSS animations)
+      ✅ Subtle opacity and effects
+      ✅ Mobile-first design approach
+      ✅ Appears ONLY in hero section
+      
+      Frontend compiled successfully. Ready for frontend testing.
+
+
 user_problem_statement_multi_event_invitations: |
   MULTI-EVENT INVITATION SYSTEM
   
