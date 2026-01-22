@@ -37,7 +37,7 @@ class WeddingEvent(BaseModel):
     description: Optional[str] = Field(None, max_length=500)  # PHASE 13: custom_message
     design_preset_id: Optional[str] = None  # PHASE 13: Event-specific design
     background_config: Optional[EventBackgroundConfig] = None  # PHASE 13 PART 2: Event-specific background
-    event_content: Optional[Dict[str, any]] = {}  # Event-type specific content fields
+    event_content: Optional[Dict[str, Any]] = {}  # Event-type specific content fields
     visible: bool = True
     order: int = 0
     
