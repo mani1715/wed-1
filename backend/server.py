@@ -1332,7 +1332,11 @@ async def get_invitation(slug: str):
 
 @api_router.get("/invite/{slug}/{event_type}", response_model=InvitationPublicView)
 async def get_event_invitation(slug: str, event_type: str):
-    """PHASE 13: Get public invitation for specific event"""
+    """Get public invitation for specific event
+    
+    NEW: Checks EventInvitation first (dedicated event invitation links)
+    FALLBACK: Falls back to WeddingEvent within profile (PHASE 13 legacy)
+    """
     # Validate event type
     valid_event_types = ['engagement', 'haldi', 'mehendi', 'marriage', 'reception']
     event_type_lower = event_type.lower()
@@ -1351,19 +1355,39 @@ async def get_event_invitation(slug: str, event_type: str):
     if not await check_profile_active(profile):
         raise HTTPException(status_code=410, detail="This invitation link has expired")
     
-    # Find the specific event in the profile
-    events = profile.get('events', [])
-    event_data = None
-    for evt in events:
-        if evt.get('event_type', '').lower() == event_type_lower:
-            event_data = evt
-            break
+    # NEW: Check if EventInvitation exists for this profile and event_type
+    event_invitation = await db.event_invitations.find_one({
+        "profile_id": profile['id'],
+        "event_type": event_type_lower
+    }, {"_id": 0})
     
-    if not event_data:
-        raise HTTPException(
-            status_code=404, 
-            detail=f"Event '{event_type}' not found in this invitation"
-        )
+    # If EventInvitation exists, use it
+    if event_invitation:
+        # Check if enabled
+        if not event_invitation.get('enabled', True):
+            raise HTTPException(status_code=404, detail="This event invitation is not available")
+        
+        # Use EventInvitation's design_id and deity_id
+        design_id = event_invitation.get('design_id', profile['design_id'])
+        deity_id = event_invitation.get('deity_id', profile.get('deity_id'))
+    else:
+        # FALLBACK: Find the specific event in the profile (PHASE 13 legacy)
+        events = profile.get('events', [])
+        event_data = None
+        for evt in events:
+            if evt.get('event_type', '').lower() == event_type_lower:
+                event_data = evt
+                break
+        
+        if not event_data:
+            raise HTTPException(
+                status_code=404, 
+                detail=f"Event '{event_type}' not found in this invitation"
+            )
+        
+        # Use event's design or profile default
+        design_id = event_data.get('design_preset_id') or profile['design_id']
+        deity_id = profile.get('deity_id')
     
     # PHASE 12: Check invitation expiry (separate from link expiry)
     is_expired = False
@@ -1403,8 +1427,11 @@ async def get_event_invitation(slug: str, event_type: str):
         if isinstance(greeting.get('created_at'), str):
             greeting['created_at'] = datetime.fromisoformat(greeting['created_at'])
     
-    # Filter events to only show the requested event
-    filtered_event = [WeddingEvent(**event_data)]
+    # Filter events to only show events matching the event_type (for backward compatibility)
+    filtered_events = []
+    for evt in profile.get('events', []):
+        if evt.get('event_type', '').lower() == event_type_lower:
+            filtered_events.append(WeddingEvent(**evt))
     
     return InvitationPublicView(
         slug=profile['slug'],
@@ -1416,8 +1443,8 @@ async def get_event_invitation(slug: str, event_type: str):
         city=profile.get('city'),
         invitation_message=profile.get('invitation_message'),
         language=profile['language'],
-        design_id=event_data.get('design_preset_id') or profile['design_id'],  # PHASE 13: Use event's design or profile default
-        deity_id=profile.get('deity_id'),
+        design_id=design_id,  # Use EventInvitation's design or fallback
+        deity_id=deity_id,  # Use EventInvitation's deity or fallback
         whatsapp_groom=profile.get('whatsapp_groom'),
         whatsapp_bride=profile.get('whatsapp_bride'),
         enabled_languages=profile.get('enabled_languages', ['english']),
@@ -1430,7 +1457,7 @@ async def get_event_invitation(slug: str, event_type: str):
         background_music=BackgroundMusic(**profile.get('background_music', {'enabled': False, 'file_url': None})),
         map_settings=MapSettings(**profile.get('map_settings', {'embed_enabled': False})),
         contact_info=ContactInfo(**profile.get('contact_info', {})),
-        events=filtered_event,  # PHASE 13: Only the specific event
+        events=filtered_events,  # Show matching events
         media=[ProfileMedia(**m) for m in media_list],
         greetings=[GreetingResponse(**g) for g in greetings_list],
         is_expired=is_expired
