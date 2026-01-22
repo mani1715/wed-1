@@ -37,6 +37,7 @@ from models import (
     Greeting, GreetingCreate, GreetingResponse,
     InvitationPublicView, SectionsEnabled, BackgroundMusic, MapSettings, ContactInfo,
     WeddingEvent,
+    EventInvitation, EventInvitationCreate, EventInvitationUpdate, EventInvitationResponse,
     RSVP, RSVPCreate, RSVPResponse, RSVPStats,
     Analytics, ViewSession, DailyView, ViewTrackingRequest, InteractionTrackingRequest, 
     LanguageTrackingRequest, AnalyticsResponse, AnalyticsSummary,
