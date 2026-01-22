@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Heart, Calendar, MapPin, Send, Languages, MessageCircle, Phone, Mail, Download, QrCode, Clock } from 'lucide-react';
 import { getTheme, applyThemeVariables } from '@/config/themes';
 import { getDeity, getDeityImage } from '@/config/religiousAssets';
+import { getBackgroundById } from '@/config/eventBackgrounds';
 import { LANGUAGES, loadLanguage, getText, getSectionText, preloadLanguages } from '@/utils/languageLoader';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
