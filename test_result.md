@@ -103,6 +103,338 @@
 #====================================================================================================
 
 
+#====================================================================================================
+# START - Testing Protocol - DO NOT EDIT OR REMOVE THIS SECTION
+#====================================================================================================
+
+# THIS SECTION CONTAINS CRITICAL TESTING INSTRUCTIONS FOR BOTH AGENTS
+# BOTH MAIN_AGENT AND TESTING_AGENT MUST PRESERVE THIS ENTIRE BLOCK
+
+# Communication Protocol:
+# If the `testing_agent` is available, main agent should delegate all testing tasks to it.
+#
+# You have access to a file called `test_result.md`. This file contains the complete testing state
+# and history, and is the primary means of communication between main and the testing agent.
+#
+# Main and testing agents must follow this exact format to maintain testing data. 
+# The testing data must be entered in yaml format Below is the data structure:
+# 
+## user_problem_statement: {problem_statement}
+## backend:
+##   - task: "Task name"
+##     implemented: true
+##     working: true  # or false or "NA"
+##     file: "file_path.py"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: false
+##     status_history:
+##         -working: true  # or false or "NA"
+##         -agent: "main"  # or "testing" or "user"
+##         -comment: "Detailed comment about status"
+##
+## frontend:
+##   - task: "Task name"
+##     implemented: true
+##     working: true  # or false or "NA"
+##     file: "file_path.js"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: false
+##     status_history:
+##         -working: true  # or false or "NA"
+##         -agent: "main"  # or "testing" or "user"
+##         -comment: "Detailed comment about status"
+##
+## metadata:
+##   created_by: "main_agent"
+##   version: "1.0"
+##   test_sequence: 0
+##   run_ui: false
+##
+## test_plan:
+##   current_focus:
+##     - "Task name 1"
+##     - "Task name 2"
+##   stuck_tasks:
+##     - "Task name with persistent issues"
+##   test_all: false
+##   test_priority: "high_first"  # or "sequential" or "stuck_first"
+##
+## agent_communication:
+##     -agent: "main"  # or "testing" or "user"
+##     -message: "Communication message between agents"
+
+# Protocol Guidelines for Main agent
+#
+# 1. Update Test Result File Before Testing:
+#    - Main agent must always update the `test_result.md` file before calling the testing agent
+#    - Add implementation details to the status_history
+#    - Set `needs_retesting` to true for tasks that need testing
+#    - Update the `test_plan` section to guide testing priorities
+#    - Add a message to `agent_communication` explaining what you've done
+#
+# 2. Incorporate User Feedback:
+#    - When a user provides feedback that something is or isn't working, add this information to the relevant task's status_history
+#    - Update the working status based on user feedback
+#    - If a user reports an issue with a task that was marked as working, increment the stuck_count
+#    - Whenever user reports issue in the app, if we have testing agent and task_result.md file so find the appropriate task for that and append in status_history of that task to contain the user concern and problem as well 
+#
+# 3. Track Stuck Tasks:
+#    - Monitor which tasks have high stuck_count values or where you are fixing same issue again and again, analyze that when you read task_result.md
+#    - For persistent issues, use websearch tool to find solutions
+#    - Pay special attention to tasks in the stuck_tasks list
+#    - When you fix an issue with a stuck task, don't reset the stuck_count until the testing agent confirms it's working
+#
+# 4. Provide Context to Testing Agent:
+#    - When calling the testing agent, provide clear instructions about:
+#      - Which tasks need testing (reference the test_plan)
+#      - Any authentication details or configuration needed
+#      - Specific test scenarios to focus on
+#      - Any known issues or edge cases to verify
+#
+# 5. Call the testing agent with specific instructions referring to test_result.md
+#
+# IMPORTANT: Main agent must ALWAYS update test_result.md BEFORE calling the testing agent, as it relies on this file to understand what to test next.
+
+#====================================================================================================
+# END - Testing Protocol - DO NOT EDIT OR REMOVE THIS SECTION
+#====================================================================================================
+
+
+
+#====================================================================================================
+# Testing Data - Main Agent and testing sub agent both should log testing data below this section
+#====================================================================================================
+
+
+user_problem_statement_multi_event_invitations: |
+  MULTI-EVENT INVITATION SYSTEM
+  
+  Goal:
+  Allow ONE profile to create MULTIPLE event-specific invitation links.
+  
+  Requirements:
+  - Supported events (fixed list): Engagement, Haldi, Mehendi, Marriage, Reception
+  - Each event creates a UNIQUE public link: /invite/{profile_slug}/{event_type}
+  - Same profile_id, different event_type
+  
+  Data Model:
+  - Add EventInvitation with: id, profile_id, event_type (enum), design_id, deity_id (nullable), enabled (boolean)
+  
+  Admin Panel:
+  - "Add Event Invitation" button
+  - Select event_type (dropdown)
+  - Based on event_type:
+    • Engagement/Marriage/Reception → allow lord background
+    • Haldi/Mehendi → disable lord selection
+  - Save creates new invitation link
+  
+  Public:
+  - Render invitation based on event_type
+  - If disabled → show 404
+  
+  Strict:
+  - NO animations added
+  - NO layout breaking
+  - Production-ready
+  - DO NOT refactor existing code
+  - DO NOT change current themes or deity logic
+
+backend_multi_event_invitations:
+  - task: "EventInvitation Model"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created EventInvitation model with fields: id, profile_id, event_type (EventType enum), design_id, deity_id (nullable), enabled (boolean), created_at, updated_at. Added validators for deity_id and design_id. Deity validation enforces rules: Haldi/Mehendi cannot have deity backgrounds (must be null)."
+  
+  - task: "EventInvitation Request/Response Models"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created EventInvitationCreate, EventInvitationUpdate, EventInvitationResponse models. EventInvitationCreate includes validator to enforce deity rules based on event_type. EventInvitationResponse includes invitation_link field."
+  
+  - task: "Get Profile Event Invitations API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created GET /api/admin/profiles/:profile_id/event-invitations endpoint. Returns all event invitations for a profile with invitation_link field populated. Requires admin authentication."
+  
+  - task: "Create Event Invitation API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created POST /api/admin/profiles/:profile_id/event-invitations endpoint. Validates profile exists, checks for duplicate event_type, applies deity rules (forces deity_id to null for Haldi/Mehendi), creates EventInvitation record. Requires admin authentication."
+  
+  - task: "Update Event Invitation API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created PUT /api/admin/event-invitations/:invitation_id endpoint. Updates design_id, deity_id (enforces rules), and enabled status. Requires admin authentication."
+  
+  - task: "Delete Event Invitation API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created DELETE /api/admin/event-invitations/:invitation_id endpoint. Permanently deletes event invitation record. Requires admin authentication."
+  
+  - task: "Public Event Invitation API Update"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Updated GET /api/invite/:slug/:event_type endpoint to check for EventInvitation first. If EventInvitation exists, uses its design_id and deity_id. If disabled, returns 404. Falls back to existing WeddingEvent logic for backward compatibility. Maintains all existing functionality."
+
+frontend_multi_event_invitations:
+  - task: "EventInvitationManager Component"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/EventInvitationManager.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created EventInvitationManager component with full CRUD functionality. Features: (1) Fetch and display all event invitations for a profile, (2) Create new event invitation with event type dropdown (shows only unused event types), design theme selection, conditional deity selection (disabled for Haldi/Mehendi), (3) Edit event invitation (inline editing mode), (4) Delete event invitation with confirmation, (5) View and copy invitation links, (6) Enable/disable toggle for each invitation. Component rendered as modal overlay."
+  
+  - task: "Admin Dashboard Integration"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/AdminDashboard.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added 'Event Invitations' button to each profile card in AdminDashboard. Button opens EventInvitationManager modal. Added managingEventInvitations state to track which profile is being managed. Modal closes on user action or close button click."
+
+metadata_multi_event_invitations:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 0
+  run_ui: false
+
+test_plan_multi_event_invitations:
+  current_focus:
+    - "EventInvitation Model"
+    - "EventInvitation Request/Response Models"
+    - "Get Profile Event Invitations API"
+    - "Create Event Invitation API"
+    - "Update Event Invitation API"
+    - "Delete Event Invitation API"
+    - "Public Event Invitation API Update"
+    - "EventInvitationManager Component"
+    - "Admin Dashboard Integration"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication_multi_event_invitations:
+  - agent: "main"
+    message: |
+      ✅ MULTI-EVENT INVITATION SYSTEM IMPLEMENTATION COMPLETE
+      
+      BACKEND IMPLEMENTATION:
+      1. ✅ Created EventInvitation model with all required fields
+      2. ✅ Added EventInvitationCreate, EventInvitationUpdate, EventInvitationResponse models
+      3. ✅ Created 4 admin API endpoints:
+         - GET /api/admin/profiles/:profile_id/event-invitations (list)
+         - POST /api/admin/profiles/:profile_id/event-invitations (create)
+         - PUT /api/admin/event-invitations/:invitation_id (update)
+         - DELETE /api/admin/event-invitations/:invitation_id (delete)
+      4. ✅ Updated GET /api/invite/:slug/:event_type to check EventInvitation first
+      5. ✅ Deity validation rules enforced:
+         - Engagement/Marriage/Reception: Allow deity backgrounds
+         - Haldi/Mehendi: Force deity_id to null (no lord backgrounds)
+      6. ✅ Backward compatibility maintained with existing WeddingEvent system
+      
+      FRONTEND IMPLEMENTATION:
+      1. ✅ Created EventInvitationManager component:
+         - Full CRUD functionality (Create, Read, Update, Delete)
+         - Event type dropdown (shows only available event types)
+         - Design theme selector (grid of 8 themes)
+         - Conditional deity selector (disabled for Haldi/Mehendi)
+         - Enable/disable toggle for each invitation
+         - View and copy invitation links
+         - Inline editing mode
+         - Modal overlay design
+      2. ✅ Integrated into AdminDashboard:
+         - Added "Event Invitations" button to each profile card
+         - Modal opens on button click
+         - Properly tracks state and closes on user action
+      
+      STRICT COMPLIANCE:
+      ✅ NO animations added
+      ✅ NO layout breaking
+      ✅ NO refactoring of existing code
+      ✅ NO changes to current themes or deity logic
+      ✅ Production-ready implementation
+      
+      TESTING NEEDED:
+      1. Backend:
+         - Test EventInvitation CRUD operations via API
+         - Verify deity validation rules (Haldi/Mehendi cannot have deity)
+         - Test duplicate event_type prevention
+         - Test public invitation endpoint with EventInvitation
+         - Test disabled EventInvitation returns 404
+         - Test backward compatibility with WeddingEvent
+      
+      2. Frontend:
+         - Test opening EventInvitationManager modal
+         - Test creating event invitation for each event type
+         - Test deity selector disabled for Haldi/Mehendi
+         - Test editing event invitation
+         - Test deleting event invitation
+         - Test viewing and copying invitation links
+         - Test enable/disable toggle
+         - Test that only unused event types appear in dropdown
+      
+      Services are running. Backend and frontend compiled successfully. Ready for backend testing.
+
+
 user_problem_statement_phase13_part2: |
   PHASE 13 – PART 2: EVENT-BASED UI & BACKGROUND RULES
   
