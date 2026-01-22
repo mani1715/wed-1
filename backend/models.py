@@ -15,6 +15,12 @@ class EventType(str, Enum):
     RECEPTION = "reception"
 
 
+class EventBackgroundConfig(BaseModel):
+    """PHASE 13 PART 2: Event-specific background configuration"""
+    background_type: Optional[str] = None  # lord, trendy, royal
+    background_id: Optional[str] = None  # Specific background identifier
+    
+    
 class WeddingEvent(BaseModel):
     """Model for individual wedding event - PHASE 13: Marriage-focused events"""
     event_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -28,6 +34,7 @@ class WeddingEvent(BaseModel):
     map_link: str
     description: Optional[str] = Field(None, max_length=500)  # PHASE 13: custom_message
     design_preset_id: Optional[str] = None  # PHASE 13: Event-specific design
+    background_config: Optional[EventBackgroundConfig] = None  # PHASE 13 PART 2: Event-specific background
     visible: bool = True
     order: int = 0
     
