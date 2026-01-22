@@ -15,6 +15,7 @@ import {
   getDefaultBackgrounds 
 } from '@/config/eventBackgroundConfig';
 import RichTextEditor from '@/components/RichTextEditor';
+import EventContentFields from '@/components/EventContentFields';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
