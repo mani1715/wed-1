@@ -955,6 +955,8 @@ async def create_event_invitation(
     doc = event_invitation.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
     doc['updated_at'] = doc['updated_at'].isoformat()
+    # Ensure event_type is stored as string value, not enum
+    doc['event_type'] = event_invitation.event_type.value
     
     # Insert into database
     await db.event_invitations.insert_one(doc)
