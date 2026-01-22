@@ -8,6 +8,7 @@ import { getTheme, applyThemeVariables } from '@/config/themes';
 import { getDeity, getDeityImage } from '@/config/religiousAssets';
 import { getBackgroundById } from '@/config/eventBackgroundConfig';
 import { LANGUAGES, loadLanguage, getText, getSectionText, preloadLanguages } from '@/utils/languageLoader';
+import TempleOpening from '@/components/TempleOpening';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
