@@ -1577,6 +1577,15 @@ const ProfileForm = () => {
                           onChange={(config) => updateEvent(event.event_id, 'background_config', config)}
                         />
                       </div>
+                      
+                      {/* Event-Type Specific Content Fields */}
+                      <div className="md:col-span-2">
+                        <EventContentFields
+                          eventType={event.event_type}
+                          eventContent={event.event_content || {}}
+                          onChange={(content) => updateEvent(event.event_id, 'event_content', content)}
+                        />
+                      </div>
                     </div>
                   </div>
                 ))}
