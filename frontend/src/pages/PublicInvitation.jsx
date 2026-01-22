@@ -1172,6 +1172,188 @@ const PublicInvitation = () => {
                           {event.description}
                         </div>
                       )}
+                      
+                      {/* Event-Type Specific Content Display */}
+                      {event.event_content && Object.keys(event.event_content).length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <div className="space-y-2 text-xs">
+                            {/* Engagement Content */}
+                            {event.event_type === 'engagement' && (
+                              <>
+                                {event.event_content.couple_names && (
+                                  <div className="flex items-start">
+                                    <span className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" style={{ color: 'var(--color-secondary, #D4AF37)' }}>💑</span>
+                                    <div style={{ color: 'var(--color-text, #4A3728)' }}>
+                                      <span className="font-medium">Couple: </span>{event.event_content.couple_names}
+                                    </div>
+                                  </div>
+                                )}
+                                {event.event_content.venue_details && (
+                                  <div className="flex items-start">
+                                    <span className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" style={{ color: 'var(--color-secondary, #D4AF37)' }}>📝</span>
+                                    <div style={{ color: 'var(--color-text, #4A3728)' }}>
+                                      {event.event_content.venue_details}
+                                    </div>
+                                  </div>
+                                )}
+                              </>
+                            )}
+                            
+                            {/* Haldi Content */}
+                            {event.event_type === 'haldi' && (
+                              <>
+                                {(event.event_content.bride_name || event.event_content.groom_name) && (
+                                  <div className="flex items-start">
+                                    <span className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" style={{ color: 'var(--color-secondary, #D4AF37)' }}>👰🤵</span>
+                                    <div style={{ color: 'var(--color-text, #4A3728)' }}>
+                                      {event.event_content.bride_name && event.event_content.groom_name 
+                                        ? `${event.event_content.bride_name} & ${event.event_content.groom_name}`
+                                        : event.event_content.bride_name || event.event_content.groom_name}
+                                    </div>
+                                  </div>
+                                )}
+                                {event.event_content.ceremony_time && (
+                                  <div className="flex items-start">
+                                    <span className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" style={{ color: 'var(--color-secondary, #D4AF37)' }}>⏰</span>
+                                    <div style={{ color: 'var(--color-text, #4A3728)' }}>
+                                      <span className="font-medium">Ceremony: </span>{event.event_content.ceremony_time}
+                                    </div>
+                                  </div>
+                                )}
+                                {event.event_content.dress_code && (
+                                  <div className="flex items-start">
+                                    <span className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" style={{ color: 'var(--color-secondary, #D4AF37)' }}>👔</span>
+                                    <div style={{ color: 'var(--color-text, #4A3728)' }}>
+                                      <span className="font-medium">Dress Code: </span>{event.event_content.dress_code}
+                                    </div>
+                                  </div>
+                                )}
+                              </>
+                            )}
+                            
+                            {/* Mehendi Content */}
+                            {event.event_type === 'mehendi' && (
+                              <>
+                                {event.event_content.bride_name && (
+                                  <div className="flex items-start">
+                                    <span className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" style={{ color: 'var(--color-secondary, #D4AF37)' }}>👰</span>
+                                    <div style={{ color: 'var(--color-text, #4A3728)' }}>
+                                      <span className="font-medium">Bride: </span>{event.event_content.bride_name}
+                                    </div>
+                                  </div>
+                                )}
+                                {event.event_content.mehendi_time && (
+                                  <div className="flex items-start">
+                                    <span className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" style={{ color: 'var(--color-secondary, #D4AF37)' }}>⏰</span>
+                                    <div style={{ color: 'var(--color-text, #4A3728)' }}>
+                                      <span className="font-medium">Mehendi Time: </span>{event.event_content.mehendi_time}
+                                    </div>
+                                  </div>
+                                )}
+                                {event.event_content.venue_details && (
+                                  <div className="flex items-start">
+                                    <span className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" style={{ color: 'var(--color-secondary, #D4AF37)' }}>📝</span>
+                                    <div style={{ color: 'var(--color-text, #4A3728)' }}>
+                                      {event.event_content.venue_details}
+                                    </div>
+                                  </div>
+                                )}
+                              </>
+                            )}
+                            
+                            {/* Marriage Content */}
+                            {event.event_type === 'marriage' && (
+                              <>
+                                {(event.event_content.bride_full_name || event.event_content.groom_full_name) && (
+                                  <div className="flex items-start">
+                                    <span className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" style={{ color: 'var(--color-secondary, #D4AF37)' }}>💑</span>
+                                    <div style={{ color: 'var(--color-text, #4A3728)' }}>
+                                      {event.event_content.bride_full_name && event.event_content.groom_full_name
+                                        ? `${event.event_content.bride_full_name} & ${event.event_content.groom_full_name}`
+                                        : event.event_content.bride_full_name || event.event_content.groom_full_name}
+                                    </div>
+                                  </div>
+                                )}
+                                {(event.event_content.bride_parents || event.event_content.groom_parents) && (
+                                  <div className="flex items-start">
+                                    <span className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" style={{ color: 'var(--color-secondary, #D4AF37)' }}>👨‍👩‍👧‍👦</span>
+                                    <div style={{ color: 'var(--color-text, #4A3728)' }}>
+                                      {event.event_content.bride_parents && (
+                                        <div><span className="font-medium">Bride's Parents: </span>{event.event_content.bride_parents}</div>
+                                      )}
+                                      {event.event_content.groom_parents && (
+                                        <div><span className="font-medium">Groom's Parents: </span>{event.event_content.groom_parents}</div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                                {event.event_content.muhurat_time && (
+                                  <div className="flex items-start">
+                                    <span className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" style={{ color: 'var(--color-secondary, #D4AF37)' }}>🕉️</span>
+                                    <div style={{ color: 'var(--color-text, #4A3728)' }}>
+                                      <span className="font-medium">Muhurat: </span>{event.event_content.muhurat_time}
+                                    </div>
+                                  </div>
+                                )}
+                                {event.event_content.rituals && (
+                                  <div className="flex items-start">
+                                    <span className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" style={{ color: 'var(--color-secondary, #D4AF37)' }}>🙏</span>
+                                    <div style={{ color: 'var(--color-text, #4A3728)' }}>
+                                      <span className="font-medium">Rituals: </span>{event.event_content.rituals}
+                                    </div>
+                                  </div>
+                                )}
+                                {event.event_content.dress_code && (
+                                  <div className="flex items-start">
+                                    <span className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" style={{ color: 'var(--color-secondary, #D4AF37)' }}>👔</span>
+                                    <div style={{ color: 'var(--color-text, #4A3728)' }}>
+                                      <span className="font-medium">Dress Code: </span>{event.event_content.dress_code}
+                                    </div>
+                                  </div>
+                                )}
+                              </>
+                            )}
+                            
+                            {/* Reception Content */}
+                            {event.event_type === 'reception' && (
+                              <>
+                                {event.event_content.couple_names && (
+                                  <div className="flex items-start">
+                                    <span className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" style={{ color: 'var(--color-secondary, #D4AF37)' }}>💑</span>
+                                    <div style={{ color: 'var(--color-text, #4A3728)' }}>
+                                      {event.event_content.couple_names}
+                                    </div>
+                                  </div>
+                                )}
+                                {event.event_content.reception_time && (
+                                  <div className="flex items-start">
+                                    <span className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" style={{ color: 'var(--color-secondary, #D4AF37)' }}>⏰</span>
+                                    <div style={{ color: 'var(--color-text, #4A3728)' }}>
+                                      <span className="font-medium">Reception: </span>{event.event_content.reception_time}
+                                    </div>
+                                  </div>
+                                )}
+                                {event.event_content.venue_details && (
+                                  <div className="flex items-start">
+                                    <span className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" style={{ color: 'var(--color-secondary, #D4AF37)' }}>📝</span>
+                                    <div style={{ color: 'var(--color-text, #4A3728)' }}>
+                                      {event.event_content.venue_details}
+                                    </div>
+                                  </div>
+                                )}
+                                {event.event_content.dress_code && (
+                                  <div className="flex items-start">
+                                    <span className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" style={{ color: 'var(--color-secondary, #D4AF37)' }}>👔</span>
+                                    <div style={{ color: 'var(--color-text, #4A3728)' }}>
+                                      <span className="font-medium">Dress Code: </span>{event.event_content.dress_code}
+                                    </div>
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
 
                       {event.map_link && (
                         <div className="mt-3 space-y-3">
