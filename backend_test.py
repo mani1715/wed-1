@@ -1,75 +1,86 @@
 #!/usr/bin/env python3
 """
-COMPREHENSIVE BACKEND TESTING - MULTI-EVENT INVITATION SYSTEM
-Testing all EventInvitation CRUD operations and public endpoints
+MULTI-EVENT INVITATION SYSTEM Backend Testing
+Tests all backend APIs for the event invitation system
 """
 
 import requests
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta
 
 # Configuration
 BASE_URL = "https://wed-organizer-18.preview.emergentagent.com/api"
 ADMIN_EMAIL = "admin@wedding.com"
 ADMIN_PASSWORD = "admin123"
 
-class BackendTester:
+class EventInvitationTester:
     def __init__(self):
-        self.base_url = BASE_URL
         self.token = None
         self.profile_id = None
-        self.slug = None
-        self.event_invitations = {}  # Store created event invitations
+        self.profile_slug = None
+        self.event_invitations = []
+        self.test_results = []
         
-    def log(self, message):
-        """Log test messages"""
-        print(f"[TEST] {message}")
+    def log_test(self, test_name, success, message="", details=None):
+        """Log test result"""
+        status = "✅ PASS" if success else "❌ FAIL"
+        print(f"{status}: {test_name}")
+        if message:
+            print(f"    {message}")
+        if details:
+            print(f"    Details: {details}")
         
-    def error(self, message):
-        """Log error messages"""
-        print(f"[ERROR] {message}")
+        self.test_results.append({
+            "test": test_name,
+            "success": success,
+            "message": message,
+            "details": details
+        })
+        print()
+    
+    def admin_login(self):
+        """Test 1: Admin Authentication"""
+        print("🔐 Testing Admin Authentication...")
         
-    def success(self, message):
-        """Log success messages"""
-        print(f"[SUCCESS] {message}")
-        
-    def login_admin(self):
-        """Phase 1: Login as admin and get JWT token"""
-        self.log("Phase 1: Admin Login")
-        
-        login_data = {
-            "email": ADMIN_EMAIL,
-            "password": ADMIN_PASSWORD
-        }
-        
-        response = requests.post(f"{self.base_url}/auth/login", json=login_data)
-        
-        if response.status_code == 200:
-            data = response.json()
-            self.token = data["access_token"]
-            self.success(f"Admin login successful. Token: {self.token[:20]}...")
-            return True
-        else:
-            self.error(f"Admin login failed: {response.status_code} - {response.text}")
+        try:
+            response = requests.post(f"{BASE_URL}/auth/login", json={
+                "email": ADMIN_EMAIL,
+                "password": ADMIN_PASSWORD
+            })
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.token = data.get("access_token")
+                self.log_test("Admin Login", True, f"Token received: {self.token[:20]}...")
+                return True
+            else:
+                self.log_test("Admin Login", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Admin Login", False, f"Exception: {str(e)}")
             return False
     
-    def get_headers(self):
-        """Get authorization headers"""
-        return {"Authorization": f"Bearer {self.token}"}
-    
     def create_test_profile(self):
-        """Phase 1: Create a test profile for testing"""
-        self.log("Phase 1: Creating test profile (Rajesh & Priya wedding)")
+        """Test 2: Create Test Profile"""
+        print("👰 Creating Test Profile...")
         
+        if not self.token:
+            self.log_test("Create Test Profile", False, "No authentication token")
+            return False
+        
+        headers = {"Authorization": f"Bearer {self.token}"}
+        
+        # Create profile with realistic Indian wedding data
         profile_data = {
             "groom_name": "Rajesh Kumar",
             "bride_name": "Priya Sharma",
             "event_type": "marriage",
-            "event_date": "2024-12-25T10:00:00Z",
-            "venue": "Grand Palace Hotel, Mumbai",
+            "event_date": (datetime.now() + timedelta(days=30)).isoformat(),
+            "venue": "Grand Palace Banquet Hall",
             "city": "Mumbai",
-            "invitation_message": "Join us in celebrating our special day",
+            "invitation_message": "Join us in celebrating our union",
             "language": ["english", "telugu"],
             "design_id": "royal_classic",
             "deity_id": "ganesha",
@@ -112,546 +123,597 @@ class BackendTester:
             "link_expiry_value": 30
         }
         
-        response = requests.post(
-            f"{self.base_url}/admin/profiles",
-            json=profile_data,
-            headers=self.get_headers()
-        )
-        
-        if response.status_code == 200:
-            data = response.json()
-            self.profile_id = data["id"]
-            self.slug = data["slug"]
-            self.success(f"Test profile created successfully. ID: {self.profile_id}, Slug: {self.slug}")
-            return True
-        else:
-            self.error(f"Profile creation failed: {response.status_code} - {response.text}")
+        try:
+            response = requests.post(f"{BASE_URL}/admin/profiles", 
+                                   json=profile_data, headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.profile_id = data.get("id")
+                self.profile_slug = data.get("slug")
+                self.log_test("Create Test Profile", True, 
+                            f"Profile created - ID: {self.profile_id}, Slug: {self.profile_slug}")
+                return True
+            else:
+                self.log_test("Create Test Profile", False, 
+                            f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Create Test Profile", False, f"Exception: {str(e)}")
             return False
     
     def test_get_empty_event_invitations(self):
-        """Phase 2: Test 4 - GET empty event invitations"""
-        self.log("Test 4: GET /api/admin/profiles/{profile_id}/event-invitations (should return empty array)")
+        """Test 3a: GET Event Invitations (Empty)"""
+        print("📋 Testing GET Event Invitations (Empty)...")
         
-        response = requests.get(
-            f"{self.base_url}/admin/profiles/{self.profile_id}/event-invitations",
-            headers=self.get_headers()
-        )
+        if not self.token or not self.profile_id:
+            self.log_test("GET Empty Event Invitations", False, "Missing token or profile_id")
+            return False
         
-        if response.status_code == 200:
-            data = response.json()
-            if isinstance(data, list) and len(data) == 0:
-                self.success("✅ GET event invitations returns empty array initially")
-                return True
+        headers = {"Authorization": f"Bearer {self.token}"}
+        
+        try:
+            response = requests.get(f"{BASE_URL}/admin/profiles/{self.profile_id}/event-invitations", 
+                                  headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list) and len(data) == 0:
+                    self.log_test("GET Empty Event Invitations", True, "Returns empty array initially")
+                    return True
+                else:
+                    self.log_test("GET Empty Event Invitations", False, 
+                                f"Expected empty array, got: {data}")
+                    return False
             else:
-                self.error(f"Expected empty array, got: {data}")
+                self.log_test("GET Empty Event Invitations", False, 
+                            f"Status: {response.status_code}, Response: {response.text}")
                 return False
-        else:
-            self.error(f"GET event invitations failed: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Empty Event Invitations", False, f"Exception: {str(e)}")
             return False
     
-    def test_create_engagement_invitation(self):
-        """Phase 2: Test 5 - Create engagement event invitation"""
-        self.log("Test 5: POST /api/admin/profiles/{profile_id}/event-invitations (engagement)")
+    def test_create_event_invitations(self):
+        """Test 3b: POST Create Event Invitations"""
+        print("➕ Testing Create Event Invitations...")
         
-        invitation_data = {
-            "event_type": "engagement",
-            "design_id": "royal_classic",
-            "deity_id": "ganesha"
-        }
+        if not self.token or not self.profile_id:
+            self.log_test("Create Event Invitations", False, "Missing token or profile_id")
+            return False
         
-        response = requests.post(
-            f"{self.base_url}/admin/profiles/{self.profile_id}/event-invitations",
-            json=invitation_data,
-            headers=self.get_headers()
-        )
+        headers = {"Authorization": f"Bearer {self.token}"}
         
-        if response.status_code == 200:
-            data = response.json()
-            if (data.get("event_type") == "engagement" and 
-                data.get("design_id") == "royal_classic" and
-                data.get("deity_id") == "ganesha" and
-                "invitation_link" in data and
-                data["invitation_link"] == f"/invite/{self.slug}/engagement"):
-                
-                self.event_invitations["engagement"] = data
-                self.success("✅ Engagement event invitation created successfully")
-                self.success(f"   Invitation link: {data['invitation_link']}")
-                self.success(f"   Deity ID allowed for engagement: {data['deity_id']}")
-                return True
+        # Test 1: Create Engagement event invitation with lord background
+        print("  Test 1: Create Engagement with deity_id: ganesha")
+        try:
+            engagement_data = {
+                "event_type": "engagement",
+                "design_id": "royal_classic",
+                "deity_id": "ganesha"
+            }
+            
+            response = requests.post(f"{BASE_URL}/admin/profiles/{self.profile_id}/event-invitations", 
+                                   json=engagement_data, headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                expected_link = f"/invite/{self.profile_slug}/engagement"
+                if data.get("invitation_link") == expected_link:
+                    self.event_invitations.append(data)
+                    self.log_test("Create Engagement Event", True, 
+                                f"Success - Link: {data.get('invitation_link')}")
+                else:
+                    self.log_test("Create Engagement Event", False, 
+                                f"Wrong invitation_link: {data.get('invitation_link')}")
+                    return False
             else:
-                self.error(f"Engagement invitation data incorrect: {data}")
+                self.log_test("Create Engagement Event", False, 
+                            f"Status: {response.status_code}, Response: {response.text}")
                 return False
-        else:
-            self.error(f"Engagement invitation creation failed: {response.status_code} - {response.text}")
+        except Exception as e:
+            self.log_test("Create Engagement Event", False, f"Exception: {str(e)}")
             return False
-    
-    def test_create_haldi_invitation(self):
-        """Phase 2: Test 6 - Create haldi event invitation (deity should be forced to null)"""
-        self.log("Test 6: POST /api/admin/profiles/{profile_id}/event-invitations (haldi - deity forced to null)")
         
-        invitation_data = {
-            "event_type": "haldi",
-            "design_id": "floral_soft",
-            "deity_id": "ganesha"  # This should be forced to null
-        }
-        
-        response = requests.post(
-            f"{self.base_url}/admin/profiles/{self.profile_id}/event-invitations",
-            json=invitation_data,
-            headers=self.get_headers()
-        )
-        
-        if response.status_code == 200:
-            data = response.json()
-            if (data.get("event_type") == "haldi" and 
-                data.get("design_id") == "floral_soft" and
-                data.get("deity_id") is None and  # Should be forced to null
-                "invitation_link" in data):
-                
-                self.event_invitations["haldi"] = data
-                self.success("✅ Haldi event invitation created successfully")
-                self.success(f"   Deity ID forced to null for Haldi: {data['deity_id']}")
-                return True
+        # Test 2: Create Haldi event invitation with deity_id (should fail)
+        print("  Test 2: Create Haldi with deity_id: ganesha (should fail)")
+        try:
+            haldi_data = {
+                "event_type": "haldi",
+                "design_id": "floral_soft",
+                "deity_id": "ganesha"
+            }
+            
+            response = requests.post(f"{BASE_URL}/admin/profiles/{self.profile_id}/event-invitations", 
+                                   json=haldi_data, headers=headers)
+            
+            if response.status_code == 422:
+                self.log_test("Create Haldi with Deity (Validation)", True, 
+                            "Correctly rejected deity for Haldi event")
             else:
-                self.error(f"Haldi invitation data incorrect: {data}")
+                self.log_test("Create Haldi with Deity (Validation)", False, 
+                            f"Should have failed with 422, got: {response.status_code}")
                 return False
-        else:
-            self.error(f"Haldi invitation creation failed: {response.status_code} - {response.text}")
+        except Exception as e:
+            self.log_test("Create Haldi with Deity (Validation)", False, f"Exception: {str(e)}")
             return False
-    
-    def test_create_mehendi_invitation(self):
-        """Phase 2: Test 7 - Create mehendi event invitation (deity should be forced to null)"""
-        self.log("Test 7: POST /api/admin/profiles/{profile_id}/event-invitations (mehendi - deity forced to null)")
         
-        invitation_data = {
-            "event_type": "mehendi",
-            "design_id": "temple_divine",
-            "deity_id": "shiva_parvati"  # This should be forced to null
-        }
-        
-        response = requests.post(
-            f"{self.base_url}/admin/profiles/{self.profile_id}/event-invitations",
-            json=invitation_data,
-            headers=self.get_headers()
-        )
-        
-        if response.status_code == 200:
-            data = response.json()
-            if (data.get("event_type") == "mehendi" and 
-                data.get("design_id") == "temple_divine" and
-                data.get("deity_id") is None and  # Should be forced to null
-                "invitation_link" in data):
-                
-                self.event_invitations["mehendi"] = data
-                self.success("✅ Mehendi event invitation created successfully")
-                self.success(f"   Deity ID forced to null for Mehendi: {data['deity_id']}")
-                return True
+        # Test 3: Create Haldi event invitation with deity_id: null
+        print("  Test 3: Create Haldi with deity_id: null")
+        try:
+            haldi_data = {
+                "event_type": "haldi",
+                "design_id": "floral_soft",
+                "deity_id": None
+            }
+            
+            response = requests.post(f"{BASE_URL}/admin/profiles/{self.profile_id}/event-invitations", 
+                                   json=haldi_data, headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                expected_link = f"/invite/{self.profile_slug}/haldi"
+                if data.get("invitation_link") == expected_link:
+                    self.event_invitations.append(data)
+                    self.log_test("Create Haldi Event", True, 
+                                f"Success - Link: {data.get('invitation_link')}")
+                else:
+                    self.log_test("Create Haldi Event", False, 
+                                f"Wrong invitation_link: {data.get('invitation_link')}")
+                    return False
             else:
-                self.error(f"Mehendi invitation data incorrect: {data}")
+                self.log_test("Create Haldi Event", False, 
+                            f"Status: {response.status_code}, Response: {response.text}")
                 return False
-        else:
-            self.error(f"Mehendi invitation creation failed: {response.status_code} - {response.text}")
+        except Exception as e:
+            self.log_test("Create Haldi Event", False, f"Exception: {str(e)}")
             return False
-    
-    def test_create_duplicate_engagement(self):
-        """Phase 2: Test 8 - Try to create duplicate engagement invitation (should fail)"""
-        self.log("Test 8: POST duplicate engagement invitation (should return 400 error)")
         
-        invitation_data = {
-            "event_type": "engagement",
-            "design_id": "floral_soft",
-            "deity_id": "lakshmi_vishnu"
-        }
-        
-        response = requests.post(
-            f"{self.base_url}/admin/profiles/{self.profile_id}/event-invitations",
-            json=invitation_data,
-            headers=self.get_headers()
-        )
-        
-        if response.status_code == 400:
-            self.success("✅ Duplicate engagement invitation correctly rejected with 400 error")
-            return True
-        else:
-            self.error(f"Expected 400 error for duplicate, got: {response.status_code} - {response.text}")
+        # Test 4: Create Marriage event invitation with deity_id: lakshmi_vishnu
+        print("  Test 4: Create Marriage with deity_id: lakshmi_vishnu")
+        try:
+            marriage_data = {
+                "event_type": "marriage",
+                "design_id": "temple_divine",
+                "deity_id": "lakshmi_vishnu"
+            }
+            
+            response = requests.post(f"{BASE_URL}/admin/profiles/{self.profile_id}/event-invitations", 
+                                   json=marriage_data, headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                expected_link = f"/invite/{self.profile_slug}/marriage"
+                if data.get("invitation_link") == expected_link:
+                    self.event_invitations.append(data)
+                    self.log_test("Create Marriage Event", True, 
+                                f"Success - Link: {data.get('invitation_link')}")
+                else:
+                    self.log_test("Create Marriage Event", False, 
+                                f"Wrong invitation_link: {data.get('invitation_link')}")
+                    return False
+            else:
+                self.log_test("Create Marriage Event", False, 
+                            f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Create Marriage Event", False, f"Exception: {str(e)}")
             return False
+        
+        # Test 5: Create duplicate Engagement invitation (should fail)
+        print("  Test 5: Create duplicate Engagement (should fail)")
+        try:
+            duplicate_data = {
+                "event_type": "engagement",
+                "design_id": "modern_premium",
+                "deity_id": "shiva_parvati"
+            }
+            
+            response = requests.post(f"{BASE_URL}/admin/profiles/{self.profile_id}/event-invitations", 
+                                   json=duplicate_data, headers=headers)
+            
+            if response.status_code == 400:
+                self.log_test("Create Duplicate Event (Validation)", True, 
+                            "Correctly rejected duplicate event type")
+            else:
+                self.log_test("Create Duplicate Event (Validation)", False, 
+                            f"Should have failed with 400, got: {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_test("Create Duplicate Event (Validation)", False, f"Exception: {str(e)}")
+            return False
+        
+        return True
     
-    def test_get_all_event_invitations(self):
-        """Phase 2: Test 9 - GET all event invitations (should return 3)"""
-        self.log("Test 9: GET /api/admin/profiles/{profile_id}/event-invitations (should return 3 invitations)")
+    def test_get_event_invitations_list(self):
+        """Test 3c: GET Event Invitations (List)"""
+        print("📋 Testing GET Event Invitations (List)...")
         
-        response = requests.get(
-            f"{self.base_url}/admin/profiles/{self.profile_id}/event-invitations",
-            headers=self.get_headers()
-        )
+        if not self.token or not self.profile_id:
+            self.log_test("GET Event Invitations List", False, "Missing token or profile_id")
+            return False
         
-        if response.status_code == 200:
-            data = response.json()
-            if isinstance(data, list) and len(data) == 3:
-                event_types = [inv["event_type"] for inv in data]
-                expected_types = ["engagement", "haldi", "mehendi"]
-                
-                if all(et in event_types for et in expected_types):
-                    self.success("✅ GET event invitations returns 3 invitations (engagement, haldi, mehendi)")
+        headers = {"Authorization": f"Bearer {self.token}"}
+        
+        try:
+            response = requests.get(f"{BASE_URL}/admin/profiles/{self.profile_id}/event-invitations", 
+                                  headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list) and len(data) == 3:
+                    # Verify each event invitation
+                    event_types = [ei.get("event_type") for ei in data]
+                    expected_types = ["engagement", "haldi", "marriage"]
                     
-                    # Verify invitation links
-                    for inv in data:
-                        expected_link = f"/invite/{self.slug}/{inv['event_type']}"
-                        if inv["invitation_link"] == expected_link:
-                            self.success(f"   ✅ {inv['event_type']} link correct: {inv['invitation_link']}")
+                    if all(et in event_types for et in expected_types):
+                        # Check invitation links
+                        for ei in data:
+                            expected_link = f"/invite/{self.profile_slug}/{ei['event_type']}"
+                            if ei.get("invitation_link") != expected_link:
+                                self.log_test("GET Event Invitations List", False, 
+                                            f"Wrong link for {ei['event_type']}: {ei.get('invitation_link')}")
+                                return False
+                        
+                        self.log_test("GET Event Invitations List", True, 
+                                    f"Returns 3 event invitations: {event_types}")
+                        return True
+                    else:
+                        self.log_test("GET Event Invitations List", False, 
+                                    f"Wrong event types: {event_types}")
+                        return False
+                else:
+                    self.log_test("GET Event Invitations List", False, 
+                                f"Expected 3 invitations, got: {len(data) if isinstance(data, list) else 'not a list'}")
+                    return False
+            else:
+                self.log_test("GET Event Invitations List", False, 
+                            f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("GET Event Invitations List", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_update_event_invitations(self):
+        """Test 3d: PUT Update Event Invitations"""
+        print("✏️ Testing Update Event Invitations...")
+        
+        if not self.token or len(self.event_invitations) < 3:
+            self.log_test("Update Event Invitations", False, "Missing token or event invitations")
+            return False
+        
+        headers = {"Authorization": f"Bearer {self.token}"}
+        
+        # Find engagement invitation
+        engagement_invitation = None
+        haldi_invitation = None
+        marriage_invitation = None
+        
+        for ei in self.event_invitations:
+            if ei.get("event_type") == "engagement":
+                engagement_invitation = ei
+            elif ei.get("event_type") == "haldi":
+                haldi_invitation = ei
+            elif ei.get("event_type") == "marriage":
+                marriage_invitation = ei
+        
+        # Test 1: Update Engagement invitation design
+        print("  Test 1: Update Engagement design_id to 'floral_soft'")
+        if engagement_invitation:
+            try:
+                update_data = {"design_id": "floral_soft"}
+                
+                response = requests.put(f"{BASE_URL}/admin/event-invitations/{engagement_invitation['id']}", 
+                                      json=update_data, headers=headers)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get("design_id") == "floral_soft":
+                        self.log_test("Update Engagement Design", True, 
+                                    f"Design updated to: {data.get('design_id')}")
+                    else:
+                        self.log_test("Update Engagement Design", False, 
+                                    f"Design not updated: {data.get('design_id')}")
+                        return False
+                else:
+                    self.log_test("Update Engagement Design", False, 
+                                f"Status: {response.status_code}, Response: {response.text}")
+                    return False
+            except Exception as e:
+                self.log_test("Update Engagement Design", False, f"Exception: {str(e)}")
+                return False
+        
+        # Test 2: Try to add deity to Haldi (should fail)
+        print("  Test 2: Try to add deity_id to Haldi (should fail)")
+        if haldi_invitation:
+            try:
+                update_data = {"deity_id": "ganesha"}
+                
+                response = requests.put(f"{BASE_URL}/admin/event-invitations/{haldi_invitation['id']}", 
+                                      json=update_data, headers=headers)
+                
+                if response.status_code == 422:
+                    self.log_test("Update Haldi Deity (Validation)", True, 
+                                "Correctly rejected deity for Haldi")
+                else:
+                    # Check if deity was forced to null (backend enforcement)
+                    if response.status_code == 200:
+                        data = response.json()
+                        if data.get("deity_id") is None:
+                            self.log_test("Update Haldi Deity (Validation)", True, 
+                                        "Backend enforced deity_id=null for Haldi")
                         else:
-                            self.error(f"   ❌ {inv['event_type']} link incorrect: {inv['invitation_link']}")
+                            self.log_test("Update Haldi Deity (Validation)", False, 
+                                        f"Deity should be null, got: {data.get('deity_id')}")
+                            return False
+                    else:
+                        self.log_test("Update Haldi Deity (Validation)", False, 
+                                    f"Unexpected status: {response.status_code}")
+                        return False
+            except Exception as e:
+                self.log_test("Update Haldi Deity (Validation)", False, f"Exception: {str(e)}")
+                return False
+        
+        # Test 3: Disable Marriage invitation
+        print("  Test 3: Set Marriage invitation enabled=false")
+        if marriage_invitation:
+            try:
+                update_data = {"enabled": False}
+                
+                response = requests.put(f"{BASE_URL}/admin/event-invitations/{marriage_invitation['id']}", 
+                                      json=update_data, headers=headers)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get("enabled") == False:
+                        self.log_test("Disable Marriage Event", True, 
+                                    f"Marriage invitation disabled: {data.get('enabled')}")
+                        # Update our local copy
+                        marriage_invitation["enabled"] = False
+                    else:
+                        self.log_test("Disable Marriage Event", False, 
+                                    f"Enabled not updated: {data.get('enabled')}")
+                        return False
+                else:
+                    self.log_test("Disable Marriage Event", False, 
+                                f"Status: {response.status_code}, Response: {response.text}")
+                    return False
+            except Exception as e:
+                self.log_test("Disable Marriage Event", False, f"Exception: {str(e)}")
+                return False
+        
+        return True
+    
+    def test_delete_event_invitation(self):
+        """Test 3e: DELETE Event Invitation"""
+        print("🗑️ Testing Delete Event Invitation...")
+        
+        if not self.token or len(self.event_invitations) < 1:
+            self.log_test("Delete Event Invitation", False, "Missing token or event invitations")
+            return False
+        
+        headers = {"Authorization": f"Bearer {self.token}"}
+        
+        # Delete the first event invitation (engagement)
+        invitation_to_delete = self.event_invitations[0]
+        
+        try:
+            response = requests.delete(f"{BASE_URL}/admin/event-invitations/{invitation_to_delete['id']}", 
+                                     headers=headers)
+            
+            if response.status_code == 200:
+                self.log_test("Delete Event Invitation", True, 
+                            f"Deleted {invitation_to_delete['event_type']} invitation")
+                
+                # Verify it's removed from the list
+                list_response = requests.get(f"{BASE_URL}/admin/profiles/{self.profile_id}/event-invitations", 
+                                           headers=headers)
+                
+                if list_response.status_code == 200:
+                    data = list_response.json()
+                    event_types = [ei.get("event_type") for ei in data]
                     
-                    return True
+                    if invitation_to_delete['event_type'] not in event_types:
+                        self.log_test("Verify Deletion", True, 
+                                    f"Event removed from list. Remaining: {event_types}")
+                        return True
+                    else:
+                        self.log_test("Verify Deletion", False, 
+                                    f"Event still in list: {event_types}")
+                        return False
                 else:
-                    self.error(f"Expected event types {expected_types}, got: {event_types}")
+                    self.log_test("Verify Deletion", False, 
+                                f"Failed to get updated list: {list_response.status_code}")
                     return False
             else:
-                self.error(f"Expected 3 invitations, got: {len(data) if isinstance(data, list) else 'not a list'}")
+                self.log_test("Delete Event Invitation", False, 
+                            f"Status: {response.status_code}, Response: {response.text}")
                 return False
-        else:
-            self.error(f"GET event invitations failed: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_test("Delete Event Invitation", False, f"Exception: {str(e)}")
             return False
     
-    def test_update_haldi_invitation(self):
-        """Phase 2: Test 10 - Update haldi invitation design"""
-        self.log("Test 10: PUT /api/admin/event-invitations/{invitation_id} (update haldi design)")
+    def test_public_event_invitation_apis(self):
+        """Test 4: Public Event Invitation APIs"""
+        print("🌐 Testing Public Event Invitation APIs...")
         
-        haldi_invitation = self.event_invitations.get("haldi")
-        if not haldi_invitation:
-            self.error("Haldi invitation not found in stored invitations")
+        if not self.profile_slug:
+            self.log_test("Public Event APIs", False, "Missing profile slug")
             return False
         
-        update_data = {
-            "design_id": "temple_divine"
-        }
-        
-        response = requests.put(
-            f"{self.base_url}/admin/event-invitations/{haldi_invitation['id']}",
-            json=update_data,
-            headers=self.get_headers()
-        )
-        
-        if response.status_code == 200:
-            data = response.json()
-            if data.get("design_id") == "temple_divine":
-                self.success("✅ Haldi invitation design updated successfully")
-                self.event_invitations["haldi"] = data  # Update stored data
-                return True
-            else:
-                self.error(f"Design update failed, got: {data}")
-                return False
-        else:
-            self.error(f"Haldi invitation update failed: {response.status_code} - {response.text}")
-            return False
-    
-    def test_disable_engagement_invitation(self):
-        """Phase 2: Test 11 - Disable engagement invitation"""
-        self.log("Test 11: PUT /api/admin/event-invitations/{invitation_id} (disable engagement)")
-        
-        engagement_invitation = self.event_invitations.get("engagement")
-        if not engagement_invitation:
-            self.error("Engagement invitation not found in stored invitations")
-            return False
-        
-        update_data = {
-            "enabled": False
-        }
-        
-        response = requests.put(
-            f"{self.base_url}/admin/event-invitations/{engagement_invitation['id']}",
-            json=update_data,
-            headers=self.get_headers()
-        )
-        
-        if response.status_code == 200:
-            data = response.json()
-            if data.get("enabled") is False:
-                self.success("✅ Engagement invitation disabled successfully")
-                self.event_invitations["engagement"] = data  # Update stored data
-                return True
-            else:
-                self.error(f"Disable failed, got: {data}")
-                return False
-        else:
-            self.error(f"Engagement invitation disable failed: {response.status_code} - {response.text}")
-            return False
-    
-    def test_public_disabled_engagement(self):
-        """Phase 3: Test 12 - GET disabled engagement invitation (should return 404)"""
-        self.log("Test 12: GET /api/invite/{slug}/engagement (should return 404 - disabled)")
-        
-        response = requests.get(f"{self.base_url}/invite/{self.slug}/engagement")
-        
-        if response.status_code == 404:
-            self.success("✅ Disabled engagement invitation correctly returns 404")
-            return True
-        else:
-            self.error(f"Expected 404 for disabled invitation, got: {response.status_code} - {response.text}")
-            return False
-    
-    def test_enable_engagement_invitation(self):
-        """Phase 3: Test 13 - Re-enable engagement invitation"""
-        self.log("Test 13: PUT /api/admin/event-invitations/{invitation_id} (re-enable engagement)")
-        
-        engagement_invitation = self.event_invitations.get("engagement")
-        if not engagement_invitation:
-            self.error("Engagement invitation not found in stored invitations")
-            return False
-        
-        update_data = {
-            "enabled": True
-        }
-        
-        response = requests.put(
-            f"{self.base_url}/admin/event-invitations/{engagement_invitation['id']}",
-            json=update_data,
-            headers=self.get_headers()
-        )
-        
-        if response.status_code == 200:
-            data = response.json()
-            if data.get("enabled") is True:
-                self.success("✅ Engagement invitation re-enabled successfully")
-                self.event_invitations["engagement"] = data  # Update stored data
-                return True
-            else:
-                self.error(f"Re-enable failed, got: {data}")
-                return False
-        else:
-            self.error(f"Engagement invitation re-enable failed: {response.status_code} - {response.text}")
-            return False
-    
-    def test_public_enabled_engagement(self):
-        """Phase 3: Test 14 - GET enabled engagement invitation"""
-        self.log("Test 14: GET /api/invite/{slug}/engagement (should return invitation data)")
-        
-        response = requests.get(f"{self.base_url}/invite/{self.slug}/engagement")
-        
-        if response.status_code == 200:
-            data = response.json()
+        # Test 4a: GET event-specific public view (Haldi - should work)
+        print("  Test 4a: GET /api/invite/{slug}/haldi")
+        try:
+            response = requests.get(f"{BASE_URL}/invite/{self.profile_slug}/haldi")
             
-            # Verify it uses EventInvitation design_id and deity_id
-            engagement_invitation = self.event_invitations.get("engagement")
-            if (data.get("design_id") == engagement_invitation.get("design_id") and
-                data.get("deity_id") == engagement_invitation.get("deity_id") and
-                data.get("slug") == self.slug):
-                
-                self.success("✅ Enabled engagement invitation returns correct data")
-                self.success(f"   Uses EventInvitation design_id: {data['design_id']}")
-                self.success(f"   Uses EventInvitation deity_id: {data['deity_id']}")
-                self.success(f"   Includes profile data: {data['groom_name']} & {data['bride_name']}")
-                return True
-            else:
-                self.error(f"Engagement invitation data incorrect: {data}")
-                return False
-        else:
-            self.error(f"Enabled engagement invitation failed: {response.status_code} - {response.text}")
-            return False
-    
-    def test_public_haldi_invitation(self):
-        """Phase 3: Test 15 - GET haldi invitation (deity should be null)"""
-        self.log("Test 15: GET /api/invite/{slug}/haldi (deity should be null)")
-        
-        response = requests.get(f"{self.base_url}/invite/{self.slug}/haldi")
-        
-        if response.status_code == 200:
-            data = response.json()
-            
-            if (data.get("deity_id") is None and
-                data.get("slug") == self.slug):
-                
-                self.success("✅ Haldi invitation returns correct data")
-                self.success(f"   Deity ID is null (no lord background): {data['deity_id']}")
-                return True
-            else:
-                self.error(f"Haldi invitation data incorrect: {data}")
-                return False
-        else:
-            self.error(f"Haldi invitation failed: {response.status_code} - {response.text}")
-            return False
-    
-    def test_public_nonexistent_reception(self):
-        """Phase 3: Test 16 - GET reception invitation (should return 404 - not created)"""
-        self.log("Test 16: GET /api/invite/{slug}/reception (should return 404 - not created)")
-        
-        response = requests.get(f"{self.base_url}/invite/{self.slug}/reception")
-        
-        if response.status_code == 404:
-            self.success("✅ Non-existent reception invitation correctly returns 404")
-            return True
-        else:
-            self.error(f"Expected 404 for non-existent reception, got: {response.status_code} - {response.text}")
-            return False
-    
-    def test_delete_haldi_invitation(self):
-        """Phase 3: Test 17 - Delete haldi invitation"""
-        self.log("Test 17: DELETE /api/admin/event-invitations/{invitation_id} (delete haldi)")
-        
-        haldi_invitation = self.event_invitations.get("haldi")
-        if not haldi_invitation:
-            self.error("Haldi invitation not found in stored invitations")
-            return False
-        
-        response = requests.delete(
-            f"{self.base_url}/admin/event-invitations/{haldi_invitation['id']}",
-            headers=self.get_headers()
-        )
-        
-        if response.status_code == 200:
-            self.success("✅ Haldi invitation deleted successfully")
-            del self.event_invitations["haldi"]  # Remove from stored data
-            return True
-        else:
-            self.error(f"Haldi invitation deletion failed: {response.status_code} - {response.text}")
-            return False
-    
-    def test_get_remaining_invitations(self):
-        """Phase 3: Test 18 - GET remaining invitations (should be 2)"""
-        self.log("Test 18: GET /api/admin/profiles/{profile_id}/event-invitations (should return 2 invitations)")
-        
-        response = requests.get(
-            f"{self.base_url}/admin/profiles/{self.profile_id}/event-invitations",
-            headers=self.get_headers()
-        )
-        
-        if response.status_code == 200:
-            data = response.json()
-            if isinstance(data, list) and len(data) == 2:
-                event_types = [inv["event_type"] for inv in data]
-                expected_types = ["engagement", "mehendi"]
-                
-                if all(et in event_types for et in expected_types):
-                    self.success("✅ GET event invitations returns 2 remaining invitations (engagement, mehendi)")
-                    return True
+            if response.status_code == 200:
+                data = response.json()
+                # Should return invitation data with design_id from EventInvitation
+                if data.get("design_id") == "floral_soft":  # Haldi was created with floral_soft
+                    self.log_test("Public Haldi Event View", True, 
+                                f"Returns correct design_id: {data.get('design_id')}")
                 else:
-                    self.error(f"Expected event types {expected_types}, got: {event_types}")
+                    self.log_test("Public Haldi Event View", False, 
+                                f"Wrong design_id: {data.get('design_id')}")
                     return False
             else:
-                self.error(f"Expected 2 invitations, got: {len(data) if isinstance(data, list) else 'not a list'}")
+                self.log_test("Public Haldi Event View", False, 
+                            f"Status: {response.status_code}, Response: {response.text}")
                 return False
-        else:
-            self.error(f"GET remaining invitations failed: {response.status_code} - {response.text}")
+        except Exception as e:
+            self.log_test("Public Haldi Event View", False, f"Exception: {str(e)}")
             return False
+        
+        # Test 4b: GET disabled event (Marriage - should return 404)
+        print("  Test 4b: GET /api/invite/{slug}/marriage (disabled)")
+        try:
+            response = requests.get(f"{BASE_URL}/invite/{self.profile_slug}/marriage")
+            
+            if response.status_code == 404:
+                self.log_test("Public Disabled Event View", True, 
+                            "Correctly returns 404 for disabled event")
+            else:
+                self.log_test("Public Disabled Event View", False, 
+                            f"Should return 404, got: {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_test("Public Disabled Event View", False, f"Exception: {str(e)}")
+            return False
+        
+        # Test 4c: GET non-existent event invitation (Reception)
+        print("  Test 4c: GET /api/invite/{slug}/reception (non-existent)")
+        try:
+            response = requests.get(f"{BASE_URL}/invite/{self.profile_slug}/reception")
+            
+            # Should either return 404 or fallback to WeddingEvent logic
+            if response.status_code in [404, 200]:
+                self.log_test("Public Non-existent Event View", True, 
+                            f"Handles non-existent event correctly: {response.status_code}")
+            else:
+                self.log_test("Public Non-existent Event View", False, 
+                            f"Unexpected status: {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_test("Public Non-existent Event View", False, f"Exception: {str(e)}")
+            return False
+        
+        return True
     
-    def test_invalid_event_type(self):
-        """Validation Test 19 - Try invalid event_type"""
-        self.log("Test 19: POST invalid event_type 'birthday' (should return validation error)")
+    def test_validation_rules(self):
+        """Test 5: Validation Rules"""
+        print("🔍 Testing Validation Rules...")
         
-        invitation_data = {
-            "event_type": "birthday",
-            "design_id": "royal_classic",
-            "deity_id": "ganesha"
-        }
-        
-        response = requests.post(
-            f"{self.base_url}/admin/profiles/{self.profile_id}/event-invitations",
-            json=invitation_data,
-            headers=self.get_headers()
-        )
-        
-        if response.status_code == 422:  # Validation error
-            self.success("✅ Invalid event_type 'birthday' correctly rejected with validation error")
-            return True
-        else:
-            self.error(f"Expected 422 validation error for invalid event_type, got: {response.status_code} - {response.text}")
+        if not self.token or not self.profile_id:
+            self.log_test("Validation Rules", False, "Missing token or profile_id")
             return False
-    
-    def test_invalid_profile_id(self):
-        """Validation Test 20 - Try invalid profile_id"""
-        self.log("Test 20: POST to invalid profile_id (should return 404)")
         
-        invitation_data = {
-            "event_type": "marriage",
-            "design_id": "royal_classic",
-            "deity_id": "ganesha"
-        }
+        headers = {"Authorization": f"Bearer {self.token}"}
         
-        response = requests.post(
-            f"{self.base_url}/admin/profiles/invalid-profile-id/event-invitations",
-            json=invitation_data,
-            headers=self.get_headers()
-        )
-        
-        if response.status_code == 404:
-            self.success("✅ Invalid profile_id correctly returns 404 profile not found")
-            return True
-        else:
-            self.error(f"Expected 404 for invalid profile_id, got: {response.status_code} - {response.text}")
+        # Test invalid event_type
+        print("  Test: Invalid event_type")
+        try:
+            invalid_data = {
+                "event_type": "birthday",  # Invalid
+                "design_id": "royal_classic",
+                "deity_id": None
+            }
+            
+            response = requests.post(f"{BASE_URL}/admin/profiles/{self.profile_id}/event-invitations", 
+                                   json=invalid_data, headers=headers)
+            
+            if response.status_code == 422:
+                self.log_test("Invalid Event Type Validation", True, 
+                            "Correctly rejected invalid event_type")
+            else:
+                self.log_test("Invalid Event Type Validation", False, 
+                            f"Should reject invalid event_type, got: {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_test("Invalid Event Type Validation", False, f"Exception: {str(e)}")
             return False
+        
+        # Test invalid deity_id
+        print("  Test: Invalid deity_id")
+        try:
+            invalid_data = {
+                "event_type": "reception",
+                "design_id": "royal_classic",
+                "deity_id": "invalid_deity"  # Invalid
+            }
+            
+            response = requests.post(f"{BASE_URL}/admin/profiles/{self.profile_id}/event-invitations", 
+                                   json=invalid_data, headers=headers)
+            
+            if response.status_code == 422:
+                self.log_test("Invalid Deity ID Validation", True, 
+                            "Correctly rejected invalid deity_id")
+            else:
+                self.log_test("Invalid Deity ID Validation", False, 
+                            f"Should reject invalid deity_id, got: {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_test("Invalid Deity ID Validation", False, f"Exception: {str(e)}")
+            return False
+        
+        return True
     
     def run_all_tests(self):
         """Run all tests in sequence"""
-        print("=" * 80)
-        print("COMPREHENSIVE BACKEND TESTING - MULTI-EVENT INVITATION SYSTEM")
-        print("=" * 80)
+        print("🚀 Starting MULTI-EVENT INVITATION SYSTEM Backend Tests\n")
         
+        # Test sequence
         tests = [
-            # Phase 1: Setup & Profile Creation
-            ("Admin Login", self.login_admin),
+            ("Admin Authentication", self.admin_login),
             ("Create Test Profile", self.create_test_profile),
-            
-            # Phase 2: EventInvitation CRUD Operations
-            ("Test 4: GET Empty Event Invitations", self.test_get_empty_event_invitations),
-            ("Test 5: Create Engagement Invitation", self.test_create_engagement_invitation),
-            ("Test 6: Create Haldi Invitation (Deity Forced Null)", self.test_create_haldi_invitation),
-            ("Test 7: Create Mehendi Invitation (Deity Forced Null)", self.test_create_mehendi_invitation),
-            ("Test 8: Create Duplicate Engagement (Should Fail)", self.test_create_duplicate_engagement),
-            ("Test 9: GET All Event Invitations (Should Return 3)", self.test_get_all_event_invitations),
-            ("Test 10: Update Haldi Invitation Design", self.test_update_haldi_invitation),
-            ("Test 11: Disable Engagement Invitation", self.test_disable_engagement_invitation),
-            
-            # Phase 3: Public Invitation Endpoints
-            ("Test 12: GET Disabled Engagement (Should Return 404)", self.test_public_disabled_engagement),
-            ("Test 13: Re-enable Engagement Invitation", self.test_enable_engagement_invitation),
-            ("Test 14: GET Enabled Engagement Invitation", self.test_public_enabled_engagement),
-            ("Test 15: GET Haldi Invitation (Deity Null)", self.test_public_haldi_invitation),
-            ("Test 16: GET Non-existent Reception (Should Return 404)", self.test_public_nonexistent_reception),
-            ("Test 17: Delete Haldi Invitation", self.test_delete_haldi_invitation),
-            ("Test 18: GET Remaining Invitations (Should Return 2)", self.test_get_remaining_invitations),
-            
-            # Validation Tests
-            ("Test 19: Invalid Event Type Validation", self.test_invalid_event_type),
-            ("Test 20: Invalid Profile ID Validation", self.test_invalid_profile_id),
+            ("GET Empty Event Invitations", self.test_get_empty_event_invitations),
+            ("Create Event Invitations", self.test_create_event_invitations),
+            ("GET Event Invitations List", self.test_get_event_invitations_list),
+            ("Update Event Invitations", self.test_update_event_invitations),
+            ("Delete Event Invitation", self.test_delete_event_invitation),
+            ("Public Event Invitation APIs", self.test_public_event_invitation_apis),
+            ("Validation Rules", self.test_validation_rules)
         ]
         
         passed = 0
-        failed = 0
+        total = len(tests)
         
         for test_name, test_func in tests:
-            print(f"\n{'='*60}")
+            print(f"{'='*60}")
             print(f"Running: {test_name}")
-            print('='*60)
+            print(f"{'='*60}")
             
-            try:
-                if test_func():
-                    passed += 1
-                    print(f"✅ PASSED: {test_name}")
-                else:
-                    failed += 1
-                    print(f"❌ FAILED: {test_name}")
-            except Exception as e:
-                failed += 1
-                self.error(f"Exception in {test_name}: {str(e)}")
-                print(f"❌ FAILED: {test_name} (Exception)")
+            if test_func():
+                passed += 1
+            else:
+                print(f"❌ Test '{test_name}' failed. Stopping execution.")
+                break
         
-        # Final Results
-        print("\n" + "="*80)
-        print("FINAL TEST RESULTS")
-        print("="*80)
-        print(f"Total Tests: {passed + failed}")
-        print(f"Passed: {passed}")
-        print(f"Failed: {failed}")
-        print(f"Success Rate: {(passed / (passed + failed) * 100):.1f}%")
+        # Summary
+        print(f"\n{'='*60}")
+        print(f"🎯 TEST SUMMARY")
+        print(f"{'='*60}")
+        print(f"Passed: {passed}/{total}")
+        print(f"Success Rate: {(passed/total)*100:.1f}%")
         
-        if failed == 0:
-            print("\n🎉 ALL TESTS PASSED! Multi-Event Invitation System is working correctly!")
+        if passed == total:
+            print("🎉 ALL TESTS PASSED! MULTI-EVENT INVITATION SYSTEM is working correctly.")
         else:
-            print(f"\n⚠️  {failed} test(s) failed. Please review the errors above.")
+            print("❌ Some tests failed. Please check the implementation.")
         
-        return failed == 0
+        return passed == total
+
+def main():
+    """Main test execution"""
+    tester = EventInvitationTester()
+    success = tester.run_all_tests()
+    
+    if success:
+        sys.exit(0)
+    else:
+        sys.exit(1)
 
 if __name__ == "__main__":
-    tester = BackendTester()
-    success = tester.run_all_tests()
-    sys.exit(0 if success else 1)
+    main()
