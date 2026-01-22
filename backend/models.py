@@ -55,6 +55,82 @@ class WeddingEvent(BaseModel):
         return v
 
 
+class EventInvitation(BaseModel):
+    """Model for event-specific invitation links
+    
+    Allows ONE profile to create MULTIPLE event-specific invitation links.
+    Each event type (Engagement, Haldi, Mehendi, Marriage, Reception) gets its own invitation page.
+    """
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    profile_id: str  # Reference to parent profile
+    event_type: EventType  # One of: engagement, haldi, mehendi, marriage, reception
+    design_id: str = "royal_classic"  # Design theme for this event invitation
+    deity_id: Optional[str] = None  # Deity background (null for Haldi/Mehendi as per rules)
+    enabled: bool = True  # Can disable without deleting
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    
+    @field_validator('deity_id')
+    def validate_deity_id(cls, v, info):
+        """Validate deity_id based on event_type rules"""
+        if v is not None:
+            allowed_deities = ['ganesha', 'venkateswara_padmavati', 'shiva_parvati', 'lakshmi_vishnu', 'none']
+            if v not in allowed_deities:
+                raise ValueError(f'deity_id must be one of: {", ".join(allowed_deities)} or null')
+        return v
+    
+    @field_validator('design_id')
+    def validate_design_id(cls, v):
+        """Validate design_id is one of the allowed values"""
+        allowed_designs = ['royal_classic', 'floral_soft', 'divine_temple', 'modern_minimal', 'cinematic_luxury', 'temple_divine', 'modern_premium', 'artistic_handcrafted', 'heritage_scroll', 'minimal_elegant']
+        if v not in allowed_designs:
+            raise ValueError(f'design_id must be one of: {", ".join(allowed_designs)}')
+        return v
+
+
+class EventInvitationCreate(BaseModel):
+    """Request model for creating event invitation"""
+    event_type: EventType
+    design_id: str = "royal_classic"
+    deity_id: Optional[str] = None
+    
+    @field_validator('deity_id')
+    def validate_deity_for_event_type(cls, v, info):
+        """Validate deity_id based on event_type
+        
+        Rules:
+        - Engagement/Marriage/Reception: Allow lord backgrounds
+        - Haldi/Mehendi: Disable lord selection (must be null)
+        """
+        event_type = info.data.get('event_type')
+        if event_type in ['haldi', 'mehendi']:
+            if v is not None and v != 'none':
+                raise ValueError(f'Deity backgrounds not allowed for {event_type} events')
+        return v
+
+
+class EventInvitationUpdate(BaseModel):
+    """Request model for updating event invitation"""
+    design_id: Optional[str] = None
+    deity_id: Optional[str] = None
+    enabled: Optional[bool] = None
+
+
+class EventInvitationResponse(BaseModel):
+    """Response model for event invitation"""
+    id: str
+    profile_id: str
+    event_type: str
+    design_id: str
+    deity_id: Optional[str] = None
+    enabled: bool
+    invitation_link: str  # Generated link: /invite/{slug}/{event_type}
+    created_at: datetime
+    updated_at: datetime
+
+
 class Admin(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
