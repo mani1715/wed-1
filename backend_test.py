@@ -47,7 +47,7 @@ class EventInvitationTester:
             response = requests.post(f"{BASE_URL}/auth/login", json={
                 "email": ADMIN_EMAIL,
                 "password": ADMIN_PASSWORD
-            })
+            }, verify=True, timeout=30)
             
             if response.status_code == 200:
                 data = response.json()
