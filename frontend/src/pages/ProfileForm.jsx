@@ -1817,4 +1817,207 @@ const ProfileForm = () => {
   );
 };
 
+/**
+ * PHASE 13 PART 2: Event Background Selector Component
+ * Shows appropriate background options based on event type
+ */
+const EventBackgroundSelector = ({ eventType, backgroundConfig, onChange }) => {
+  const backgrounds = getEventBackgrounds(eventType);
+  const [selectedCategory, setSelectedCategory] = useState(backgroundConfig?.background_type || null);
+  const [selectedBackground, setSelectedBackground] = useState(backgroundConfig?.background_id || null);
+  
+  if (!backgrounds) return null;
+  
+  // Helper to render background cards
+  const renderBackgroundCards = (bgList, category) => (
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-3">
+      {bgList.map((bg) => {
+        const isSelected = selectedCategory === category && selectedBackground === bg.id;
+        return (
+          <div
+            key={bg.id}
+            onClick={() => {
+              setSelectedCategory(category);
+              setSelectedBackground(bg.id);
+              onChange({ background_type: category, background_id: bg.id });
+            }}
+            className={`relative border-2 rounded-lg p-2 cursor-pointer transition-all hover:shadow-lg ${
+              isSelected ? 'border-rose-500 bg-rose-50' : 'border-gray-200 hover:border-rose-300'
+            }`}
+          >
+            <div className="aspect-video bg-gray-100 rounded overflow-hidden mb-2">
+              <img
+                src={bg.thumbnail || bg.images?.thumbnail}
+                alt={bg.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ddd" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999"%3ENo Image%3C/text%3E%3C/svg%3E';
+                }}
+              />
+            </div>
+            <div className="text-xs font-semibold text-gray-800 text-center">{bg.name}</div>
+            <div className="text-xs text-gray-600 text-center line-clamp-2 mt-1">{bg.description}</div>
+            {isSelected && (
+              <div className="absolute top-1 right-1 bg-rose-500 text-white rounded-full p-1">
+                <Check className="w-3 h-3" />
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+  
+  // Engagement: Lord + Ring/Flower
+  if (eventType === 'engagement') {
+    return (
+      <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Event Background (Optional)
+        </label>
+        <p className="text-xs text-gray-600 mb-3">
+          Choose from religious lord backgrounds or trendy ring/flower themes
+        </p>
+        
+        <div className="space-y-4">
+          {/* Lord Backgrounds */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <input
+                type="radio"
+                id={`${eventType}-lord`}
+                name={`${eventType}-category`}
+                checked={selectedCategory === 'lord'}
+                onChange={() => setSelectedCategory('lord')}
+                className="w-4 h-4 text-rose-600"
+              />
+              <label htmlFor={`${eventType}-lord`} className="text-sm font-medium text-gray-700">
+                Lord Backgrounds
+              </label>
+            </div>
+            {selectedCategory === 'lord' && renderBackgroundCards(backgrounds.lord, 'lord')}
+          </div>
+          
+          {/* Trendy Backgrounds */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <input
+                type="radio"
+                id={`${eventType}-trendy`}
+                name={`${eventType}-category`}
+                checked={selectedCategory === 'trendy'}
+                onChange={() => setSelectedCategory('trendy')}
+                className="w-4 h-4 text-rose-600"
+              />
+              <label htmlFor={`${eventType}-trendy`} className="text-sm font-medium text-gray-700">
+                Ring & Flower Backgrounds
+              </label>
+            </div>
+            {selectedCategory === 'trendy' && renderBackgroundCards(backgrounds.trendy, 'trendy')}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Haldi: Trendy only
+  if (eventType === 'haldi') {
+    return (
+      <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Haldi Background (Optional)
+        </label>
+        <p className="text-xs text-gray-600 mb-3">
+          Turmeric, bindelu, and yellow floral themes
+        </p>
+        {renderBackgroundCards(backgrounds.trendy, 'trendy')}
+      </div>
+    );
+  }
+  
+  // Mehendi: Trendy only
+  if (eventType === 'mehendi') {
+    return (
+      <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Mehendi Background (Optional)
+        </label>
+        <p className="text-xs text-gray-600 mb-3">
+          Mehendi patterns and green theme backgrounds
+        </p>
+        {renderBackgroundCards(backgrounds.trendy, 'trendy')}
+      </div>
+    );
+  }
+  
+  // Marriage: Lord only
+  if (eventType === 'marriage') {
+    return (
+      <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Marriage Background (Optional)
+        </label>
+        <p className="text-xs text-gray-600 mb-3">
+          Choose a religious lord background for the marriage ceremony
+        </p>
+        {renderBackgroundCards(backgrounds.lord, 'lord')}
+      </div>
+    );
+  }
+  
+  // Reception: Mandatory choice - With Lord OR Without Lord
+  if (eventType === 'reception') {
+    return (
+      <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Reception Background <span className="text-rose-500">*</span>
+        </label>
+        <p className="text-xs text-gray-600 mb-3">
+          Choose between religious lord backgrounds or royal/classy themes (required for reception)
+        </p>
+        
+        <div className="space-y-4">
+          {/* With Lord */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <input
+                type="radio"
+                id={`${eventType}-with-lord`}
+                name={`${eventType}-category`}
+                checked={selectedCategory === 'with_lord'}
+                onChange={() => setSelectedCategory('with_lord')}
+                className="w-4 h-4 text-rose-600"
+              />
+              <label htmlFor={`${eventType}-with-lord`} className="text-sm font-medium text-gray-700">
+                With Lord Background
+              </label>
+            </div>
+            {selectedCategory === 'with_lord' && renderBackgroundCards(backgrounds.with_lord, 'with_lord')}
+          </div>
+          
+          {/* Without Lord - Royal/Classy */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <input
+                type="radio"
+                id={`${eventType}-without-lord`}
+                name={`${eventType}-category`}
+                checked={selectedCategory === 'without_lord'}
+                onChange={() => setSelectedCategory('without_lord')}
+                className="w-4 h-4 text-rose-600"
+              />
+              <label htmlFor={`${eventType}-without-lord`} className="text-sm font-medium text-gray-700">
+                Without Lord (Royal/Classy)
+              </label>
+            </div>
+            {selectedCategory === 'without_lord' && renderBackgroundCards(backgrounds.without_lord, 'without_lord')}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  return null;
+};
+
 export default ProfileForm;
