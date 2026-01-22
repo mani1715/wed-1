@@ -2198,3 +2198,163 @@ agent_communication:
       5. File size and generation time
       6. Filename format correctness
       7. Download functionality in browser
+
+
+user_problem_statement_event_content_customization: |
+  EVENT-TYPE SPECIFIC CONTENT CUSTOMIZATION
+  
+  Goal:
+  Customize content fields based on event_type to capture event-specific details
+  
+  Event Content Structure:
+  - Engagement: Couple names, venue details
+  - Haldi: Bride/Groom names, ceremony time, dress code
+  - Mehendi: Bride name, mehendi time, venue details
+  - Marriage: Full wedding details (bride/groom full names, parents, muhurat time, rituals, dress code)
+  - Reception: Couple names, reception time, venue details, dress code
+  
+  Admin Features:
+  - Dynamic form fields based on event_type
+  - Event-specific fields appear after standard event fields
+  - Color-coded sections per event type (pink=engagement, yellow=haldi, green=mehendi, red=marriage, purple=reception)
+  - All fields optional but contextual
+  
+  Public Display:
+  - Conditional rendering of event_content
+  - Only shows filled fields
+  - Consistent layout with icons
+  - Maintains theme styling
+  
+  Implementation:
+  - Backend: Added event_content Dict field to WeddingEvent model
+  - Frontend Admin: EventContentFields component with dynamic rendering
+  - Frontend Public: Conditional display in PublicInvitation.jsx
+  
+  Strict:
+  - No schema breaking (Optional Dict field)
+  - No duplicated components (single EventContentFields)
+  - Backward compatible (empty dict for existing events)
+
+backend_event_content:
+  - task: "WeddingEvent Model - event_content Field"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added event_content field to WeddingEvent model as Optional[Dict[str, Any]] with default empty dict. This allows flexible storage of event-type specific content without breaking existing schema. Field stores different structured data based on event_type."
+
+frontend_event_content:
+  - task: "EventContentFields Component"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/EventContentFields.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created EventContentFields component that dynamically renders form fields based on event_type. Component shows event-specific sections with color-coded backgrounds (pink/yellow/green/red/purple) and appropriate fields for each event type. All fields update event.event_content object via onChange handler. Fields include: Engagement (couple_names, venue_details), Haldi (bride_name, groom_name, ceremony_time, dress_code), Mehendi (bride_name, mehendi_time, venue_details), Marriage (bride_full_name, groom_full_name, bride_parents, groom_parents, muhurat_time, rituals, dress_code), Reception (couple_names, reception_time, venue_details, dress_code)."
+  
+  - task: "ProfileForm Integration"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/ProfileForm.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Integrated EventContentFields component into ProfileForm event management section. Component appears after EventBackgroundSelector for each event. Updated addDefaultEvents() and addEvent() functions to initialize event_content as empty object {}. Imported EventContentFields component at top of file."
+  
+  - task: "PublicInvitation Event Content Display"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/PublicInvitation.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added conditional rendering of event_content in PublicInvitation event display section. Content appears after description in a bordered section with event-type specific field rendering. Only shows fields that have values. Each event type has custom display logic: Engagement shows couple names and venue details, Haldi shows bride/groom names, ceremony time, dress code, Mehendi shows bride name, mehendi time, venue details, Marriage shows full names, parents, muhurat time, rituals, dress code, Reception shows couple names, reception time, venue details, dress code. Uses icons and consistent styling with theme colors."
+
+metadata_event_content:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 0
+  run_ui: false
+
+test_plan_event_content:
+  current_focus:
+    - "WeddingEvent Model - event_content Field"
+    - "EventContentFields Component"
+    - "ProfileForm Integration"
+    - "PublicInvitation Event Content Display"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication_event_content:
+  - agent: "main"
+    message: |
+      ✅ EVENT-TYPE SPECIFIC CONTENT CUSTOMIZATION IMPLEMENTATION COMPLETE
+      
+      BACKEND IMPLEMENTATION:
+      1. ✅ Updated WeddingEvent model in models.py:
+         - Added event_content: Optional[Dict[str, Any]] = {} field
+         - Imported Any from typing module
+         - Maintains backward compatibility (empty dict default)
+         - No schema breaking changes
+      
+      FRONTEND ADMIN IMPLEMENTATION:
+      1. ✅ Created EventContentFields.jsx component (371 lines):
+         - Dynamic field rendering based on event_type
+         - 5 event-specific sections with color-coded backgrounds:
+           * Engagement (pink): couple_names, venue_details
+           * Haldi (yellow): bride_name, groom_name, ceremony_time, dress_code
+           * Mehendi (green): bride_name, mehendi_time, venue_details
+           * Marriage (red): bride_full_name, groom_full_name, bride_parents, groom_parents, muhurat_time, rituals, dress_code
+           * Reception (purple): couple_names, reception_time, venue_details, dress_code
+         - All fields optional with helpful placeholders and descriptions
+         - onChange handler updates event.event_content object
+      
+      2. ✅ Updated ProfileForm.jsx:
+         - Imported EventContentFields component
+         - Added component after EventBackgroundSelector in event form
+         - Updated addDefaultEvents() to include event_content: {}
+         - Updated addEvent() to include event_content: {}
+         - Component integrated seamlessly in event management section
+      
+      FRONTEND PUBLIC DISPLAY IMPLEMENTATION:
+      1. ✅ Updated PublicInvitation.jsx:
+         - Added conditional event_content display section
+         - Renders after event description in bordered section
+         - Event-type specific rendering logic for all 5 event types
+         - Only displays fields that have values (empty fields hidden)
+         - Uses icons and theme-aware styling
+         - Maintains consistent layout with existing event display
+      
+      FEATURES:
+      ✅ Admin can add event-specific content dynamically
+      ✅ Fields appear/hide based on event_type selection
+      ✅ Color-coded sections for easy identification
+      ✅ Public view shows only filled fields
+      ✅ Backward compatible (existing events work without event_content)
+      ✅ No schema breaking (Optional Dict field)
+      ✅ No component duplication (single EventContentFields component)
+      ✅ Consistent theming and layout
+      
+      SERVICES STATUS:
+      ✅ Backend running successfully on port 8001
+      ✅ Frontend compiled without errors (only eslint warnings)
+      ✅ MongoDB connected
+      
+      Ready for backend and frontend testing. Admin can now create events with event-specific content fields, and guests will see contextual information based on event type.
+
