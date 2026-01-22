@@ -125,7 +125,8 @@ class EventInvitationTester:
         
         try:
             response = requests.post(f"{BASE_URL}/admin/profiles", 
-                                   json=profile_data, headers=headers)
+                                   json=profile_data, headers=headers, 
+                                   verify=True, timeout=30)
             
             if response.status_code == 200:
                 data = response.json()
