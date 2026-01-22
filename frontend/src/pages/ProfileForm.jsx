@@ -1823,28 +1823,43 @@ const ProfileForm = () => {
 };
 
 /**
- * PHASE 13 PART 2: Event Background Selector Component
- * Shows appropriate background options based on event type
+ * EVENT-BASED BACKGROUND SELECTOR
+ * Supports dual-layer backgrounds (hero + scroll) with event-specific rules
  */
 const EventBackgroundSelector = ({ eventType, backgroundConfig, onChange }) => {
-  const backgrounds = getEventBackgrounds(eventType);
-  const [selectedCategory, setSelectedCategory] = useState(backgroundConfig?.background_type || null);
-  const [selectedBackground, setSelectedBackground] = useState(backgroundConfig?.background_id || null);
+  const config = getEventBackgroundConfig(eventType);
+  const [heroSelected, setHeroSelected] = useState(backgroundConfig?.hero_background_id || null);
+  const [scrollSelected, setScrollSelected] = useState(backgroundConfig?.scroll_background_id || null);
   
-  if (!backgrounds) return null;
+  if (!config) return null;
+  
+  // Check if lord backgrounds are prohibited
+  const lordProhibited = prohibitsLordBackgrounds(eventType);
   
   // Helper to render background cards
-  const renderBackgroundCards = (bgList, category) => (
+  const renderBackgroundCards = (bgList, layer) => (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-3">
       {bgList.map((bg) => {
-        const isSelected = selectedCategory === category && selectedBackground === bg.id;
+        const isSelected = layer === 'hero' ? heroSelected === bg.id : scrollSelected === bg.id;
         return (
           <div
             key={bg.id}
             onClick={() => {
-              setSelectedCategory(category);
-              setSelectedBackground(bg.id);
-              onChange({ background_type: category, background_id: bg.id });
+              if (layer === 'hero') {
+                setHeroSelected(bg.id);
+                onChange({ 
+                  ...backgroundConfig,
+                  hero_background_id: bg.id,
+                  scroll_background_id: scrollSelected 
+                });
+              } else {
+                setScrollSelected(bg.id);
+                onChange({ 
+                  ...backgroundConfig,
+                  hero_background_id: heroSelected,
+                  scroll_background_id: bg.id 
+                });
+              }
             }}
             className={`relative border-2 rounded-lg p-2 cursor-pointer transition-all hover:shadow-lg ${
               isSelected ? 'border-rose-500 bg-rose-50' : 'border-gray-200 hover:border-rose-300'
@@ -1855,6 +1870,7 @@ const EventBackgroundSelector = ({ eventType, backgroundConfig, onChange }) => {
                 src={bg.thumbnail || bg.images?.thumbnail}
                 alt={bg.name}
                 className="w-full h-full object-cover"
+                loading="lazy"
                 onError={(e) => {
                   e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ddd" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999"%3ENo Image%3C/text%3E%3C/svg%3E';
                 }}
@@ -1873,156 +1889,47 @@ const EventBackgroundSelector = ({ eventType, backgroundConfig, onChange }) => {
     </div>
   );
   
-  // Engagement: Lord + Ring/Flower
-  if (eventType === 'engagement') {
-    return (
-      <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Event Background (Optional)
+  return (
+    <div className="border border-gray-200 rounded-lg p-4 bg-gradient-to-br from-gray-50 to-gray-100 space-y-6">
+      <div>
+        <label className="block text-sm font-semibold text-gray-800 mb-1">
+          Event Backgrounds {lordProhibited && <span className="text-xs text-orange-600 font-normal">(Lord backgrounds disabled for {eventType})</span>}
         </label>
-        <p className="text-xs text-gray-600 mb-3">
-          Choose from religious lord backgrounds or trendy ring/flower themes
+        <p className="text-xs text-gray-600">
+          {config.hero.description}
         </p>
-        
-        <div className="space-y-4">
-          {/* Lord Backgrounds */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <input
-                type="radio"
-                id={`${eventType}-lord`}
-                name={`${eventType}-category`}
-                checked={selectedCategory === 'lord'}
-                onChange={() => setSelectedCategory('lord')}
-                className="w-4 h-4 text-rose-600"
-              />
-              <label htmlFor={`${eventType}-lord`} className="text-sm font-medium text-gray-700">
-                Lord Backgrounds
-              </label>
-            </div>
-            {selectedCategory === 'lord' && renderBackgroundCards(backgrounds.lord, 'lord')}
-          </div>
-          
-          {/* Trendy Backgrounds */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <input
-                type="radio"
-                id={`${eventType}-trendy`}
-                name={`${eventType}-category`}
-                checked={selectedCategory === 'trendy'}
-                onChange={() => setSelectedCategory('trendy')}
-                className="w-4 h-4 text-rose-600"
-              />
-              <label htmlFor={`${eventType}-trendy`} className="text-sm font-medium text-gray-700">
-                Ring & Flower Backgrounds
-              </label>
-            </div>
-            {selectedCategory === 'trendy' && renderBackgroundCards(backgrounds.trendy, 'trendy')}
-          </div>
+      </div>
+      
+      {/* Hero/Top Background */}
+      <div className="bg-white rounded-lg p-4 border border-gray-200">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-1 h-6 bg-rose-500 rounded"></div>
+          <h4 className="font-semibold text-sm text-gray-800">{config.hero.label}</h4>
         </div>
+        <p className="text-xs text-gray-600 mb-3">{config.hero.description}</p>
+        {renderBackgroundCards(config.hero.options, 'hero')}
       </div>
-    );
-  }
-  
-  // Haldi: Trendy only
-  if (eventType === 'haldi') {
-    return (
-      <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Haldi Background (Optional)
-        </label>
-        <p className="text-xs text-gray-600 mb-3">
-          Turmeric, bindelu, and yellow floral themes
-        </p>
-        {renderBackgroundCards(backgrounds.trendy, 'trendy')}
-      </div>
-    );
-  }
-  
-  // Mehendi: Trendy only
-  if (eventType === 'mehendi') {
-    return (
-      <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Mehendi Background (Optional)
-        </label>
-        <p className="text-xs text-gray-600 mb-3">
-          Mehendi patterns and green theme backgrounds
-        </p>
-        {renderBackgroundCards(backgrounds.trendy, 'trendy')}
-      </div>
-    );
-  }
-  
-  // Marriage: Lord only
-  if (eventType === 'marriage') {
-    return (
-      <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Marriage Background (Optional)
-        </label>
-        <p className="text-xs text-gray-600 mb-3">
-          Choose a religious lord background for the marriage ceremony
-        </p>
-        {renderBackgroundCards(backgrounds.lord, 'lord')}
-      </div>
-    );
-  }
-  
-  // Reception: Mandatory choice - With Lord OR Without Lord
-  if (eventType === 'reception') {
-    return (
-      <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Reception Background <span className="text-rose-500">*</span>
-        </label>
-        <p className="text-xs text-gray-600 mb-3">
-          Choose between religious lord backgrounds or royal/classy themes (required for reception)
-        </p>
-        
-        <div className="space-y-4">
-          {/* With Lord */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <input
-                type="radio"
-                id={`${eventType}-with-lord`}
-                name={`${eventType}-category`}
-                checked={selectedCategory === 'with_lord'}
-                onChange={() => setSelectedCategory('with_lord')}
-                className="w-4 h-4 text-rose-600"
-              />
-              <label htmlFor={`${eventType}-with-lord`} className="text-sm font-medium text-gray-700">
-                With Lord Background
-              </label>
-            </div>
-            {selectedCategory === 'with_lord' && renderBackgroundCards(backgrounds.with_lord, 'with_lord')}
-          </div>
-          
-          {/* Without Lord - Royal/Classy */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <input
-                type="radio"
-                id={`${eventType}-without-lord`}
-                name={`${eventType}-category`}
-                checked={selectedCategory === 'without_lord'}
-                onChange={() => setSelectedCategory('without_lord')}
-                className="w-4 h-4 text-rose-600"
-              />
-              <label htmlFor={`${eventType}-without-lord`} className="text-sm font-medium text-gray-700">
-                Without Lord (Royal/Classy)
-              </label>
-            </div>
-            {selectedCategory === 'without_lord' && renderBackgroundCards(backgrounds.without_lord, 'without_lord')}
-          </div>
+      
+      {/* Scroll Background */}
+      <div className="bg-white rounded-lg p-4 border border-gray-200">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-1 h-6 bg-purple-500 rounded"></div>
+          <h4 className="font-semibold text-sm text-gray-800">{config.scroll.label}</h4>
         </div>
+        <p className="text-xs text-gray-600 mb-3">{config.scroll.description}</p>
+        {renderBackgroundCards(config.scroll.options, 'scroll')}
       </div>
-    );
-  }
-  
-  return null;
+      
+      {/* Preview Info */}
+      {(heroSelected || scrollSelected) && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <p className="text-xs text-blue-800">
+            <strong>Selected:</strong> {heroSelected && `Hero (${heroSelected})`} {scrollSelected && `• Scroll (${scrollSelected})`}
+          </p>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default ProfileForm;
