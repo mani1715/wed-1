@@ -103,6 +103,168 @@
 #====================================================================================================
 
 
+user_problem_statement_phase13_part2: |
+  PHASE 13 – PART 2: EVENT-BASED UI & BACKGROUND RULES
+  
+  Context:
+  Continue same wedding invitation project.
+  Phase 13 Part 1 already implemented.
+  
+  Goal:
+  Change admin UI and rendering logic based on event_type.
+  
+  Admin Rules:
+  - Event types: Engagement, Haldi, Mehendi, Marriage, Reception
+  - Background options per event:
+    • Engagement → Lord backgrounds + Ring/Flower backgrounds
+    • Haldi → Trendy only (turmeric, bindelu, yellow florals)
+    • Mehendi → Trendy only (mehendi patterns, green theme)
+    • Marriage → Lord backgrounds only
+    • Reception → Mandatory choice: With Lord OR Without Lord (royal/classy)
+  - Disable lord selector for Haldi & Mehendi
+  - Enable lord selector for Engagement, Marriage, Reception
+  
+  Public Rules:
+  - Render background based on event_type
+  - No layout duplication
+  - Background layer remains independent from theme
+  
+  Strict:
+  - No videos
+  - No heavy animations
+  - No logic regression
+
+backend_phase13_part2:
+  - task: "EventBackgroundConfig Model"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created EventBackgroundConfig model with background_type (lord, trendy, royal) and background_id fields. Added background_config field to WeddingEvent model to store event-specific background configuration."
+
+frontend_phase13_part2:
+  - task: "Event Backgrounds Configuration"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/config/eventBackgrounds.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created comprehensive event backgrounds configuration file with 5 event-specific background collections: ENGAGEMENT_BACKGROUNDS (lord + trendy ring/flower), HALDI_BACKGROUNDS (trendy only: turmeric, bindelu, yellow florals), MEHENDI_BACKGROUNDS (trendy only: mehendi patterns, green theme), MARRIAGE_BACKGROUNDS (lord only), RECEPTION_BACKGROUNDS (with_lord + without_lord royal/classy). Includes helper functions: getEventBackgrounds(), getBackgroundById(), allowsLordBackgrounds(), requiresBackgroundSelection()."
+  
+  - task: "Event Background Selector Component"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/ProfileForm.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created EventBackgroundSelector component in ProfileForm that displays event-specific background options based on event_type. Component handles all 5 event types with appropriate UI: Engagement shows lord/trendy radio buttons, Haldi shows trendy only, Mehendi shows trendy only, Marriage shows lord only, Reception shows mandatory with_lord/without_lord radio buttons. Integrated into event edit section with background card grid display. Background selection updates event.background_config field."
+  
+  - task: "Event Background Rendering"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/PublicInvitation.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created EventBackground component with progressive image loading (thumbnail → mobile/desktop). Updated background rendering logic in PublicInvitation: when viewing event-specific page (/invite/:slug/:eventType), renders event's background_config if present, falls back to profile deity_id background. When viewing profile page (/invite/:slug), shows profile deity_id background. Background layer independent from theme, fixed position with z-index 0, opacity 0.2. No animations or effects."
+
+metadata_phase13_part2:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 0
+  run_ui: false
+
+test_plan_phase13_part2:
+  current_focus:
+    - "EventBackgroundConfig Model"
+    - "Event Backgrounds Configuration"
+    - "Event Background Selector Component"
+    - "Event Background Rendering"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication_phase13_part2:
+  - agent: "main"
+    message: |
+      ✅ PHASE 13 - PART 2: EVENT-BASED UI & BACKGROUND RULES IMPLEMENTATION COMPLETE
+      
+      STATUS SUMMARY:
+      All components implemented successfully. Services restarted and compiled with warnings (eslint only, no errors).
+      
+      IMPLEMENTATION DETAILS:
+      
+      Backend:
+      1. ✅ Added EventBackgroundConfig model (background_type, background_id)
+      2. ✅ Added background_config field to WeddingEvent model
+      
+      Frontend Configuration:
+      1. ✅ Created eventBackgrounds.js with all event-specific backgrounds:
+         - Engagement: 4 lord backgrounds + 3 ring/flower backgrounds
+         - Haldi: 4 trendy backgrounds (turmeric, bindelu, yellow florals, abstract)
+         - Mehendi: 4 trendy backgrounds (intricate pattern, green leaves, paisley, abstract)
+         - Marriage: 4 lord backgrounds only
+         - Reception: 4 lord backgrounds + 4 royal/classy backgrounds
+      2. ✅ Helper functions implemented for background retrieval and validation
+      
+      Frontend Admin UI:
+      1. ✅ EventBackgroundSelector component created with event-specific logic:
+         - Engagement: Radio buttons for Lord vs Ring/Flower, shows appropriate cards
+         - Haldi: Trendy only section with 4 background cards
+         - Mehendi: Trendy only section with 4 background cards
+         - Marriage: Lord only section with 4 deity backgrounds
+         - Reception: Mandatory radio buttons for With Lord vs Without Lord (royal/classy)
+      2. ✅ Integrated into ProfileForm event edit section
+      3. ✅ Background selection updates event.background_config
+      
+      Frontend Public Rendering:
+      1. ✅ Created EventBackground component with progressive loading
+      2. ✅ Conditional rendering logic:
+         - Event-specific page: Shows event.background_config if present, else profile deity
+         - Profile page: Shows profile deity_id background
+      3. ✅ Background independent from theme system
+      4. ✅ Fixed position, z-index 0, opacity 0.2, no animations
+      
+      RULES COMPLIANCE:
+      ✅ Lord selector disabled for Haldi & Mehendi (trendy only)
+      ✅ Lord selector enabled for Engagement, Marriage, Reception
+      ✅ Reception requires mandatory choice (enforced in UI)
+      ✅ No videos, no heavy animations, no logic regression
+      ✅ Background layer independent from theme
+      
+      TESTING NEEDED:
+      1. Test admin can select event-specific backgrounds for each event type
+      2. Verify Engagement shows lord + ring/flower options
+      3. Verify Haldi shows only trendy backgrounds
+      4. Verify Mehendi shows only trendy backgrounds
+      5. Verify Marriage shows only lord backgrounds
+      6. Verify Reception requires mandatory choice between with_lord/without_lord
+      7. Test public invitation renders correct background based on event_type
+      8. Verify background changes when viewing event-specific vs profile pages
+      9. Verify background remains independent from theme changes
+      10. Test backward compatibility with existing profiles without background_config
+      
+      NOTE: Background images are placeholder paths. Actual images need to be added to /app/frontend/public/assets/backgrounds/ directory.
+      
+      Services are running. Ready for backend and frontend testing.
+
+
 user_problem_statement_phase13_part1: |
   PHASE 13 – PART 1: MARRIAGE EVENT SYSTEM CORE
   
