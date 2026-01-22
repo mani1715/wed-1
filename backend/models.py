@@ -61,7 +61,7 @@ class EventInvitation(BaseModel):
     Allows ONE profile to create MULTIPLE event-specific invitation links.
     Each event type (Engagement, Haldi, Mehendi, Marriage, Reception) gets its own invitation page.
     """
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(extra="ignore", use_enum_values=True)
     
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     profile_id: str  # Reference to parent profile
