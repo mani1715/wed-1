@@ -884,6 +884,150 @@ async def create_profile_from_template(template_id: str, admin_id: str = Depends
     return ProfileResponse(**response_data)
 
 
+# ==================== ADMIN - EVENT INVITATION ROUTES ====================
+
+@api_router.get("/admin/profiles/{profile_id}/event-invitations", response_model=List[EventInvitationResponse])
+async def get_profile_event_invitations(profile_id: str, admin_id: str = Depends(get_current_admin)):
+    """Get all event invitations for a profile"""
+    # Check if profile exists
+    profile = await db.profiles.find_one({"id": profile_id}, {"_id": 0})
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    # Get all event invitations for this profile
+    event_invitations = await db.event_invitations.find(
+        {"profile_id": profile_id}, 
+        {"_id": 0}
+    ).to_list(100)
+    
+    # Convert datetime strings back to datetime objects and add invitation_link
+    for ei in event_invitations:
+        if isinstance(ei.get('created_at'), str):
+            ei['created_at'] = datetime.fromisoformat(ei['created_at'])
+        if isinstance(ei.get('updated_at'), str):
+            ei['updated_at'] = datetime.fromisoformat(ei['updated_at'])
+        
+        # Generate invitation link
+        ei['invitation_link'] = f"/invite/{profile['slug']}/{ei['event_type']}"
+    
+    return [EventInvitationResponse(**ei) for ei in event_invitations]
+
+
+@api_router.post("/admin/profiles/{profile_id}/event-invitations", response_model=EventInvitationResponse)
+async def create_event_invitation(
+    profile_id: str,
+    event_data: EventInvitationCreate,
+    admin_id: str = Depends(get_current_admin)
+):
+    """Create a new event-specific invitation link for a profile"""
+    # Check if profile exists
+    profile = await db.profiles.find_one({"id": profile_id}, {"_id": 0})
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    # Check if event invitation already exists for this event_type
+    existing = await db.event_invitations.find_one({
+        "profile_id": profile_id,
+        "event_type": event_data.event_type
+    })
+    if existing:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Event invitation for {event_data.event_type} already exists"
+        )
+    
+    # Apply deity validation rules based on event_type
+    deity_id = event_data.deity_id
+    if event_data.event_type in ['haldi', 'mehendi']:
+        # Force deity_id to None for Haldi/Mehendi
+        deity_id = None
+    
+    # Create event invitation
+    event_invitation = EventInvitation(
+        profile_id=profile_id,
+        event_type=event_data.event_type,
+        design_id=event_data.design_id,
+        deity_id=deity_id,
+        enabled=True
+    )
+    
+    # Serialize to dict and convert datetime to ISO format
+    doc = event_invitation.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['updated_at'] = doc['updated_at'].isoformat()
+    
+    # Insert into database
+    await db.event_invitations.insert_one(doc)
+    
+    # Prepare response
+    response_data = doc.copy()
+    response_data['created_at'] = datetime.fromisoformat(response_data['created_at'])
+    response_data['updated_at'] = datetime.fromisoformat(response_data['updated_at'])
+    response_data['invitation_link'] = f"/invite/{profile['slug']}/{response_data['event_type']}"
+    
+    return EventInvitationResponse(**response_data)
+
+
+@api_router.put("/admin/event-invitations/{invitation_id}", response_model=EventInvitationResponse)
+async def update_event_invitation(
+    invitation_id: str,
+    update_data: EventInvitationUpdate,
+    admin_id: str = Depends(get_current_admin)
+):
+    """Update an event invitation"""
+    # Find the event invitation
+    event_invitation = await db.event_invitations.find_one({"id": invitation_id}, {"_id": 0})
+    if not event_invitation:
+        raise HTTPException(status_code=404, detail="Event invitation not found")
+    
+    # Get profile for slug
+    profile = await db.profiles.find_one({"id": event_invitation['profile_id']}, {"_id": 0, "slug": 1})
+    
+    # Prepare update data
+    update_dict = {}
+    if update_data.design_id is not None:
+        update_dict['design_id'] = update_data.design_id
+    if update_data.deity_id is not None:
+        # Apply deity validation rules based on event_type
+        if event_invitation['event_type'] in ['haldi', 'mehendi']:
+            # Force deity_id to None for Haldi/Mehendi
+            update_dict['deity_id'] = None
+        else:
+            update_dict['deity_id'] = update_data.deity_id
+    if update_data.enabled is not None:
+        update_dict['enabled'] = update_data.enabled
+    
+    update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    # Update in database
+    await db.event_invitations.update_one(
+        {"id": invitation_id},
+        {"$set": update_dict}
+    )
+    
+    # Fetch updated document
+    updated = await db.event_invitations.find_one({"id": invitation_id}, {"_id": 0})
+    
+    # Convert datetime strings
+    if isinstance(updated.get('created_at'), str):
+        updated['created_at'] = datetime.fromisoformat(updated['created_at'])
+    if isinstance(updated.get('updated_at'), str):
+        updated['updated_at'] = datetime.fromisoformat(updated['updated_at'])
+    
+    updated['invitation_link'] = f"/invite/{profile['slug']}/{updated['event_type']}"
+    
+    return EventInvitationResponse(**updated)
+
+
+@api_router.delete("/admin/event-invitations/{invitation_id}")
+async def delete_event_invitation(invitation_id: str, admin_id: str = Depends(get_current_admin)):
+    """Delete an event invitation"""
+    result = await db.event_invitations.delete_one({"id": invitation_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Event invitation not found")
+    
+    return {"message": "Event invitation deleted successfully"}
 
 
 # ==================== ADMIN - AUDIT LOG ROUTES ====================
