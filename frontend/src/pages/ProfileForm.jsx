@@ -321,6 +321,7 @@ const ProfileForm = () => {
       map_link: '',
       description: '',
       design_preset_id: null,  // PHASE 13: Event-specific design
+      event_content: {},  // Event-specific content fields
       visible: evt.visible,
       order: index
     }));
@@ -349,6 +350,7 @@ const ProfileForm = () => {
       map_link: '',
       description: '',
       design_preset_id: null,  // PHASE 13: Event-specific design
+      event_content: {},  // Event-specific content fields
       visible: true,
       order: formData.events.length
     };
