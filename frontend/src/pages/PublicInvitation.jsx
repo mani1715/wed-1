@@ -758,6 +758,22 @@ const PublicInvitation = () => {
       {/* If not event-specific page, show profile deity background */}
       {!eventType && <DeityBackground deityId={invitation.deity_id} />}
       
+      {/* Temple Opening Section - Only for lord-enabled events */}
+      {eventType && invitation.deity_id && invitation.deity_id !== 'none' && (() => {
+        const currentEvent = invitation.events?.find(e => e.event_type === eventType);
+        const allowedEvents = ['engagement', 'marriage', 'reception'];
+        
+        // Show temple opening if event type allows lord backgrounds
+        if (allowedEvents.includes(eventType.toLowerCase())) {
+          return (
+            <div style={{ position: 'relative', zIndex: 2 }}>
+              <TempleOpening deityId={invitation.deity_id} eventType={eventType} />
+            </div>
+          );
+        }
+        return null;
+      })()}
+      
       {/* Main Content - Positioned above background */}
       <div 
         className="min-h-screen" 
