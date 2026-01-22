@@ -736,12 +736,19 @@ const PublicInvitation = () => {
 
   return (
     <>
-      {/* PHASE 13 PART 2: Background Layer - Event-specific or Profile Deity */}
+      {/* Background Layer - Event-specific dual-layer or legacy/deity backgrounds */}
       {eventType && invitation.events && (() => {
         // If viewing event-specific page, check for event background
         const currentEvent = invitation.events.find(e => e.event_type === eventType);
-        if (currentEvent && currentEvent.background_config && currentEvent.background_config.background_id) {
-          return <EventBackground backgroundConfig={currentEvent.background_config} />;
+        if (currentEvent?.background_config) {
+          // Check if using new dual-layer system
+          if (currentEvent.background_config.hero_background_id || currentEvent.background_config.scroll_background_id) {
+            return <DualLayerBackground backgroundConfig={currentEvent.background_config} />;
+          }
+          // Legacy single background support
+          if (currentEvent.background_config.background_id) {
+            return <EventBackground backgroundConfig={currentEvent.background_config} />;
+          }
         }
         // Fall back to profile deity background if no event background
         return <DeityBackground deityId={invitation.deity_id} />;
