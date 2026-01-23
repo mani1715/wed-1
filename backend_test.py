@@ -10,7 +10,7 @@ import sys
 from datetime import datetime, timedelta
 
 # Configuration
-BASE_URL = "https://wedding-planner-116.preview.emergentagent.com/api"
+BASE_URL = "https://love-nexus-2.preview.emergentagent.com/api"
 ADMIN_EMAIL = "admin@wedding.com"
 ADMIN_PASSWORD = "admin123"
 
