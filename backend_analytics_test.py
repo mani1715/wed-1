@@ -18,7 +18,7 @@ import traceback
 import time
 
 # Configuration
-BASE_URL = "https://love-nexus-2.preview.emergentagent.com/api"
+BASE_URL = "https://marry-mate-14.preview.emergentagent.com/api"
 ADMIN_EMAIL = "admin@wedding.com"
 ADMIN_PASSWORD = "admin123"
 

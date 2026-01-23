@@ -2678,7 +2678,7 @@ async def generate_qr_code(slug: str):
         raise HTTPException(status_code=404, detail="Invitation not found")
     
     # Build invitation URL
-    invitation_url = f"https://love-nexus-2.preview.emergentagent.com/invite/{slug}"
+    invitation_url = f"https://marry-mate-14.preview.emergentagent.com/invite/{slug}"
     
     # Create QR code
     qr = qrcode.QRCode(
