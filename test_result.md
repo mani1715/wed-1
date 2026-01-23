@@ -207,6 +207,163 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
+user_problem_statement: |
+  Finalize language support and greeting controls for wedding invitation platform.
+  
+  LANGUAGES:
+  - Add Hindi (hi) with lazy loading, same structure as other languages
+  
+  GREETINGS:
+  - Add sections_enabled.greetings toggle (already exists in backend model)
+  - If disabled → hide greetings section (already implemented in frontend)
+  - WhatsApp greeting remains optional (already working)
+  
+  PUBLIC:
+  - Default language = profile language (not first enabled language)
+  - Remember user selection (localStorage persistence)
+  
+  STRICT:
+  - No breaking existing translations
+
+backend:
+  - task: "Hindi language support in backend models"
+    implemented: true
+    working: "NA"
+    file: "backend/models.py"
+    stuck_count: 0
+    priority: "low"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Backend already supports all language codes via Profile.language field and enabled_languages list. No changes needed."
+
+  - task: "Greetings toggle in sections_enabled model"
+    implemented: true
+    working: true
+    file: "backend/models.py"
+    stuck_count: 0
+    priority: "low"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "sections_enabled.greetings toggle already exists in SectionsEnabled model (line 168) with default value True"
+
+frontend:
+  - task: "Create Hindi language JSON file"
+    implemented: true
+    working: true
+    file: "frontend/public/lang/hi.json"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Created hi.json with complete Hindi translations matching the structure of other language files (en.json, te.json, etc.)"
+
+  - task: "Add Hindi to languageLoader.js LANGUAGES array"
+    implemented: true
+    working: true
+    file: "frontend/src/utils/languageLoader.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Added Hindi entry to LANGUAGES array with code 'hindi', file 'hi.json', and nativeName 'हिन्दी'"
+
+  - task: "Implement default language priority logic"
+    implemented: true
+    working: true
+    file: "frontend/src/pages/PublicInvitation.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Updated language selection logic to prioritize: 1) localStorage saved preference, 2) profile.language, 3) first enabled language"
+
+  - task: "Greetings section toggle implementation"
+    implemented: true
+    working: true
+    file: "frontend/src/pages/PublicInvitation.jsx"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Greetings section already uses sections_enabled.greetings toggle (line 1669). Section is hidden when toggle is false."
+
+  - task: "WhatsApp greeting optional feature"
+    implemented: true
+    working: true
+    file: "frontend/src/pages/PublicInvitation.jsx"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "WhatsApp buttons only show when whatsapp_groom or whatsapp_bride phone numbers are set (line 1547). Already optional."
+
+  - task: "localStorage language preference persistence"
+    implemented: true
+    working: true
+    file: "frontend/src/pages/PublicInvitation.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Language preference already saved to localStorage (line 356). Enhanced to load from localStorage on mount with priority order."
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 0
+  run_ui: true
+
+test_plan:
+  current_focus:
+    - "Hindi language file loading"
+    - "Language selection with priority (localStorage > profile > first enabled)"
+    - "Language preference persistence across page reloads"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: |
+      Implementation complete for language finalization and greeting controls:
+      
+      ✅ COMPLETED:
+      1. Created hi.json with Hindi translations
+      2. Added Hindi to languageLoader.js LANGUAGES array
+      3. Enhanced default language logic with priority order:
+         - First checks localStorage for saved preference
+         - Falls back to profile.language if enabled
+         - Finally uses first enabled language
+      4. Verified greetings toggle already implemented
+      5. Verified WhatsApp buttons are optional
+      6. Enhanced localStorage persistence
+      
+      📋 READY FOR TESTING:
+      - Hindi language switching and display
+      - Default language selection (should use profile.language)
+      - Language preference persistence after page reload
+      - Greetings section toggle (admin side)
+      
+      ⚠️ NOTE:
+      - All greeting controls already working
+      - No breaking changes to existing translations
+      - Backend needs no changes (already supports all features)
 
 user_problem_statement_temple_opening: |
   TEMPLE-STYLE OPENING SECTION FOR LORD-ENABLED EVENTS
