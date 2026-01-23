@@ -328,9 +328,23 @@ const PublicInvitation = () => {
       link.rel = 'stylesheet';
       document.head.appendChild(link);
       
-      // Set default language (first enabled language) and preload languages
+      // Set default language with priority:
+      // 1. User's saved preference (localStorage)
+      // 2. Profile's main language (if enabled)
+      // 3. First enabled language
       if (invitation.enabled_languages && invitation.enabled_languages.length > 0) {
-        const defaultLang = invitation.enabled_languages[0];
+        let defaultLang = invitation.enabled_languages[0];
+        
+        // Check for saved preference first
+        const savedPreference = localStorage.getItem('preferredLanguage');
+        if (savedPreference && invitation.enabled_languages.includes(savedPreference)) {
+          defaultLang = savedPreference;
+        } 
+        // Otherwise use profile's language if it's enabled
+        else if (invitation.language && invitation.enabled_languages.includes(invitation.language)) {
+          defaultLang = invitation.language;
+        }
+        
         setSelectedLanguage(defaultLang);
         
         // Preload all enabled languages for faster switching
