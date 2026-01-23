@@ -12,6 +12,7 @@ const languageCache = {};
 export const LANGUAGES = [
   { code: 'english', name: 'English', nativeName: 'English', file: 'en.json' },
   { code: 'telugu', name: 'Telugu', nativeName: 'తెలుగు', file: 'te.json' },
+  { code: 'hindi', name: 'Hindi', nativeName: 'हिन्दी', file: 'hi.json' },
   { code: 'tamil', name: 'Tamil', nativeName: 'தமிழ்', file: 'ta.json' },
   { code: 'kannada', name: 'Kannada', nativeName: 'ಕನ್ನಡ', file: 'kn.json' },
   { code: 'malayalam', name: 'Malayalam', nativeName: 'മലയാളം', file: 'ml.json' }
